@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -10,8 +11,11 @@ class Dataset_Analyzer:
 		self.CSV_dataset_URL = dataset_url
 		self.CSV_dataset = self.get_dataset_in_CSV_from_URL(self.CSV_dataset_URL)
 		self.dataset_column_names = self.get_dataset_columns_names()
-		self.dataset_columns_types = pd.Series()
+		self.dataset_columns_types = dict(self.CSV_dataset.dtypes)
 		self.dataset_columns_with_missing_values = []
+		self.missing_values_columns_with_object_dtype = []
+		self.missing_values_columns_with_int_float_dtypes = []
+		
 		self.features_set_X = pd.DataFrame()
 
 	def show_dataset(self):
@@ -19,6 +23,9 @@ class Dataset_Analyzer:
 
 	def get_dataset_columns_names(self):
 		return self.CSV_dataset.columns
+
+	def show_dataset_columns_types(self):
+		print(self.dataset_columns_types)
 
 	def show_dataset_columns(self):
 		print(self.dataset_column_names)
@@ -33,7 +40,32 @@ class Dataset_Analyzer:
 			column_values = missing_values_by_bool_mapping_of_dataset[dataset_column].values
 			if True in column_values:
 				self.dataset_columns_with_missing_values.append(dataset_column)
-				print(f'Missing values in {dataset_column}.')
+				print(f'Missing values column - {dataset_column}!')
+		return True
+
+	def define_object_dtype_missing_value_columns(self):
+		for missing_value_column in self.dataset_columns_with_missing_values:
+			if self.dataset_columns_types[missing_value_column] == object:
+				self.missing_values_columns_with_object_dtype.append(missing_value_column)
+		return True
+
+	def define_int_float_dtype_missing_value_columns(self):
+		for missing_value_column in self.dataset_columns_with_missing_values:
+			if self.dataset_columns_types[missing_value_column] != object:
+				self.missing_values_columns_with_int_float_dtypes.append(missing_value_column)
+		return True
+
+	def remove_rows_with_object_dtype_columns_NaN_values(self):
+		for object_dtype_column in self.missing_values_columns_with_object_dtype:
+			self.CSV_dataset = self.CSV_dataset[self.CSV_dataset[object_dtype_column].notna()]
+
+	def replace_columns_NaN_values_with_mean_values(self):
+		for int_float_column in self.missing_values_columns_with_int_float_dtypes:
+			column_mean_value = self.CSV_dataset[int_float_column].mean(skipna = True)
+			self.CSV_dataset[int_float_column] = self.CSV_dataset[int_float_column].replace(
+				to_replace = np.nan, value = column_mean_value
+			)
+		return True
 
 	def remove_target_y_column_from_dataset(self):
 		pass
@@ -44,3 +76,10 @@ if __name__ == '__main__':
 	dataset_analyzer.show_dataset()
 	dataset_analyzer.show_dataset_columns()
 	dataset_analyzer.define_columns_with_missing_values_from_dataset()
+	dataset_analyzer.show_dataset_columns_types()
+	dataset_analyzer.define_object_dtype_missing_value_columns()
+	dataset_analyzer.define_int_float_dtype_missing_value_columns()
+	dataset_analyzer.remove_rows_with_object_dtype_columns_NaN_values()
+	dataset_analyzer.replace_columns_NaN_values_with_mean_values()
+	print('After data cleaning and replacing:')
+	dataset_analyzer.show_dataset()
