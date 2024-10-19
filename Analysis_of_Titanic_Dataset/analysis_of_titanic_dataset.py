@@ -16,7 +16,14 @@ class Dataset_Analyzer:
 		self.missing_values_columns_with_object_dtype = []
 		self.missing_values_columns_with_int_float_dtypes = []
 		
+		self.target_y_columns = ['Survived']
 		self.features_set_X = pd.DataFrame()
+		self.target_set_y = pd.DataFrame()
+
+		self.train_set_X = pd.DataFrame()
+		self.train_set_y = pd.DataFrame()
+		self.test_set_X = pd.DataFrame()
+		self.test_set_y = pd.DataFrame()
 
 	def show_dataset(self):
 		print(self.CSV_dataset)
@@ -67,8 +74,25 @@ class Dataset_Analyzer:
 			)
 		return True
 
-	def remove_target_y_column_from_dataset(self):
+	def define_features_set_X(self):
+		for target_y_column in self.target_y_columns:
+			self.features_set_X = self.CSV_dataset.drop(target_y_column, axis = 1)
+		return True
+
+	def define_target_set_y(self):
+		self.target_set_y = self.CSV_dataset[self.target_y_columns]
+		return True
+
+	def split_dataset_into_train_test_parts(self):
+		self.train_set_X, self.test_set_X, \
+		self.train_set_y, self.test_set_y = train_test_split(
+			self.features_set_X, self.target_set_y, test_size = 0.2, random_state = 42
+			)
+		return True
+
+	def features_scaling(self):
 		pass
+
 
 if __name__ == '__main__':
 	dataset_analyzer = Dataset_Analyzer("https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv")
@@ -83,3 +107,9 @@ if __name__ == '__main__':
 	dataset_analyzer.replace_columns_NaN_values_with_mean_values()
 	print('After data cleaning and replacing:')
 	dataset_analyzer.show_dataset()
+
+	dataset_analyzer.define_features_set_X()
+	dataset_analyzer.define_target_set_y()
+	
+	print('Splitting dataset for train and test stages.')
+	dataset_analyzer.split_dataset_into_train_test_parts()
