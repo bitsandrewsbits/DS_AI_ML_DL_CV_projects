@@ -25,6 +25,9 @@ class Dataset_Analyzer:
 		self.test_set_X = pd.DataFrame()
 		self.test_set_y = pd.DataFrame()
 
+		self.ML_model = 'object of some classifier model'
+		self.prediction_of_target_y = 'predict y values from ML model on test set X'
+
 	def show_dataset(self):
 		print(self.CSV_dataset)
 
@@ -74,6 +77,7 @@ class Dataset_Analyzer:
 			)
 		return True
 
+	# TODO: think about non-numbers columns and what to do with it for features X
 	def define_features_set_X(self):
 		for target_y_column in self.target_y_columns:
 			self.features_set_X = self.CSV_dataset.drop(target_y_column, axis = 1)
@@ -92,6 +96,19 @@ class Dataset_Analyzer:
 
 	def features_scaling(self):
 		pass
+
+	def train_RandomForestClassifier_model(self):
+		self.ML_model = RandomForestClassifier()
+		self.ML_model.fit(self.train_set_X, self.train_set_y)
+
+	def make_prediction_on_test_dataset(self):
+		self.prediction_of_target_y = self.ML_model.predict(self.test_set_X)
+
+	def evaluate_quality_of_ML_model(self):
+		print('Confusion matrix:')
+		print(confusion_matrix(self.test_set_y, self.prediction_of_target_y))
+		print('\nClassification Report:')
+		print(classification_report(self.test_set_y, self.prediction_of_target_y))
 
 
 if __name__ == '__main__':
@@ -113,3 +130,10 @@ if __name__ == '__main__':
 	
 	print('Splitting dataset for train and test stages.')
 	dataset_analyzer.split_dataset_into_train_test_parts()
+
+	print('Training ML model.')
+	dataset_analyzer.train_RandomForestClassifier_model()
+	print('Make prediction of target y values from test set X')
+	dataset_analyzer.make_prediction_on_test_dataset()
+	print('Model Evaluation:')
+	dataset_analyzer.evaluate_quality_of_ML_model()
