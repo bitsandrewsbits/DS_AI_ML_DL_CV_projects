@@ -13,7 +13,6 @@ class Dataset_Analyzer:
 		self.dataset_column_names = self.get_dataset_columns_names()
 		self.dataset_columns_types = dict(self.CSV_dataset.dtypes)
 		self.dataset_columns_with_missing_values = []
-		self.missing_values_columns_with_object_dtype = []
 		self.missing_values_columns_with_int_float_dtypes = []
 		
 		self.target_y_columns = ['Survived']
@@ -34,6 +33,9 @@ class Dataset_Analyzer:
 	def get_dataset_columns_names(self):
 		return self.CSV_dataset.columns
 
+	def update_dataset_columns_names(self):
+		self.dataset_column_names = self.get_dataset_columns_names()
+
 	def show_dataset_columns_types(self):
 		print(self.dataset_columns_types)
 
@@ -42,6 +44,12 @@ class Dataset_Analyzer:
 
 	def get_dataset_in_CSV_from_URL(self, url: str):
 		return pd.read_csv(url)
+
+	def remove_all_string_type_columns_from_dataset(self):
+		for dataset_column_name in self.dataset_columns_types:
+			if self.dataset_columns_types[dataset_column_name] == object:
+				self.CSV_dataset = self.CSV_dataset.drop(dataset_column_name, axis = 1)
+		return True
 
 	def define_columns_with_missing_values_from_dataset(self):
 		missing_values_by_bool_mapping_of_dataset = self.CSV_dataset.isna()
@@ -53,21 +61,11 @@ class Dataset_Analyzer:
 				print(f'Missing values column - {dataset_column}!')
 		return True
 
-	def define_object_dtype_missing_value_columns(self):
-		for missing_value_column in self.dataset_columns_with_missing_values:
-			if self.dataset_columns_types[missing_value_column] == object:
-				self.missing_values_columns_with_object_dtype.append(missing_value_column)
-		return True
-
 	def define_int_float_dtype_missing_value_columns(self):
 		for missing_value_column in self.dataset_columns_with_missing_values:
 			if self.dataset_columns_types[missing_value_column] != object:
 				self.missing_values_columns_with_int_float_dtypes.append(missing_value_column)
 		return True
-
-	def remove_rows_with_object_dtype_columns_NaN_values(self):
-		for object_dtype_column in self.missing_values_columns_with_object_dtype:
-			self.CSV_dataset = self.CSV_dataset[self.CSV_dataset[object_dtype_column].notna()]
 
 	def replace_columns_NaN_values_with_mean_values(self):
 		for int_float_column in self.missing_values_columns_with_int_float_dtypes:
@@ -77,7 +75,6 @@ class Dataset_Analyzer:
 			)
 		return True
 
-	# TODO: think about non-numbers columns and what to do with it for features X
 	def define_features_set_X(self):
 		for target_y_column in self.target_y_columns:
 			self.features_set_X = self.CSV_dataset.drop(target_y_column, axis = 1)
@@ -94,7 +91,7 @@ class Dataset_Analyzer:
 			)
 		return True
 
-	def features_scaling(self):
+	def features_normalization(self):
 		pass
 
 	def train_RandomForestClassifier_model(self):
@@ -116,11 +113,11 @@ if __name__ == '__main__':
 
 	dataset_analyzer.show_dataset()
 	dataset_analyzer.show_dataset_columns()
+	dataset_analyzer.remove_all_string_type_columns_from_dataset()
+	dataset_analyzer.update_dataset_columns_names()
 	dataset_analyzer.define_columns_with_missing_values_from_dataset()
 	dataset_analyzer.show_dataset_columns_types()
-	dataset_analyzer.define_object_dtype_missing_value_columns()
 	dataset_analyzer.define_int_float_dtype_missing_value_columns()
-	dataset_analyzer.remove_rows_with_object_dtype_columns_NaN_values()
 	dataset_analyzer.replace_columns_NaN_values_with_mean_values()
 	print('After data cleaning and replacing:')
 	dataset_analyzer.show_dataset()
