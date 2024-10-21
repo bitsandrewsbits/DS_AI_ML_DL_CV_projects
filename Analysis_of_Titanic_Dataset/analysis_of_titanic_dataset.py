@@ -36,6 +36,9 @@ class Dataset_Analyzer:
 	def update_dataset_columns_names(self):
 		self.dataset_column_names = self.get_dataset_columns_names()
 
+	def update_dataset_columns_types(self):
+		self.dataset_columns_types = dict(self.CSV_dataset.dtypes)
+
 	def show_dataset_columns_types(self):
 		print(self.dataset_columns_types)
 
@@ -80,6 +83,9 @@ class Dataset_Analyzer:
 			self.features_set_X = self.CSV_dataset.drop(target_y_column, axis = 1)
 		return True
 
+	def show_features_set_X(self):
+		print(self.features_set_X)
+
 	def define_target_set_y(self):
 		self.target_set_y = self.CSV_dataset[self.target_y_columns]
 		return True
@@ -91,8 +97,12 @@ class Dataset_Analyzer:
 			)
 		return True
 
-	def features_normalization(self):
-		pass
+	def features_max_abs_normalization(self):
+		features_column_names = self.features_set_X.columns
+		for features_column in features_column_names:
+			max_abs_column_value = self.features_set_X[features_column].abs().max()
+			self.features_set_X[features_column] = self.features_set_X[features_column] / max_abs_column_value
+		return True
 
 	def train_RandomForestClassifier_model(self):
 		self.ML_model = RandomForestClassifier()
@@ -115,16 +125,21 @@ if __name__ == '__main__':
 	dataset_analyzer.show_dataset_columns()
 	dataset_analyzer.remove_all_string_type_columns_from_dataset()
 	dataset_analyzer.update_dataset_columns_names()
+	dataset_analyzer.update_dataset_columns_types()
 	dataset_analyzer.define_columns_with_missing_values_from_dataset()
-	dataset_analyzer.show_dataset_columns_types()
 	dataset_analyzer.define_int_float_dtype_missing_value_columns()
 	dataset_analyzer.replace_columns_NaN_values_with_mean_values()
 	print('After data cleaning and replacing:')
 	dataset_analyzer.show_dataset()
 
+
 	dataset_analyzer.define_features_set_X()
 	dataset_analyzer.define_target_set_y()
 	
+	dataset_analyzer.features_max_abs_normalization()
+	print('Features set X after max abs normalization:')
+	dataset_analyzer.show_features_set_X()
+
 	print('Splitting dataset for train and test stages.')
 	dataset_analyzer.split_dataset_into_train_test_parts()
 
