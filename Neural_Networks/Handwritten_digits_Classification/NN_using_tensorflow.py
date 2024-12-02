@@ -29,4 +29,13 @@ nn_model.compile(optimizer = 'adam',
 # by default - batch size = 32(images amount per iteration, gradient update)
 nn_model.fit(X_train_normalized, y_train, epochs = 5)
 
-nn_prediction = nn_model.predict(X_test_normalized)
+digits_vector = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+nn_prediction = (nn_model.predict(X_test_normalized) > 0.5).astype('int32')
+target_prediction_y_vector = np.dot(nn_prediction, digits_vector)
+# print(target_prediction_y_vector[:8])
+print('Classification Report:')
+target_classes = ['digit 0', 'digit 1', 'digit 2', 'digit 3',
+                  'digit 4', 'digit 5', 'digit 6', 'digit 7',
+                  'digit 8', 'digit 9']
+print(classification_report(y_test, target_prediction_y_vector, target_names = target_classes))
+print('Accuracy:', accuracy_score(y_test, target_prediction_y_vector))
