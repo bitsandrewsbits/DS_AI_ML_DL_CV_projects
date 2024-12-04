@@ -34,28 +34,34 @@ nn_prediction = (nn_model.predict(X_test_normalized) > 0.5).astype('int32')
 target_prediction_y_vector = np.dot(nn_prediction, digits_vector)
 
 print('Classification Report:')
-target_classes = ['digit 0', 'digit 1', 'digit 2', 'digit 3',
-                  'digit 4', 'digit 5', 'digit 6', 'digit 7',
-                  'digit 8', 'digit 9']
+target_classes = [f"prediction of digit {i}" for i in range(10)]
 print(classification_report(y_test, target_prediction_y_vector, target_names = target_classes))
 print('Accuracy:', accuracy_score(y_test, target_prediction_y_vector))
 
-first_test_images_amount = 10
-first_test_np_arr_images = X_test[:first_test_images_amount]
+first_test_samples_amount = 10
+first_test_np_arr_images = X_test[:first_test_samples_amount]
+first_prediction_y_values = target_prediction_y_vector[:first_test_samples_amount]
+first_test_y_values = y_test[:first_test_samples_amount]
 
 def show_subplots(images: list, subplots_columns_number = 5):
     subplots_rows_number = get_subplot_rows_number(len(images))
     plt.figure(figsize = (30, 15))
     for image_index in range(len(images)):
         plt.subplot(subplots_rows_number, subplots_columns_number, image_index + 1)
-        plt.title(f"Digit Image #{image_index + 1}")
+        plt.title(f"Digit Image #{image_index + 1}\n\
+        Prediction = {first_prediction_y_values[image_index]}\n\
+        True Digit = {first_test_y_values[image_index]}")
         plt.imshow(images[image_index], cmap = 'grey')
     plt.show()
 
 def get_subplot_rows_number(list_length: int, subplots_columns_number = 5):
-    if list_length % 2 != 0:
+    if list_length % subplots_columns_number != 0:
         return list_length // subplots_columns_number + 1
-    elif list_length % 2 == 0:
+    elif list_length % subplots_columns_number == 0:
         return list_length // subplots_columns_number
 
 show_subplots(first_test_np_arr_images)
+
+# Observation: with this training parameters, model accuracy pretty well.
+# Accuracy increases most of all at first 2-3 epochs. After that, it looks like
+# more without big increasing steps as saturation curve.
