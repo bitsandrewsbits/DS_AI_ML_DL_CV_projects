@@ -27,7 +27,7 @@ nn_model.compile(optimizer = 'adam',
 )
 
 # by default - batch size = 32(images amount per iteration, gradient update)
-nn_model.fit(X_train_normalized, y_train, epochs = 5)
+training_events = nn_model.fit(X_train_normalized, y_train, epochs = 5)
 
 digits_vector = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 nn_prediction = (nn_model.predict(X_test_normalized) > 0.5).astype('int32')
@@ -61,6 +61,16 @@ def get_subplot_rows_number(list_length: int, subplots_columns_number = 5):
         return list_length // subplots_columns_number
 
 show_subplots(first_test_np_arr_images)
+
+def get_events_during_model_training():
+    print('Training Events:')
+    print(training_events.history)
+    return training_events.history
+
+loss_accuracy_during_training = get_events_during_model_training()
+
+def get_accuracy_during_model_training():
+    return loss_accuracy_during_training['accuracy']
 
 # Observation: with this training parameters, model accuracy pretty well.
 # Accuracy increases most of all at first 2-3 epochs. After that, it looks like
