@@ -64,6 +64,12 @@ def get_subplot_rows_number(list_length: int, subplots_columns_number = 5):
 
 show_subplots(first_test_np_arr_images)
 
+def show_training_accuracy_loss_model_plots():
+    plt.subplots_adjust(hspace = 0.5)
+    create_model_accuracy_during_training_plot()
+    create_model_loss_during_training_plot()
+    plt.show()
+
 def get_events_during_model_training():
     print('Training Events:')
     print(training_events.history)
@@ -74,13 +80,31 @@ loss_accuracy_during_training = get_events_during_model_training()
 def get_accuracy_during_model_training():
     return loss_accuracy_during_training['accuracy']
 
-def show_model_accuracy_during_training_plot():
-    training_accuracy_per_epochs = get_accuracy_during_model_training()
-    plt.plot(training_accuracy_per_epochs, epochs_amount)
-    plt.title("Accuracy(Epoch)")
-    plt.show()
+def get_loss_during_model_training():
+    return loss_accuracy_during_training['loss']
 
-show_model_accuracy_during_training_plot()
+def get_epochs_numbers():
+    return [i for i in range(epochs_amount)]
+
+def create_model_accuracy_during_training_plot():
+    training_accuracy_per_epochs = get_accuracy_during_model_training()
+    epochs_numbers = get_epochs_numbers()
+    plt.subplot(2, 1, 1)
+    plt.plot(epochs_numbers, training_accuracy_per_epochs)
+    plt.title("Accuracy(Epoch)")
+    plt.xlabel("epoch")
+    plt.ylabel("accuracy")
+
+def create_model_loss_during_training_plot():
+    training_loss_per_epochs = get_loss_during_model_training()
+    epochs_numbers = get_epochs_numbers()
+    plt.subplot(2, 1, 2)
+    plt.plot(epochs_numbers, training_loss_per_epochs)
+    plt.title("Loss(Epoch)")
+    plt.xlabel("epoch")
+    plt.ylabel("loss")
+
+show_training_accuracy_loss_model_plots()
 
 # Observation: with this training parameters, model accuracy pretty well.
 # Accuracy increases most of all at first 2-3 epochs. After that, it looks like
