@@ -19,6 +19,7 @@ class Exploratory_Data_Analysis:
     def prepare_data(self):
         print('[INFO] Preparing dataset...')
         self.dataframe.dropna(inplace = True)
+        # TODO: finish method
 
     def define_df_columns_names(self):
         print('[INFO] Defining dataset columns names...')
@@ -40,6 +41,28 @@ class Exploratory_Data_Analysis:
     def get_df_column_type(self, df_column: str):
         return self.dataframe[df_column].dtypes
 
+    def column_dtype_need_to_change(self, column_name: str):
+        amount_of_digit_dtype = 0
+        amount_of_object_dtype = 0
+        statistically_defined_column_dtype = ""
+        for column_value in self.dataframe[column_name]:
+            if type(column_value) == str:
+                if column_value.isdigit():
+                    amount_of_digit_dtype += 1
+                else:
+                    amount_of_object_dtype += 1
+        print('Digit column value amount:', amount_of_digit_dtype)
+        print('Object type column value amount:', amount_of_object_dtype)
+        if amount_of_digit_dtype > amount_of_object_dtype:
+            statistically_defined_column_dtype = "int64"
+        else:
+            statistically_defined_column_dtype = object
+        print('Statistically defined column data type:', statistically_defined_column_dtype)
+        if self.dataframe[column_name].dtypes != statistically_defined_column_dtype:
+            return True
+        else:
+            return False
+
 if __name__ == "__main__":
-    eda = Exploratory_Data_Analysis("Your_dataset.csv")
+    eda = Exploratory_Data_Analysis("your_dataset.csv")
     eda.main()
