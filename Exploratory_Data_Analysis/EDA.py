@@ -12,14 +12,17 @@ class Exploratory_Data_Analysis:
         self.df_columns_with_string_types = pd.DataFrame()
 
     def main(self):
-        self.prepare_data()
         self.define_df_columns_names()
+        self.prepare_data()
         self.split_df_into_number_and_string_types_dframes()
 
     def prepare_data(self):
         print('[INFO] Preparing dataset...')
-        self.dataframe.dropna(inplace = True)
-        # TODO: finish method
+        for df_column in self.df_columns_names:
+            if self.column_dtype_need_to_change(df_column):
+                self.dataframe[df_column] = pd.to_numeric(
+                self.dataframe[df_column], errors = 'coerce')
+            self.dataframe.dropna(inplace = True)
 
     def define_df_columns_names(self):
         print('[INFO] Defining dataset columns names...')
@@ -32,9 +35,9 @@ class Exploratory_Data_Analysis:
                 self.df_columns_with_number_types[df_column_name] = self.dataframe[df_column_name]
             else:
                 self.df_columns_with_string_types[df_column_name] = self.dataframe[df_column_name]
-        print('df only with number columns')
+        print('df only with number columns:')
         print(self.df_columns_with_number_types.head())
-        print('\ndf only with string columns')
+        print('\ndf only with string columns:')
         print(self.df_columns_with_string_types.head())
         return True
 
