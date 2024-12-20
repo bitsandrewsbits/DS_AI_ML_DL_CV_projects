@@ -2,7 +2,7 @@
 # any dataset from CSV file with user interaction.
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sbn
+import seaborn as sns
 
 class Exploratory_Data_Analysis:
     def __init__(self, dataset):
@@ -14,7 +14,7 @@ class Exploratory_Data_Analysis:
     def main(self):
         self.define_df_columns_names()
         self.prepare_data()
-        self.split_df_into_number_and_string_types_dframes()
+        self.create_from_df_number_and_string_types_dframes()
 
     def prepare_data(self):
         print('[INFO] Preparing dataset...')
@@ -24,12 +24,21 @@ class Exploratory_Data_Analysis:
                 self.dataframe[df_column], errors = 'coerce')
             self.dataframe.dropna(inplace = True)
 
+    def encode_categorical_variables(self):
+        pass
+
     def define_df_columns_names(self):
         print('[INFO] Defining dataset columns names...')
         self.df_columns_names = list(self.dataframe.columns)
         print(self.df_columns_names)
 
-    def split_df_into_number_and_string_types_dframes(self):
+    def show_scatterplot_matricies(self):
+        target_column_names = list(self.df_columns_with_string_types.columns)
+        for df_column in target_column_names:
+            sns.pairplot(self.dataframe, hue = f"{df_column}")
+            plt.show()
+
+    def create_from_df_number_and_string_types_dframes(self):
         for df_column_name in self.df_columns_names:
             if self.get_df_column_type(df_column_name) != object:
                 self.df_columns_with_number_types[df_column_name] = self.dataframe[df_column_name]
