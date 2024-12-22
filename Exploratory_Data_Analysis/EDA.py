@@ -7,14 +7,18 @@ import seaborn as sns
 class Exploratory_Data_Analysis:
     def __init__(self, dataset):
         self.dataframe = pd.read_csv(dataset)
-        self.df_columns_names = []
+        self.df_columns_names = self.dataframe.columns
         self.df_columns_with_number_types = pd.DataFrame()
-        self.df_columns_with_string_types = pd.DataFrame()
+        self.df_columns_with_str_types = pd.DataFrame()
+        self.encoded_str_types_columns_df = pd.DataFrame()
+        self.result_df_with_encoded_columns = pd.DataFrame()
 
     def main(self):
-        self.define_df_columns_names()
         self.prepare_data()
         self.create_from_df_number_and_string_types_dframes()
+        self.encode_categorical_variables()
+        self.create_result_df_with_encoded_columns()
+        # self.show_scatterplot_matricies()
 
     def prepare_data(self):
         print('[INFO] Preparing dataset...')
@@ -22,20 +26,30 @@ class Exploratory_Data_Analysis:
             if self.column_dtype_need_to_change(df_column):
                 self.dataframe[df_column] = pd.to_numeric(
                 self.dataframe[df_column], errors = 'coerce')
-            self.dataframe.dropna(inplace = True)
+                self.dataframe.dropna(inplace = True)
+                print('After removing missing values...')
+        print(self.dataframe)
 
     def encode_categorical_variables(self):
-        pass
+        print('[INFO] Encoding categorical variables...')
+        for df_column in self.df_columns_with_str_types.columns:
+            self.encoded_str_types_columns_df[df_column], uniques = \
+            self.df_columns_with_str_types[df_column].factorize()
+        print(self.encoded_str_types_columns_df)
 
-    def define_df_columns_names(self):
-        print('[INFO] Defining dataset columns names...')
-        self.df_columns_names = list(self.dataframe.columns)
-        print(self.df_columns_names)
+    def create_result_df_with_encoded_columns(self):
+        self.result_df_with_encoded_columns = self.encoded_str_types_columns_df
+        for df_column in self.df_columns_with_number_types.columns:
+            self.result_df_with_encoded_columns[df_column] = \
+            self.df_columns_with_number_types[df_column]
+        print('[INFO] Creating df with encoded columns...')
+        # self.result_df_with_encoded_columns.dropna(inplace = True)
+        print(self.result_df_with_encoded_columns)
 
     def show_scatterplot_matricies(self):
-        target_column_names = list(self.df_columns_with_string_types.columns)
+        target_column_names = list(self.result_df_with_encoded_columns.columns)
         for df_column in target_column_names:
-            sns.pairplot(self.dataframe, hue = f"{df_column}")
+            sns.pairplot(self.result_df_with_encoded_columns, hue = f"{df_column}")
             plt.show()
 
     def create_from_df_number_and_string_types_dframes(self):
@@ -43,11 +57,11 @@ class Exploratory_Data_Analysis:
             if self.get_df_column_type(df_column_name) != object:
                 self.df_columns_with_number_types[df_column_name] = self.dataframe[df_column_name]
             else:
-                self.df_columns_with_string_types[df_column_name] = self.dataframe[df_column_name]
+                self.df_columns_with_str_types[df_column_name] = self.dataframe[df_column_name]
         print('df only with number columns:')
-        print(self.df_columns_with_number_types.head())
+        print(self.df_columns_with_number_types)
         print('\ndf only with string columns:')
-        print(self.df_columns_with_string_types.head())
+        print(self.df_columns_with_str_types)
         return True
 
     def get_df_column_type(self, df_column: str):
