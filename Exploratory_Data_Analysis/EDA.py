@@ -18,7 +18,7 @@ class Exploratory_Data_Analysis:
         self.create_from_df_number_and_string_types_dframes()
         self.encode_categorical_variables()
         self.create_result_df_with_encoded_columns()
-        # self.show_scatterplot_matricies()
+        self.show_scatterplot_matricies()
 
     def prepare_data(self):
         print('[INFO] Preparing dataset...')
@@ -38,13 +38,16 @@ class Exploratory_Data_Analysis:
         print(self.encoded_str_types_columns_df)
 
     def create_result_df_with_encoded_columns(self):
-        self.result_df_with_encoded_columns = self.encoded_str_types_columns_df
-        for df_column in self.df_columns_with_number_types.columns:
-            self.result_df_with_encoded_columns[df_column] = \
-            self.df_columns_with_number_types[df_column]
+        self.set_df_ordered_indexes_from_zero(self.df_columns_with_number_types)
+        self.result_df_with_encoded_columns = pd.concat([
+            self.encoded_str_types_columns_df, self.df_columns_with_number_types
+        ], axis = 1)
         print('[INFO] Creating df with encoded columns...')
-        # self.result_df_with_encoded_columns.dropna(inplace = True)
         print(self.result_df_with_encoded_columns)
+
+    def set_df_ordered_indexes_from_zero(self, df):
+        rows_amount = df.shape[0]
+        df.index = [index for index in range(0, rows_amount)]
 
     def show_scatterplot_matricies(self):
         target_column_names = list(self.result_df_with_encoded_columns.columns)
