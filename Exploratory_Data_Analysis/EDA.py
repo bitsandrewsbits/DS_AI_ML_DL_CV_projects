@@ -18,7 +18,8 @@ class Exploratory_Data_Analysis:
         self.create_from_df_number_and_string_types_dframes()
         self.encode_categorical_variables()
         self.create_result_df_with_encoded_columns()
-        self.show_scatterplot_matricies()
+        self.show_resulted_df_scatterplot_matricies()
+        self.show_resulted_df_heatmap()
 
     def prepare_data(self):
         print('[INFO] Preparing dataset...')
@@ -29,6 +30,18 @@ class Exploratory_Data_Analysis:
                 self.dataframe.dropna(inplace = True)
                 print('After removing missing values...')
         print(self.dataframe)
+
+    def show_resulted_df_scatterplot_matricies(self):
+        target_column_names = list(self.result_df_with_encoded_columns.columns)
+        for df_column in target_column_names:
+            sns.pairplot(self.result_df_with_encoded_columns, hue = f"{df_column}")
+            plt.show()
+
+    def show_resulted_df_heatmap(self):
+        correlation_matrix = self.result_df_with_encoded_columns.corr()
+        sns.heatmap(correlation_matrix, annot = True, cmap = 'coolwarm')
+        plt.title('Correlation Matrix Heatmap')
+        plt.show()
 
     def encode_categorical_variables(self):
         print('[INFO] Encoding categorical variables...')
@@ -48,12 +61,6 @@ class Exploratory_Data_Analysis:
     def set_df_ordered_indexes_from_zero(self, df):
         rows_amount = df.shape[0]
         df.index = [index for index in range(0, rows_amount)]
-
-    def show_scatterplot_matricies(self):
-        target_column_names = list(self.result_df_with_encoded_columns.columns)
-        for df_column in target_column_names:
-            sns.pairplot(self.result_df_with_encoded_columns, hue = f"{df_column}")
-            plt.show()
 
     def create_from_df_number_and_string_types_dframes(self):
         for df_column_name in self.df_columns_names:
