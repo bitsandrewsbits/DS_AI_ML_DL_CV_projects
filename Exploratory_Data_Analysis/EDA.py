@@ -12,14 +12,35 @@ class Exploratory_Data_Analysis:
         self.df_columns_with_str_types = pd.DataFrame()
         self.encoded_str_types_columns_df = pd.DataFrame()
         self.result_df_with_encoded_columns = pd.DataFrame()
+        self.user_cmds = {'pairplot': self.show_resulted_df_scatterplot_matricies,
+                          'heatmap': self.show_resulted_df_heatmap,
+                          }
 
     def main(self):
         self.prepare_data()
         self.create_from_df_number_and_string_types_dframes()
         self.encode_categorical_variables()
         self.create_result_df_with_encoded_columns()
-        self.show_resulted_df_scatterplot_matricies()
-        self.show_resulted_df_heatmap()
+        self.execute_user_cmd()
+
+    def execute_user_cmd(self):
+        user_cmd = ''
+        while user_cmd != 'e':
+            self.show_user_possible_cmds()
+            user_cmd = input('Enter your command[press e to exit]:')
+            if user_cmd in self.user_cmds:
+                self.user_cmds[user_cmd]()
+        print('Bye.')
+
+    def column_selection_by_user_for_histplot(self):
+        print('Dataset columns:')
+        print(self.df_columns_names)
+        # TODO: finish
+
+    def show_user_possible_cmds(self):
+        print("Possible commands:")
+        print("pairplot - to show scatterplot matricies for entire result df.")
+        print("heatmap - to show correlaction matrix as heatmap")
 
     def prepare_data(self):
         print('[INFO] Preparing dataset...')
