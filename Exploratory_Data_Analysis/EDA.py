@@ -14,7 +14,9 @@ class Exploratory_Data_Analysis:
         self.result_df_with_encoded_columns = pd.DataFrame()
         self.user_cmds = {'pairplot': self.show_resulted_df_scatterplot_matricies,
                           'heatmap': self.show_resulted_df_heatmap,
+                          'histplot': self.show_histplot_by_user_column
                           }
+        self.user_selected_df_column_for_histplot = ''
 
     def main(self):
         self.prepare_data()
@@ -32,15 +34,11 @@ class Exploratory_Data_Analysis:
                 self.user_cmds[user_cmd]()
         print('Bye.')
 
-    def column_selection_by_user_for_histplot(self):
-        print('Dataset columns:')
-        print(self.df_columns_names)
-        # TODO: finish
-
     def show_user_possible_cmds(self):
         print("Possible commands:")
-        print("pairplot - to show scatterplot matricies for entire result df.")
+        print("pairplot - to show scatterplot matricies for entire result df")
         print("heatmap - to show correlaction matrix as heatmap")
+        print("histplot - to show histplot by user selected df column")
 
     def prepare_data(self):
         print('[INFO] Preparing dataset...')
@@ -63,6 +61,24 @@ class Exploratory_Data_Analysis:
         sns.heatmap(correlation_matrix, annot = True, cmap = 'coolwarm')
         plt.title('Correlation Matrix Heatmap')
         plt.show()
+
+    def show_histplot_by_user_column(self):
+        if self.column_selection_by_user_for_histplot():
+            # TODO: finish
+
+    def column_selection_by_user_for_histplot(self):
+        while True:
+            print('Dataset columns:')
+            print(list(self.df_columns_names))
+            user_column_for_histplot = input('Enter df column name[e - exit from mode]: ')
+            if user_column_for_histplot in self.df_columns_names:
+                self.user_selected_df_column_for_histplot = user_column_for_histplot
+                return True
+            elif user_column_for_histplot == 'e':
+                print('Exitting from histplot mode...')
+                return False
+            else:
+                print('Wrong column name! Try again.')
 
     def encode_categorical_variables(self):
         print('[INFO] Encoding categorical variables...')
