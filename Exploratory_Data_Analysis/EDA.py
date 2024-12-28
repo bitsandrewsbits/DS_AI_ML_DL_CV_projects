@@ -64,7 +64,18 @@ class Exploratory_Data_Analysis:
 
     def show_histplot_by_user_column(self):
         if self.column_selection_by_user_for_histplot():
-            # TODO: finish
+            self.build_histplot_for_selected_user_column()
+        else:
+            print('Histplot process terminated by user.')
+
+    def build_histplot_for_selected_user_column(self):
+        data = self.result_df_with_encoded_columns[
+                self.user_selected_df_column_for_histplot]
+        sns.histplot(data, bins = 30, kde = True)
+        plt.title(f'Distribution of {self.user_selected_df_column_for_histplot}')
+        plt.xlabel(f'{self.user_selected_df_column_for_histplot}')
+        plt.ylabel('Frequency')
+        plt.show()
 
     def column_selection_by_user_for_histplot(self):
         while True:
