@@ -14,9 +14,10 @@ class Exploratory_Data_Analysis:
         self.result_df_with_encoded_columns = pd.DataFrame()
         self.user_cmds = {'pairplot': self.show_resulted_df_scatterplot_matricies,
                           'heatmap': self.show_resulted_df_heatmap,
-                          'histplot': self.show_histplot_by_user_column
+                          'histplot': self.show_histplot_by_user_column,
                           }
         self.user_selected_df_column_for_histplot = ''
+        self.user_selected_df_columns_for_scatterplot = {'x': '', 'y': ''}
 
     def main(self):
         self.prepare_data()
@@ -50,6 +51,26 @@ class Exploratory_Data_Analysis:
                 print('After removing missing values...')
         print(self.dataframe)
 
+    def show_scatterplot_by_user_selected_columns(self):
+        pass
+
+    def columns_selection_by_user_for_scatterplot(self):
+        while True:
+            print('Dataset columns:')
+            print(list(self.df_columns_names))
+            print('Enter two df columns names for scatterplot:')
+            user_column_as_x = input('df column name for X-axis[e - exit from mode]: ')
+            user_column_as_y = input('df column name for Y-axis[e - exit from mode]: ')
+            if user_column_as_x in self.df_columns_names and user_column_as_y in self.df_columns_names:
+                self.user_selected_df_columns_for_scatterplot['x'] = user_column_as_x
+                self.user_selected_df_columns_for_scatterplot['y'] = user_column_as_x
+                return True
+            elif user_column_for_histplot == 'e':
+                print('Exitting from histplot mode...')
+                return False
+            else:
+                print('Wrong column(s) name(s)! Try again.')
+
     def show_resulted_df_scatterplot_matricies(self):
         target_column_names = list(self.result_df_with_encoded_columns.columns)
         for df_column in target_column_names:
@@ -81,7 +102,7 @@ class Exploratory_Data_Analysis:
         while True:
             print('Dataset columns:')
             print(list(self.df_columns_names))
-            user_column_for_histplot = input('Enter df column name[e - exit from mode]: ')
+            user_column_for_histplot = input('Enter df column name for histplot[e - exit from mode]: ')
             if user_column_for_histplot in self.df_columns_names:
                 self.user_selected_df_column_for_histplot = user_column_for_histplot
                 return True
@@ -135,8 +156,6 @@ class Exploratory_Data_Analysis:
                     amount_of_digit_dtype += 1
                 else:
                     amount_of_object_dtype += 1
-        print('Digit column value amount:', amount_of_digit_dtype)
-        print('Object type column value amount:', amount_of_object_dtype)
         if amount_of_digit_dtype > amount_of_object_dtype:
             statistically_defined_column_dtype = "int64"
         else:
