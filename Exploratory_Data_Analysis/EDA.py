@@ -15,6 +15,7 @@ class Exploratory_Data_Analysis:
         self.user_cmds = {'pairplot': self.show_resulted_df_scatterplot_matricies,
                           'heatmap': self.show_resulted_df_heatmap,
                           'histplot': self.show_histplot_by_user_column,
+                          'scatterplot': self.show_scatterplot_by_user_selected_columns
                           }
         self.user_selected_df_column_for_histplot = ''
         self.user_selected_df_columns_for_scatterplot = {'x': '', 'y': ''}
@@ -40,6 +41,7 @@ class Exploratory_Data_Analysis:
         print("pairplot - to show scatterplot matricies for entire result df")
         print("heatmap - to show correlaction matrix as heatmap")
         print("histplot - to show histplot by user selected df column")
+        print("scatterplot - to show scatterplot by user selected two df columns")
 
     def prepare_data(self):
         print('[INFO] Preparing dataset...')
@@ -52,7 +54,17 @@ class Exploratory_Data_Analysis:
         print(self.dataframe)
 
     def show_scatterplot_by_user_selected_columns(self):
-        pass
+        self.columns_selection_by_user_for_scatterplot()
+        sns.scatterplot(data = self.result_df_with_encoded_columns,
+                        x = self.user_selected_df_columns_for_scatterplot['x'],
+                        y = self.user_selected_df_columns_for_scatterplot['y']
+        )
+        plt.title(f"Relationship between \
+        {self.user_selected_df_columns_for_scatterplot['x']} and \
+        {self.user_selected_df_columns_for_scatterplot['y']}")
+        plt.xlabel(self.user_selected_df_columns_for_scatterplot['x'])
+        plt.ylabel(self.user_selected_df_columns_for_scatterplot['y'])
+        plt.show()
 
     def columns_selection_by_user_for_scatterplot(self):
         while True:
@@ -63,7 +75,7 @@ class Exploratory_Data_Analysis:
             user_column_as_y = input('df column name for Y-axis[e - exit from mode]: ')
             if user_column_as_x in self.df_columns_names and user_column_as_y in self.df_columns_names:
                 self.user_selected_df_columns_for_scatterplot['x'] = user_column_as_x
-                self.user_selected_df_columns_for_scatterplot['y'] = user_column_as_x
+                self.user_selected_df_columns_for_scatterplot['y'] = user_column_as_y
                 return True
             elif user_column_for_histplot == 'e':
                 print('Exitting from histplot mode...')
