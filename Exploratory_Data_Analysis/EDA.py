@@ -15,10 +15,11 @@ class Exploratory_Data_Analysis:
         self.user_cmds = {'pairplot': self.show_resulted_df_scatterplot_matricies,
                           'heatmap': self.show_resulted_df_heatmap,
                           'histplot': self.show_histplot_by_user_column,
-                          'scatterplot': self.show_scatterplot_by_user_selected_columns
+                          'scatterplot': self.show_scatterplot_by_user_selected_columns,
+                          'boxplot': self.show_boxplot_by_user_selected_columns
                           }
         self.user_selected_df_column_for_histplot = ''
-        self.user_selected_df_columns_for_scatterplot = {'x': '', 'y': ''}
+        self.user_selected_x_y_columns = {'x': '', 'y': ''}
 
     def main(self):
         self.prepare_data()
@@ -42,6 +43,7 @@ class Exploratory_Data_Analysis:
         print("heatmap - to show correlaction matrix as heatmap")
         print("histplot - to show histplot by user selected df column")
         print("scatterplot - to show scatterplot by user selected two df columns")
+        print("boxplot - to show boxplot by user selected two df columns")
 
     def prepare_data(self):
         print('[INFO] Preparing dataset...')
@@ -53,32 +55,43 @@ class Exploratory_Data_Analysis:
                 print('After removing missing values...')
         print(self.dataframe)
 
-    def show_scatterplot_by_user_selected_columns(self):
-        self.columns_selection_by_user_for_scatterplot()
-        sns.scatterplot(data = self.result_df_with_encoded_columns,
-                        x = self.user_selected_df_columns_for_scatterplot['x'],
-                        y = self.user_selected_df_columns_for_scatterplot['y']
-        )
-        plt.title(f"Relationship between \
-        {self.user_selected_df_columns_for_scatterplot['x']} and \
-        {self.user_selected_df_columns_for_scatterplot['y']}")
-        plt.xlabel(self.user_selected_df_columns_for_scatterplot['x'])
-        plt.ylabel(self.user_selected_df_columns_for_scatterplot['y'])
+    def show_boxplot_by_user_selected_columns(self):
+        self.x_y_columns_selection_by_user()
+        sns.boxplot(data = self.result_df_with_encoded_columns,
+                    x = self.user_selected_x_y_columns['x'],
+                    y = self.user_selected_x_y_columns['y'])
+        plt.title(f"{self.user_selected_x_y_columns['y']} \
+                ({self.user_selected_x_y_columns['x']})")
+        plt.xlabel(self.user_selected_x_y_columns['x'])
+        plt.ylabel(self.user_selected_x_y_columns['y'])
         plt.show()
 
-    def columns_selection_by_user_for_scatterplot(self):
+    def show_scatterplot_by_user_selected_columns(self):
+        self.x_y_columns_selection_by_user()
+        sns.scatterplot(data = self.result_df_with_encoded_columns,
+                        x = self.user_selected_x_y_columns['x'],
+                        y = self.user_selected_x_y_columns['y']
+        )
+        plt.title(f"Relationship between \
+        {self.user_selected_x_y_columns['x']} and \
+        {self.user_selected_x_y_columns['y']}")
+        plt.xlabel(self.user_selected_x_y_columns['x'])
+        plt.ylabel(self.user_selected_x_y_columns['y'])
+        plt.show()
+
+    def x_y_columns_selection_by_user(self):
         while True:
             print('Dataset columns:')
             print(list(self.df_columns_names))
-            print('Enter two df columns names for scatterplot:')
+            print('Enter two df columns names as x, y:')
             user_column_as_x = input('df column name for X-axis[e - exit from mode]: ')
             user_column_as_y = input('df column name for Y-axis[e - exit from mode]: ')
             if user_column_as_x in self.df_columns_names and user_column_as_y in self.df_columns_names:
-                self.user_selected_df_columns_for_scatterplot['x'] = user_column_as_x
-                self.user_selected_df_columns_for_scatterplot['y'] = user_column_as_y
+                self.user_selected_x_y_columns['x'] = user_column_as_x
+                self.user_selected_x_y_columns['y'] = user_column_as_y
                 return True
             elif user_column_for_histplot == 'e':
-                print('Exitting from histplot mode...')
+                print(f'Exitting from plot mode...')
                 return False
             else:
                 print('Wrong column(s) name(s)! Try again.')
@@ -179,5 +192,5 @@ class Exploratory_Data_Analysis:
             return False
 
 if __name__ == "__main__":
-    eda = Exploratory_Data_Analysis("your_dataset.csv")
+    eda = Exploratory_Data_Analysis("healthcare_dataset.csv")
     eda.main()
