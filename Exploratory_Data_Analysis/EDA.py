@@ -16,7 +16,8 @@ class Exploratory_Data_Analysis:
                           'heatmap': self.show_resulted_df_heatmap,
                           'histplot': self.show_histplot_by_user_column,
                           'scatterplot': self.show_scatterplot_by_user_selected_columns,
-                          'boxplot': self.show_boxplot_by_user_selected_columns
+                          'boxplot': self.show_boxplot_by_user_selected_columns,
+                          'barplot': self.show_barplot_by_user_selected_columns
                           }
         self.user_selected_df_column_for_histplot = ''
         self.user_selected_x_y_columns = {'x': '', 'y': ''}
@@ -44,6 +45,7 @@ class Exploratory_Data_Analysis:
         print("histplot - to show histplot by user selected df column")
         print("scatterplot - to show scatterplot by user selected two df columns")
         print("boxplot - to show boxplot by user selected two df columns")
+        print("barplot - to show barplot by user selected two df columns")
 
     def prepare_data(self):
         print('[INFO] Preparing dataset...')
@@ -55,13 +57,22 @@ class Exploratory_Data_Analysis:
                 print('After removing missing values...')
         print(self.dataframe)
 
+    def show_barplot_by_user_selected_columns(self):
+        self.x_y_columns_selection_by_user()
+        sns.barplot(data = self.dataframe,
+                    x = self.user_selected_x_y_columns['x'],
+                    y = self.user_selected_x_y_columns['y'])
+        plt.title(f"{self.user_selected_x_y_columns['y']} \
+        ({self.user_selected_x_y_columns['x']})")
+        plt.show()
+
     def show_boxplot_by_user_selected_columns(self):
         self.x_y_columns_selection_by_user()
         sns.boxplot(data = self.result_df_with_encoded_columns,
                     x = self.user_selected_x_y_columns['x'],
                     y = self.user_selected_x_y_columns['y'])
         plt.title(f"{self.user_selected_x_y_columns['y']} \
-                ({self.user_selected_x_y_columns['x']})")
+        ({self.user_selected_x_y_columns['x']})")
         plt.xlabel(self.user_selected_x_y_columns['x'])
         plt.ylabel(self.user_selected_x_y_columns['y'])
         plt.show()
