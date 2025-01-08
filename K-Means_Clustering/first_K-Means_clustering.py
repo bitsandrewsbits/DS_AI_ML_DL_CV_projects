@@ -9,10 +9,29 @@ import matplotlib.pyplot as plt
 class K_Means_Clustering:
     def __init__(self, dataset_name: str):
         self.dataset = pd.read_csv(dataset_name)
+        self.selected_target_y = self.get_selected_target_y_column_name()
+        self.features_columns_names = self.get_features_X_columns_names()
         self.clusters_amount = self.get_n_clusters_for_dataset()
+        self.K_means_model = self.get_k_means_model()
 
     def main(self):
         self.prepare_data()
+
+    def get_selected_target_y_column_name(self):
+        user_input = ''
+        while user_input != 'e':
+            print('Dataset columns:')
+            print(self.dataset.columns)
+            user_input = input('Enter target y column for prediction[e - for exit]: ')
+            if user_input in self.dataset.columns:
+                return user_input
+            elif user_input == 'e':
+                print('Exitting from y target selection mode...')
+            else:
+                print('Wrong column name!')
+
+    def get_features_X_columns_names(self):
+        pass
 
     def prepare_data(self):
         print('[INFO] Cleaning data from missing values...')
@@ -26,6 +45,13 @@ class K_Means_Clustering:
                 reshaped_df_column = self.dataset[column].values.reshape(-1, 1)
                 self.dataset[column] = scaler.fit_transform(reshaped_df_column)
         print(self.dataset)
+
+    def train_model(self):
+        pass
+
+    def get_k_means_model(self):
+        print('[INFO] Initialize K-means algorithm model...')
+        return KMeans(n_clusters = self.clusters_amount, random_state = 42)
 
     def get_n_clusters_for_dataset(self):
         print('[INFO] Defining n_clusters parameter for K-means model...')
