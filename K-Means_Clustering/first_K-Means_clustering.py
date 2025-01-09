@@ -10,7 +10,7 @@ class K_Means_Clustering:
     def __init__(self, dataset_name: str):
         self.dataset = pd.read_csv(dataset_name)
         self.selected_target_y = self.get_selected_target_y_column_name()
-        self.features_columns_names = self.get_features_X_columns_names()
+        self.features_X = self.get_features_X()
         self.clusters_amount = self.get_n_clusters_for_dataset()
         self.K_means_model = self.get_k_means_model()
 
@@ -30,8 +30,15 @@ class K_Means_Clustering:
             else:
                 print('Wrong column name!')
 
+    def get_features_X(self):
+        features_names = self.get_features_X_columns_names()
+        return self.dataset[features_names]
+
     def get_features_X_columns_names(self):
-        pass
+        df_columns = list(self.dataset.columns)
+        df_columns.remove(self.selected_target_y)
+        features_names = df_columns
+        return features_names
 
     def prepare_data(self):
         print('[INFO] Cleaning data from missing values...')
