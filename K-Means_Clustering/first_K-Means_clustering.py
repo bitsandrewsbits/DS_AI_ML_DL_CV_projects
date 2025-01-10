@@ -2,7 +2,7 @@
 # for any datasets
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 
@@ -11,11 +11,13 @@ class K_Means_Clustering:
         self.dataset = pd.read_csv(dataset_name)
         self.selected_target_y = self.get_selected_target_y_column_name()
         self.features_X = self.get_features_X()
+        self.date_columns_names = self.get_date_columns_names()
         self.clusters_amount = self.get_n_clusters_for_dataset()
         self.K_means_model = self.get_k_means_model()
 
     def main(self):
         self.prepare_data()
+        print(self.dataset.dtypes)
 
     def get_selected_target_y_column_name(self):
         user_input = ''
@@ -31,6 +33,7 @@ class K_Means_Clustering:
                 print('Wrong column name!')
 
     def get_features_X(self):
+        print('[INFO] Defining features X for model training...')
         features_names = self.get_features_X_columns_names()
         return self.dataset[features_names]
 
@@ -41,8 +44,9 @@ class K_Means_Clustering:
         return features_names
 
     def prepare_data(self):
-        print('[INFO] Cleaning data from missing values...')
+        print('[INFO] Preparing data...')
         self.dataset.dropna(inplace = True)
+        self.dataset.drop_duplicates(inplace = True)
         self.scale_numeric_dataset_columns()
 
     def scale_numeric_dataset_columns(self):
@@ -52,6 +56,17 @@ class K_Means_Clustering:
                 reshaped_df_column = self.dataset[column].values.reshape(-1, 1)
                 self.dataset[column] = scaler.fit_transform(reshaped_df_column)
         print(self.dataset)
+
+    def get_date_columns_names(self):
+        date_columns_names = []
+        for column in self.dataset.columns:
+            try:
+                test_date_str = str(self.dataset[column].values[0])
+                pd.Timestamp(test_date_str)
+                date_columns_names.append(column)
+            except:
+                continue
+        return date_columns_names
 
     def train_model(self):
         pass
