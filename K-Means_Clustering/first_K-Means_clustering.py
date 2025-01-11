@@ -17,7 +17,6 @@ class K_Means_Clustering:
 
     def main(self):
         self.prepare_data()
-        print(self.dataset.dtypes)
 
     def get_selected_target_y_column_name(self):
         user_input = ''
@@ -48,6 +47,7 @@ class K_Means_Clustering:
         self.dataset.dropna(inplace = True)
         self.dataset.drop_duplicates(inplace = True)
         self.scale_numeric_dataset_columns()
+        self.add_year_columns()
 
     def scale_numeric_dataset_columns(self):
         scaler = StandardScaler()
@@ -67,6 +67,22 @@ class K_Means_Clustering:
             except:
                 continue
         return date_columns_names
+
+    def add_year_columns(self):
+        target_period_of_date = 'Year'
+        for column_name in self.date_columns_names:
+            new_column_name = self.get_new_column_name(
+                column_name, target_period_of_date)
+            # TODO: finish
+
+    def get_new_column_name(self, column_name: str, period_of_date: str):
+        if 'Date' in column_name:
+            target_name_parts = column_name.split(' ')
+            index_of_date_word = target_name_parts.index('Date')
+            target_name_parts.remove('Date')
+            target_name_parts.insert(index_of_date_word, period_of_date)
+            new_column_name = ' '.join(target_name_parts)
+            return new_column_name
 
     def train_model(self):
         pass
