@@ -48,6 +48,7 @@ class K_Means_Clustering:
         self.dataset.drop_duplicates(inplace = True)
         self.scale_numeric_dataset_columns()
         self.add_year_columns()
+        print(self.dataset)
 
     def scale_numeric_dataset_columns(self):
         scaler = StandardScaler()
@@ -55,7 +56,6 @@ class K_Means_Clustering:
             if self.dataset[column].dtypes != object:
                 reshaped_df_column = self.dataset[column].values.reshape(-1, 1)
                 self.dataset[column] = scaler.fit_transform(reshaped_df_column)
-        print(self.dataset)
 
     def get_date_columns_names(self):
         date_columns_names = []
@@ -73,7 +73,9 @@ class K_Means_Clustering:
         for column_name in self.date_columns_names:
             new_column_name = self.get_new_column_name(
                 column_name, target_period_of_date)
-            # TODO: finish
+            self.dataset[new_column_name] = pd.to_datetime(
+                self.dataset[column_name]
+            ).dt.year
 
     def get_new_column_name(self, column_name: str, period_of_date: str):
         if 'Date' in column_name:
