@@ -46,8 +46,11 @@ class K_Means_Clustering:
         print('[INFO] Preparing data...')
         self.dataset.dropna(inplace = True)
         self.dataset.drop_duplicates(inplace = True)
-        self.scale_numeric_dataset_columns()
         self.add_year_columns()
+        self.add_month_columns()
+        self.add_day_columns()
+        self.delete_original_date_columns()
+        self.scale_numeric_dataset_columns()
         print(self.dataset)
 
     def scale_numeric_dataset_columns(self):
@@ -76,6 +79,29 @@ class K_Means_Clustering:
             self.dataset[new_column_name] = pd.to_datetime(
                 self.dataset[column_name]
             ).dt.year
+
+    def add_month_columns(self):
+        target_period_of_date = 'Month'
+        for column_name in self.date_columns_names:
+            new_column_name = self.get_new_column_name(
+                column_name, target_period_of_date)
+            self.dataset[new_column_name] = pd.to_datetime(
+                self.dataset[column_name]
+            ).dt.month
+
+    def add_day_columns(self):
+        target_period_of_date = 'Day'
+        for column_name in self.date_columns_names:
+            new_column_name = self.get_new_column_name(
+                column_name, target_period_of_date)
+            self.dataset[new_column_name] = pd.to_datetime(
+                self.dataset[column_name]
+            ).dt.day
+
+    def delete_original_date_columns(self):
+        print('[INFO] Deleting original date columns...')
+        self.dataset.drop(self.date_columns_names,
+                        axis = 'columns', inplace = True)
 
     def get_new_column_name(self, column_name: str, period_of_date: str):
         if 'Date' in column_name:
