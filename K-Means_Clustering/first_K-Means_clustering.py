@@ -17,6 +17,9 @@ class K_Means_Clustering:
 
     def main(self):
         self.prepare_data()
+        self.train_model()
+        self.add_cluster_labels_column_to_dataset()
+        print(self.dataset)
 
     def get_selected_target_y_column_name(self):
         user_input = ''
@@ -50,15 +53,20 @@ class K_Means_Clustering:
         self.add_month_columns()
         self.add_day_columns()
         self.delete_original_date_columns()
-        self.scale_numeric_dataset_columns()
-        print(self.dataset)
+        self.encode_categorical_features()
+        self.update_features_X_after_encoding()
+        self.scale_feature_columns()
 
-    def scale_numeric_dataset_columns(self):
+    def scale_feature_columns(self):
+        print('[INFO] Scaling feature columns...')
         scaler = StandardScaler()
-        for column in self.dataset.columns:
-            if self.dataset[column].dtypes != object:
-                reshaped_df_column = self.dataset[column].values.reshape(-1, 1)
-                self.dataset[column] = scaler.fit_transform(reshaped_df_column)
+        for column in self.features_X:
+            reshaped_column = self.features_X[column].values.reshape(-1, 1)
+            self.features_X[column] = scaler.fit_transform(reshaped_column)
+
+    def update_features_X_after_encoding(self):
+        updated_column_names = self.get_features_X_columns_names()
+        self.features_X = self.dataset[updated_column_names]
 
     def get_date_columns_names(self):
         date_columns_names = []
@@ -98,11 +106,6 @@ class K_Means_Clustering:
                 self.dataset[column_name]
             ).dt.day
 
-    def delete_original_date_columns(self):
-        print('[INFO] Deleting original date columns...')
-        self.dataset.drop(self.date_columns_names,
-                        axis = 'columns', inplace = True)
-
     def get_new_column_name(self, column_name: str, period_of_date: str):
         if 'Date' in column_name:
             target_name_parts = column_name.split(' ')
@@ -112,8 +115,27 @@ class K_Means_Clustering:
             new_column_name = ' '.join(target_name_parts)
             return new_column_name
 
+    def delete_original_date_columns(self):
+        print('[INFO] Deleting original date columns...')
+        self.dataset.drop(self.date_columns_names,
+                        axis = 'columns', inplace = True)
+
+    def encode_categorical_features(self):
+        print('[INFO] Encoding categorical features...')
+        label_encoder = LabelEncoder()
+        for column in self.dataset.columns:
+            if self.dataset[column].dtypes == object:
+                label_encoder.fit(self.dataset[column].values)
+                self.dataset[column] = label_encoder.transform(
+                    self.dataset[column].values)
+
     def train_model(self):
-        pass
+        print('[INFO] Training K-means model...')
+        self.K_means_model.fit(self.dataset)
+
+    def add_cluster_labels_column_to_dataset(self):
+        print('[INFO] Adding labels column to dataset...')
+        self.dataset['cluster'] = self.K_means_model.labels_
 
     def get_k_means_model(self):
         print('[INFO] Initialize K-means algorithm model...')
