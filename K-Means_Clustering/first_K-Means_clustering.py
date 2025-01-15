@@ -14,12 +14,13 @@ class K_Means_Clustering:
         self.date_columns_names = self.get_date_columns_names()
         self.clusters_amount = self.get_n_clusters_for_dataset()
         self.K_means_model = self.get_k_means_model()
+        self.n_clusters_and_inertia_values = {}
 
     def main(self):
         self.prepare_data()
         self.train_model()
         self.add_cluster_labels_column_to_dataset()
-        print(self.dataset)
+        self.set_optimal_n_clusters_for_model()
 
     def get_selected_target_y_column_name(self):
         user_input = ''
@@ -141,10 +142,42 @@ class K_Means_Clustering:
         print('[INFO] Initialize K-means algorithm model...')
         return KMeans(n_clusters = self.clusters_amount, random_state = 42)
 
+    def set_optimal_n_clusters_for_model(self):
+        self.clusters_amount = self.get_optimal_n_clusters_for_model()
+
+    def get_optimal_n_clusters_for_model(self):
+        print('[INFO] Defining optimal clusters amount for target y...')
+        self.define_inertia_values_for_diff_n_clusters()
+        self.show_plot_inertia_from_n_clusters()
+        optimal_n_clusters = np.median(list(self.n_clusters_and_inertia_values.keys()))
+        print('Optimal n-clusters =', optimal_n_clusters)
+        return optimal_n_clusters
+
+    def define_inertia_values_for_diff_n_clusters(self):
+        min_n_clusters = 2
+        median_of_unique_values_amount = self.get_median_from_unique_values_amounts()
+        max_n_clusters = median_of_unique_values_amount * 2
+        print('[INFO] Training K-Means model for different n_clusters...')
+        for test_n_clusters in range(min_n_clusters, max_n_clusters + 1):
+            print(f'\_[INFO] K-Means with {test_n_clusters} clusters.')
+            self.clusters_amount = test_n_clusters
+            self.K_means_model = self.get_k_means_model()
+            self.train_model()
+            self.n_clusters_and_inertia_values[test_n_clusters] = self.K_means_model.inertia_
+        return True
+
+    def show_plot_inertia_from_n_clusters(self):
+        plt.plot(self.n_clusters_and_inertia_values.keys(),
+                 self.n_clusters_and_inertia_values.values(), marker = 'o')
+        plt.title('Inertia(clusters) for Elbow method')
+        plt.xlabel('Clusters number')
+        plt.ylabel('Inertia')
+        plt.show()
+
     def get_n_clusters_for_dataset(self):
         print('[INFO] Defining n_clusters parameter for K-means model...')
-        sorted_unique_values_by_columns = sorted(self.get_unique_values_amount_by_columns())
-        median_number = np.median(sorted_unique_values_by_columns)
+        sorted_unique_values_by_columns = sorted(self.get_unique_values_amount_by_features_columns())
+        median_number = self.get_median_from_unique_values_amounts()
         n_clusters_parameter = 0
         for column_unique_values_amount in sorted_unique_values_by_columns:
             if median_number > column_unique_values_amount * 2:
@@ -154,11 +187,16 @@ class K_Means_Clustering:
         print('n_clusters =', n_clusters_parameter)
         return n_clusters_parameter
 
-    def get_unique_values_amount_by_columns(self):
+    def get_median_from_unique_values_amounts(self):
+        sorted_unique_values_by_columns = sorted(self.get_unique_values_amount_by_features_columns())
+        median_number = np.median(sorted_unique_values_by_columns)
+        return int(median_number)
+
+    def get_unique_values_amount_by_features_columns(self):
         print('[INFO] Defining amount of unique values by columns...')
         unique_values_amount_by_columns = []
-        for column in self.dataset.columns:
-            column_unique_values_amount = len(self.dataset[column].unique())
+        for column in self.features_X.columns:
+            column_unique_values_amount = len(self.features_X[column].unique())
             unique_values_amount_by_columns.append(column_unique_values_amount)
         return unique_values_amount_by_columns
 
