@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 class K_Means_Clustering:
     def __init__(self, dataset_name: str):
@@ -19,8 +20,12 @@ class K_Means_Clustering:
     def main(self):
         self.prepare_data()
         self.train_model()
-        self.add_cluster_labels_column_to_dataset()
+        self.add_labels_column_to_dataset('cluster')
         self.set_optimal_n_clusters_for_model()
+        self.train_model()
+        self.add_labels_column_to_dataset('Optimal cluster')
+        print(self.dataset.head())
+        self.show_scatterplot_of_target_Y_segmentation()
 
     def get_selected_target_y_column_name(self):
         user_input = ''
@@ -34,6 +39,33 @@ class K_Means_Clustering:
                 print('Exitting from y target selection mode...')
             else:
                 print('Wrong column name!')
+
+    def show_scatterplot_of_target_Y_segmentation(self):
+        selected_feature = self.get_selected_feature_for_scatterplot()
+        if selected_feature:
+            sns.scatterplot(data = self.dataset,
+                            x = selected_feature, y = self.selected_target_y,
+                            hue = 'Optimal cluster')
+            plt.title(f'{self.selected_target_y}({selected_feature})')
+            plt.xlabel(selected_feature)
+            plt.ylabel(self.selected_target_y)
+            plt.show()
+        else:
+            print('Bye.')
+
+    def get_selected_feature_for_scatterplot(self):
+        user_input = ''
+        while user_input != 'e':
+            print('Features X column names:')
+            print(self.features_X.columns)
+            user_input = input('Enter feature column for scatterplot[e - for exit]: ')
+            if user_input in self.features_X.columns:
+                return user_input
+            elif user_input == 'e':
+                print('Exitting from y target selection mode...')
+                return False
+            else:
+                print('Wrong feature name!')
 
     def get_features_X(self):
         print('[INFO] Defining features X for model training...')
@@ -70,6 +102,7 @@ class K_Means_Clustering:
         self.features_X = self.dataset[updated_column_names]
 
     def get_date_columns_names(self):
+        # TODO: fix method(many false positive reactions)
         date_columns_names = []
         for column in self.dataset.columns:
             try:
@@ -134,9 +167,9 @@ class K_Means_Clustering:
         print('[INFO] Training K-means model...')
         self.K_means_model.fit(self.dataset)
 
-    def add_cluster_labels_column_to_dataset(self):
+    def add_labels_column_to_dataset(self, column_name: str):
         print('[INFO] Adding labels column to dataset...')
-        self.dataset['cluster'] = self.K_means_model.labels_
+        self.dataset[column_name] = self.K_means_model.labels_
 
     def get_k_means_model(self):
         print('[INFO] Initialize K-means algorithm model...')
@@ -193,7 +226,6 @@ class K_Means_Clustering:
         return int(median_number)
 
     def get_unique_values_amount_by_features_columns(self):
-        print('[INFO] Defining amount of unique values by columns...')
         unique_values_amount_by_columns = []
         for column in self.features_X.columns:
             column_unique_values_amount = len(self.features_X[column].unique())
