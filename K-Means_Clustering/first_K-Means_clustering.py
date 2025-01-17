@@ -197,7 +197,7 @@ class K_Means_Clustering:
     def define_inertia_values_for_diff_n_clusters(self):
         min_n_clusters = 2
         median_of_unique_values_amount = self.get_median_from_unique_values_amounts()
-        max_n_clusters = median_of_unique_values_amount + 2
+        max_n_clusters = self.get_max_n_clusters()
         print('[INFO] Training K-Means model for different n_clusters...')
         for test_n_clusters in range(min_n_clusters, max_n_clusters + 1):
             print(f'\_[INFO] K-Means with {test_n_clusters} clusters.')
@@ -206,6 +206,12 @@ class K_Means_Clustering:
             self.train_model()
             self.n_clusters_and_inertia_values[test_n_clusters] = self.K_means_model.inertia_
         return True
+
+    def get_max_n_clusters(self):
+        if self.clusters_amount > 20:
+            return 20
+        else:
+            return self.clusters_amount * 1.5
 
     def show_plot_inertia_from_n_clusters(self):
         plt.plot(self.n_clusters_and_inertia_values.keys(),
