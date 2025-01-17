@@ -105,13 +105,21 @@ class K_Means_Clustering:
         # TODO: fix method(many false positive reactions)
         date_columns_names = []
         for column in self.dataset.columns:
-            try:
-                test_date_str = str(self.dataset[column].values[0])
-                pd.Timestamp(test_date_str)
+            test_date_value = self.dataset[column].values[0]
+            if self.value_has_right_datetime_format(test_date_value):
                 date_columns_names.append(column)
+        print('Date columns:', date_columns_names)
+        return date_columns_names
+
+    def value_has_right_datetime_format(self, date_value):
+        common_date_formats = ["%d/%m/%Y", "%Y-%m-%d", "%m/%d/%Y", "%d-%m-%Y"]
+        for date_format in common_date_formats:
+            try:
+                if pd.to_datetime(date_value, format = date_format):
+                    return True
             except:
                 continue
-        return date_columns_names
+        return False
 
     def add_year_columns(self):
         target_period_of_date = 'Year'
@@ -189,7 +197,7 @@ class K_Means_Clustering:
     def define_inertia_values_for_diff_n_clusters(self):
         min_n_clusters = 2
         median_of_unique_values_amount = self.get_median_from_unique_values_amounts()
-        max_n_clusters = median_of_unique_values_amount * 2
+        max_n_clusters = median_of_unique_values_amount + 2
         print('[INFO] Training K-Means model for different n_clusters...')
         for test_n_clusters in range(min_n_clusters, max_n_clusters + 1):
             print(f'\_[INFO] K-Means with {test_n_clusters} clusters.')
