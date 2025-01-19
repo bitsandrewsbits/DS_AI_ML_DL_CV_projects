@@ -5,21 +5,37 @@ import pandas as pd
 dataset = pd.read_csv('customer_reviews_sentiment.csv')
 
 def sentiment_analysis():
-    pass
+    prepare_data()
 
 def show_dataset():
-    print(dataset.head())
+    print(dataset)
 
 def prepare_data():
-    pass
+    if dataset_has_missing_values():
+        print('[INFO] Dataset has missing values!')
+    else:
+        print('[INFO] Dataset has not missing values.')
+    text_preprocessing()
 
 def dataset_has_missing_values():
-    if dataset.all():
-        print('Dataset has missing values!')
+    dataset_after_dropna = dataset.dropna()
+    print('Original dataset shape:', dataset.shape)
+    print('Dataset shape after dropna operation:', dataset_after_dropna.shape)
+    if (dataset.shape[0] - dataset_after_dropna.shape[0]) != 0:
         return True
     else:
         return False
 
+def text_preprocessing():
+    convert_review_column_to_lowercase()
+
+def convert_review_column_to_lowercase():
+    text_column = dataset['Review']
+    dataset['Review'] = text_column.str.lower()
+
+def remove_any_spec_chars_in_text():
+    pass
+
 if __name__ == '__main__':
+    sentiment_analysis()
     show_dataset()
-    dataset_has_missing_values()
