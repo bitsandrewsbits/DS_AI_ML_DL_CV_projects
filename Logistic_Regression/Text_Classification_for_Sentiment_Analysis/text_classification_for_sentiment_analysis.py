@@ -32,6 +32,8 @@ def text_preprocessing():
     convert_review_column_to_lowercase()
     remove_any_spec_chars_in_review_column()
     remove_stop_words_in_review_column()
+    add_review_tokens_column()
+    remove_original_review_column()
 
 def convert_review_column_to_lowercase():
     text_column = dataset['Review']
@@ -52,6 +54,13 @@ def remove_stop_words_in_review_column():
             stopword_regex = rf"^{stopword} | {stopword} "
             target_review_text = dataset['Review'][i]
             dataset.loc[i, 'Review'] = re.sub(stopword_regex, ' ', target_review_text)
+
+def add_review_tokens_column():
+    review_column_without_whitespace_elem = dataset['Review'].str.lstrip()
+    dataset['Review_tokens'] = review_column_without_whitespace_elem.str.split(' ')
+
+def remove_original_review_column():
+    dataset.drop(columns = 'Review', inplace = True)
 
 if __name__ == '__main__':
     show_dataset()
