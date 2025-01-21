@@ -2,6 +2,7 @@
 
 import re
 import pandas as pd
+from nltk.corpus import stopwords
 
 dataset = pd.read_csv('customer_reviews_sentiment.csv')
 
@@ -30,6 +31,7 @@ def dataset_has_missing_values():
 def text_preprocessing():
     convert_review_column_to_lowercase()
     remove_any_spec_chars_in_review_column()
+    remove_stop_words_in_review_column()
 
 def convert_review_column_to_lowercase():
     text_column = dataset['Review']
@@ -43,6 +45,15 @@ def remove_any_spec_chars_in_review_column():
             target_review_text = dataset['Review'][i]
             dataset.loc[i, 'Review'] = re.sub(spec_char_regex, '', target_review_text)
 
+def remove_stop_words_in_review_column():
+    en_stopwords = stopwords.words(fileids = 'english')
+    for i in range(len(dataset['Review'])):
+        for stopword in en_stopwords:
+            stopword_regex = rf"^{stopword} | {stopword} "
+            target_review_text = dataset['Review'][i]
+            dataset.loc[i, 'Review'] = re.sub(stopword_regex, ' ', target_review_text)
+
 if __name__ == '__main__':
+    show_dataset()
     sentiment_analysis()
     show_dataset()
