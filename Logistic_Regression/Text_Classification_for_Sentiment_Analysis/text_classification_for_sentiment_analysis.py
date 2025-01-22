@@ -3,6 +3,8 @@
 import re
 import pandas as pd
 from nltk.corpus import stopwords
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
 
 class Sentiment_Analysis:
     def __init__(self, csv_file: str):
@@ -12,14 +14,23 @@ class Sentiment_Analysis:
         self.unique_words_in_all_reviews = set()
         self.unique_words_frequences = {}
 
+        self.train_X = pd.DataFrame()
+        self.train_y = pd.DataFrame()
+        self.test_X = pd.DataFrame()
+        self.test_y = pd.DataFrame()
+
+        self.logis_regres_model = LogisticRegression(random_state = 42)
+
     def main(self):
+        self.show_dataset()
         self.prepare_data()
+        self.train_model()
 
     def show_dataset(self):
         print(self.dataset)
 
     def show_features_X(self):
-        start_column_name = self.features_X.columns[1]
+        start_column_name = self.features_X.columns[0]
         print(self.features_X.loc[:, f"{start_column_name}":])
 
     def prepare_data(self):
@@ -32,7 +43,8 @@ class Sentiment_Analysis:
         self.remove_original_review_column()
         self.split_dataset_into_features_X_target_y()
         self.features_extraction_by_BoW()
-        self.show_features_X()
+        self.remove_review_tokens_column_from_features_X()
+        self.define_train_test_X_y_datasets()
 
     def dataset_has_missing_values(self):
         dataset_after_dropna = self.dataset.dropna()
@@ -83,7 +95,7 @@ class Sentiment_Analysis:
         self.features_X['Review_tokens'] = self.dataset['Review_tokens']
 
     def define_target_y(self):
-        self.target_y['Sentiment'] = self.dataset['Sentiment']
+        self.target_y = self.dataset['Sentiment'].values
 
     def features_extraction_by_BoW(self):
         self.define_unique_words_in_reviews()
@@ -105,6 +117,18 @@ class Sentiment_Analysis:
                 if unique_word in review_words:
                     word_index = review_words.index(unique_word)
                     self.features_X.loc[word_index, f"{unique_word}"] = 1
+
+    def remove_review_tokens_column_from_features_X(self):
+        self.features_X.drop('Review_tokens', axis = "columns", inplace = True)
+
+    def define_train_test_X_y_datasets(self):
+        self.train_X, self.test_X, self.train_y, self.test_y = train_test_split(
+            self.features_X, self.target_y, test_size = 0.2, random_state = 42
+        )
+
+    def train_model(self):
+        print('[INFO] Training of model...')
+        self.logis_regres_model.fit(self.train_X, self.train_y)
 
 if __name__ == '__main__':
     sentiment_analysis = Sentiment_Analysis('customer_reviews_sentiment.csv')
