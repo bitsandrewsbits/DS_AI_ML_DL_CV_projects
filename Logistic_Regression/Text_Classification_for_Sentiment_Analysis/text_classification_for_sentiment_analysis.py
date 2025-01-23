@@ -20,11 +20,13 @@ class Sentiment_Analysis:
         self.test_y = pd.DataFrame()
 
         self.logis_regres_model = LogisticRegression(random_state = 42)
+        self.y_prediction = []
 
     def main(self):
         self.show_dataset()
         self.prepare_data()
         self.train_model()
+        self.make_prediction_on_test_data()
 
     def show_dataset(self):
         print(self.dataset)
@@ -40,10 +42,11 @@ class Sentiment_Analysis:
             print('[INFO] Dataset has not missing values.')
         self.text_preprocessing()
         self.add_review_tokens_column()
-        self.remove_original_review_column()
         self.split_dataset_into_features_X_target_y()
         self.features_extraction_by_BoW()
         self.remove_review_tokens_column_from_features_X()
+        self.change_features_X_indexes_to_review_text()
+        self.remove_original_review_column()
         self.define_train_test_X_y_datasets()
 
     def dataset_has_missing_values(self):
@@ -121,6 +124,9 @@ class Sentiment_Analysis:
     def remove_review_tokens_column_from_features_X(self):
         self.features_X.drop('Review_tokens', axis = "columns", inplace = True)
 
+    def change_features_X_indexes_to_review_text(self):
+        self.features_X.index = [review for review in self.dataset['Review'].values]
+
     def define_train_test_X_y_datasets(self):
         self.train_X, self.test_X, self.train_y, self.test_y = train_test_split(
             self.features_X, self.target_y, test_size = 0.2, random_state = 42
@@ -129,6 +135,11 @@ class Sentiment_Analysis:
     def train_model(self):
         print('[INFO] Training of model...')
         self.logis_regres_model.fit(self.train_X, self.train_y)
+        print(self.test_X)
+
+    def make_prediction_on_test_data(self):
+        print('[INFO] Predicting y on test X data...')
+        self.y_prediction = self.logis_regres_model.predict(self.test_X)
 
 if __name__ == '__main__':
     sentiment_analysis = Sentiment_Analysis('customer_reviews_sentiment.csv')
