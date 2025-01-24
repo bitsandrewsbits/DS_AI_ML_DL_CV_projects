@@ -5,6 +5,7 @@ import pandas as pd
 from nltk.corpus import stopwords
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 class Sentiment_Analysis:
     def __init__(self, csv_file: str):
@@ -20,13 +21,16 @@ class Sentiment_Analysis:
         self.test_y = pd.DataFrame()
 
         self.logis_regres_model = LogisticRegression(random_state = 42)
-        self.y_prediction = []
+        self.predicted_y = []
+        self.model_accuracy = 0
 
     def main(self):
         self.show_dataset()
         self.prepare_data()
         self.train_model()
         self.make_prediction_on_test_data()
+        self.define_model_accuracy()
+        self.show_model_metrics()
 
     def show_dataset(self):
         print(self.dataset)
@@ -109,8 +113,6 @@ class Sentiment_Analysis:
         for review_words in self.features_X['Review_tokens'].values:
             unique_words_by_reviews += list(set(review_words))
         self.unique_words_in_all_reviews = set(unique_words_by_reviews)
-        print('Unique words in reviews:')
-        print(self.unique_words_in_all_reviews)
 
     def define_and_vectorize_unique_words_presence(self):
         rows_amount = self.features_X.shape[0]
@@ -129,17 +131,33 @@ class Sentiment_Analysis:
 
     def define_train_test_X_y_datasets(self):
         self.train_X, self.test_X, self.train_y, self.test_y = train_test_split(
-            self.features_X, self.target_y, test_size = 0.2, random_state = 42
+            self.features_X, self.target_y, test_size = 0.2
         )
 
     def train_model(self):
         print('[INFO] Training of model...')
         self.logis_regres_model.fit(self.train_X, self.train_y)
-        print(self.test_X)
 
     def make_prediction_on_test_data(self):
         print('[INFO] Predicting y on test X data...')
-        self.y_prediction = self.logis_regres_model.predict(self.test_X)
+        print('Test X:')
+        print(self.test_X)
+        print('Test target y:')
+        print(self.test_y)
+        self.predicted_y = self.logis_regres_model.predict(self.test_X)
+        print('Predicted y:')
+        print(self.predicted_y)
+
+    def define_model_accuracy(self):
+        self.model_accuracy = round(accuracy_score(self.test_y, self.predicted_y), 3)
+
+    def show_model_metrics(self):
+        y_names = ['negative', 'positive']
+        print(classification_report(self.test_y, self.predicted_y,
+            target_names = y_names, zero_division = 0))
+        print('Confusion Matrix: ')
+        print(confusion_matrix(self.test_y, self.predicted_y))
+        print('Prediction accuracy =', self.model_accuracy)
 
 if __name__ == '__main__':
     sentiment_analysis = Sentiment_Analysis('customer_reviews_sentiment.csv')
