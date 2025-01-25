@@ -5,6 +5,7 @@ import pandas as pd
 from nltk.corpus import stopwords
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 class Sentiment_Analysis:
@@ -13,24 +14,33 @@ class Sentiment_Analysis:
         self.features_X = pd.DataFrame()
         self.target_y = pd.DataFrame()
         self.unique_words_in_all_reviews = set()
-        self.unique_words_frequences = {}
 
         self.train_X = pd.DataFrame()
         self.train_y = pd.DataFrame()
         self.test_X = pd.DataFrame()
         self.test_y = pd.DataFrame()
 
-        self.logis_regres_model = LogisticRegression(random_state = 42)
-        self.predicted_y = []
-        self.model_accuracy = 0
+        self.models = {
+            'LogisticRegression': LogisticRegression(random_state = 42),
+            'Naive_Bayes': GaussianNB()
+        }
+
+        self.pred_y_by_models = {
+            'LogisticRegression': [],
+            'Naive_Bayes': []
+        }
+        self.models_accuracies = {
+            'LogisticRegression': 0,
+            'Naive_Bayes': 0
+        }
 
     def main(self):
         self.show_dataset()
         self.prepare_data()
-        self.train_model()
-        self.make_prediction_on_test_data()
-        self.define_model_accuracy()
-        self.show_model_metrics()
+        self.train_models()
+        self.make_predictions_on_test_data()
+        self.define_models_accuracy()
+        self.show_models_metrics()
 
     def show_dataset(self):
         print(self.dataset)
@@ -134,30 +144,38 @@ class Sentiment_Analysis:
             self.features_X, self.target_y, test_size = 0.2
         )
 
-    def train_model(self):
-        print('[INFO] Training of model...')
-        self.logis_regres_model.fit(self.train_X, self.train_y)
+    def train_models(self):
+        print('[INFO] Models Training...')
+        for model_name in self.models:
+            print(f'->[INFO] Training a {model_name}...')
+            self.models[model_name].fit(self.train_X, self.train_y)
 
-    def make_prediction_on_test_data(self):
+    def make_predictions_on_test_data(self):
         print('[INFO] Predicting y on test X data...')
         print('Test X:')
         print(self.test_X)
         print('Test target y:')
         print(self.test_y)
-        self.predicted_y = self.logis_regres_model.predict(self.test_X)
-        print('Predicted y:')
-        print(self.predicted_y)
+        for model_name in self.models:
+            self.pred_y_by_models[model_name] = self.models[model_name].predict(self.test_X)
+            print(f'Predicted y by {model_name}:')
+            print(self.pred_y_by_models[model_name])
 
-    def define_model_accuracy(self):
-        self.model_accuracy = round(accuracy_score(self.test_y, self.predicted_y), 3)
+    def define_models_accuracy(self):
+        for model_name in self.models:
+            self.models_accuracies[model_name] = round(accuracy_score(
+            self.test_y, self.pred_y_by_models[model_name]), 3)
 
-    def show_model_metrics(self):
+    def show_models_metrics(self):
         y_names = ['negative', 'positive']
-        print(classification_report(self.test_y, self.predicted_y,
-            target_names = y_names, zero_division = 0))
-        print('Confusion Matrix: ')
-        print(confusion_matrix(self.test_y, self.predicted_y))
-        print('Prediction accuracy =', self.model_accuracy)
+        for model_name in self.models:
+            print(f'\n{model_name} model Performance:')
+            print(classification_report(
+                self.test_y, self.pred_y_by_models[model_name],
+                target_names = y_names, zero_division = 0))
+            print(f'Confusion Matrix for {model_name}: ')
+            print(confusion_matrix(self.test_y, self.pred_y_by_models[model_name]))
+            print(f'Prediction accuracy of {model_name} =', self.models_accuracies[model_name])
 
 if __name__ == '__main__':
     sentiment_analysis = Sentiment_Analysis('customer_reviews_sentiment.csv')
