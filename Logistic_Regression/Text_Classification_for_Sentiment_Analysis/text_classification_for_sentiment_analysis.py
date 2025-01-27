@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import matplotlib.pyplot as plt
 
 class Sentiment_Analysis:
     def __init__(self, csv_file: str):
@@ -37,9 +38,10 @@ class Sentiment_Analysis:
     def main(self):
         self.show_dataset()
         self.prepare_data()
+        self.define_train_test_X_y_datasets()
         self.train_models()
         self.make_predictions_on_test_data()
-        self.define_models_accuracy()
+        self.define_models_accuracies()
         self.show_models_metrics()
 
     def show_dataset(self):
@@ -61,7 +63,6 @@ class Sentiment_Analysis:
         self.remove_review_tokens_column_from_features_X()
         self.change_features_X_indexes_to_review_text()
         self.remove_original_review_column()
-        self.define_train_test_X_y_datasets()
 
     def dataset_has_missing_values(self):
         dataset_after_dropna = self.dataset.dropna()
@@ -161,10 +162,14 @@ class Sentiment_Analysis:
             print(f'Predicted y by {model_name}:')
             print(self.pred_y_by_models[model_name])
 
-    def define_models_accuracy(self):
+    def define_models_accuracies(self, for_performance_test = False):
         for model_name in self.models:
-            self.models_accuracies[model_name] = round(accuracy_score(
-            self.test_y, self.pred_y_by_models[model_name]), 3)
+            if for_performance_test:
+                self.models_accuracies[model_name].append(round(accuracy_score(
+                self.test_y, self.pred_y_by_models[model_name]), 3))
+            else:
+                self.models_accuracies[model_name] = round(accuracy_score(
+                self.test_y, self.pred_y_by_models[model_name]), 3)
 
     def show_models_metrics(self):
         y_names = ['negative', 'positive']
@@ -177,6 +182,34 @@ class Sentiment_Analysis:
             print(confusion_matrix(self.test_y, self.pred_y_by_models[model_name]))
             print(f'Prediction accuracy of {model_name} =', self.models_accuracies[model_name])
 
+    def models_performance_comparison(self):
+        self.reset_models_accuracies_for_performance_test()
+        for _ in range(20):
+            self.define_train_test_X_y_datasets()
+            self.train_models()
+            self.make_predictions_on_test_data()
+            self.define_models_accuracies(for_performance_test = True)
+
+        self.show_models_performance_comparison()
+
+    def reset_models_accuracies_for_performance_test(self):
+        for model_name in self.models:
+            self.models_accuracies[model_name] = []
+
+    def show_models_performance_comparison(self):
+        models_training_sequence_numbers = [i for i in range(1, 21)]
+        for model_name in self.models:
+            plt.plot(models_training_sequence_numbers,
+                    self.models_accuracies[model_name], marker = 'o')
+        plt.xticks(models_training_sequence_numbers)
+        plt.grid()
+        plt.title('Models Performance Comparison')
+        plt.xlabel('model training #')
+        plt.ylabel('Accuracy')
+        plt.legend(self.models.keys())
+        plt.show()
+
 if __name__ == '__main__':
     sentiment_analysis = Sentiment_Analysis('customer_reviews_sentiment.csv')
     sentiment_analysis.main()
+    sentiment_analysis.models_performance_comparison()
