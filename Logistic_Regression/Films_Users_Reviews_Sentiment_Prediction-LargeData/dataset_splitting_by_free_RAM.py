@@ -3,11 +3,15 @@
 # Minidatasets will be writting into disk into dir where original large dataset exists.
 
 import psutil
+import os
+import pandas as pd
 
 class Dataset_Splitting_by_free_RAM:
     def __init__(self, csv_dataset_path: str):
         self.csv_dataset_path = csv_dataset_path
         self.free_memory_for_minidataset = self.get_optimal_free_RAM()
+        self.memory_of_one_row_in_bytes = self.get_approximately_row_per_memory_in_bytes()
+        self.dataset_rows_amount = self.get_approximately_rows_amount_in_dataset()
 
     def get_optimal_free_RAM(self):
         virt_memory = psutil.virtual_memory()
@@ -20,6 +24,28 @@ class Dataset_Splitting_by_free_RAM:
         else:
             print('Your free RAM very low. If you want to continue, release memory.')
             return False
+
+    def get_approximately_rows_amount_in_dataset(self):
+        dataset_size_in_bytes = self.get_file_size_in_bytes(self.csv_dataset_path)
+        approximately_rows_in_dataset = int(dataset_size_in_bytes / self.memory_of_one_row_in_bytes)
+        print(f'Approximately rows amount in dataset = {approximately_rows_in_dataset}')
+        return approximately_rows_in_dataset
+
+    def get_approximately_row_per_memory_in_bytes(self):
+        self.save_memory_evaluation_minidataset_to_csv()
+        memory_evaluation_minidataset_size_in_bytes = self.get_file_size_in_bytes(
+            'data/memory_evaluation_minidataset.csv')
+        print(f'Size of evaluation dataset = {memory_evaluation_minidataset_size_in_bytes} bytes')
+        approximately_memory_of_one_row_in_bytes = memory_evaluation_minidataset_size_in_bytes / 100
+        print(f'Approximately memory for one row = {approximately_memory_of_one_row_in_bytes}')
+        return approximately_memory_of_one_row_in_bytes
+
+    def save_memory_evaluation_minidataset_to_csv(self):
+        memory_evaluation_minidataset = pd.read_csv(self.csv_dataset_path, nrows = 100)
+        memory_evaluation_minidataset.to_csv('data/memory_evaluation_minidataset.csv', index = False)
+
+    def get_file_size_in_bytes(self, file_path: str):
+        return os.path.getsize(file_path)
 
 if __name__ == '__main__':
     dataset_splitter = Dataset_Splitting_by_free_RAM('data/user_reviews.csv')
