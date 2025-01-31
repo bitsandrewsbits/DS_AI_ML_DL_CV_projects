@@ -4,6 +4,7 @@
 
 import psutil
 import os
+import shutil
 import pandas as pd
 
 class Dataset_Splitting_by_free_RAM:
@@ -12,6 +13,7 @@ class Dataset_Splitting_by_free_RAM:
         self.free_memory_for_minidataset = self.get_optimal_free_RAM()
         self.memory_of_one_row_in_bytes = self.get_approximately_row_per_memory_in_bytes()
         self.dataset_rows_amount = self.get_approximately_rows_amount_in_dataset()
+        self.rows_amount_for_minidataset = self.get_approximately_rows_amount_for_minidataset()
 
     def get_optimal_free_RAM(self):
         virt_memory = psutil.virtual_memory()
@@ -24,6 +26,27 @@ class Dataset_Splitting_by_free_RAM:
         else:
             print('Your free RAM very low. If you want to continue, release memory.')
             return False
+
+    def main(self):
+        if not self.dataset_copy_exist():
+            self.make_copy_of_original_dataset_file()
+
+    def dataset_copy_exist(self):
+        data_dir_filenames = os.listdir('data')
+        return 'copy_of_dataset_user_reviews.csv' in data_dir_filenames
+
+    def make_copy_of_original_dataset_file(self):
+        print('[INFO] Make a dataset copy for further splitting another one...')
+        path_for_copy_of_dataset = 'data/copy_of_dataset_user_reviews.csv'
+        os.system(f"rsync {self.csv_dataset_path} {path_for_copy_of_dataset}")
+
+    def get_approximately_rows_amount_for_minidataset(self):
+        free_memory_for_minidataset_in_bytes = self.free_memory_for_minidataset * 2 ** 30
+        rows_amount_for_minidataset = int(
+            free_memory_for_minidataset_in_bytes // self.memory_of_one_row_in_bytes
+        )
+        print(f'Rows amount for minidataset = {rows_amount_for_minidataset}')
+        return rows_amount_for_minidataset
 
     def get_approximately_rows_amount_in_dataset(self):
         dataset_size_in_bytes = self.get_file_size_in_bytes(self.csv_dataset_path)
@@ -49,3 +72,4 @@ class Dataset_Splitting_by_free_RAM:
 
 if __name__ == '__main__':
     dataset_splitter = Dataset_Splitting_by_free_RAM('data/user_reviews.csv')
+    dataset_splitter.main()
