@@ -12,14 +12,18 @@ class Dataset_Splitting_by_free_RAM:
         self.csv_dataset_path = csv_dataset_path
         self.free_memory_for_minidataset = self.get_optimal_free_RAM()
         self.rows_amount_for_minidataset = 10 ** 6
+        self.dataset_columns_names = self.get_dataset_columns_names()
 
     def create_first_10_minidatasets_with_million_rows(self):
         for i in range(1, 11):
             try:
-                print(f'[INFO] Making Minidataset #{i}...', end = ' ')
+                print(f'[INFO] Making Minidataset #{i}...\n')
                 minidataset = pd.read_csv(self.csv_dataset_path,
                     nrows = self.rows_amount_for_minidataset,
-                    skiprows = self.rows_amount_for_minidataset * i)
+                    skiprows = self.rows_amount_for_minidataset * (i - 1),
+                    header = 0,
+                    names = self.dataset_columns_names)
+                print(minidataset)
                 self.save_minidataset_to_csv(minidataset, i)
                 del minidataset
                 gc.collect()
@@ -27,6 +31,10 @@ class Dataset_Splitting_by_free_RAM:
             except:
                 print('[INFO] End of CSV dataset. exitting...')
                 break
+
+    def get_dataset_columns_names(self):
+        dataset_head = pd.read_csv(self.csv_dataset_path, nrows = 1)
+        return dataset_head.columns
 
     def get_optimal_free_RAM(self):
         virt_memory = psutil.virtual_memory()
@@ -47,7 +55,7 @@ class Dataset_Splitting_by_free_RAM:
         iteration_counter = 0
         while True:
             try:
-                print(f'[INFO] Making Minidataset #{minidataset_number}...', end = ' ')
+                print(f'[INFO] Making Minidataset #{minidataset_number}...')
                 minidataset = pd.read_csv(self.csv_dataset_path,
                     nrows = self.rows_amount_for_minidataset,
                     skiprows = self.rows_amount_for_minidataset * iteration_counter)
@@ -68,7 +76,7 @@ class Dataset_Splitting_by_free_RAM:
         free_RAM_in_bytes = self.free_memory_for_minidataset * (2 ** 30)
         print('RAM for minidataset in bytes:', free_RAM_in_bytes)
         step_rows_amount = 10 ** 4
-        self.save_memory_evaluation_minidataset_to_csv(1)
+        self.save_memory_evaluation_minidataset_to_csv()
         while True:
             test_eval_dataset_size = self.get_file_size_in_bytes(
                 'data/memory_evaluation_minidataset.csv'
