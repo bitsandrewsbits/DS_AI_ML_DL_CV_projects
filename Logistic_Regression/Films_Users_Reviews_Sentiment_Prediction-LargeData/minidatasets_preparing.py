@@ -10,6 +10,7 @@ class Minidatasets_Preparing:
         self.movieIDs_label_encoder = LabelEncoder()
         self.all_unique_movieIDs = []
         self.boolean_label_encoder = LabelEncoder().fit([True, False])
+        self.userRealm_label_encoder = LabelEncoder()
 
     def prepare_all_saved_minidatasets(self):
         pass
@@ -21,6 +22,7 @@ class Minidatasets_Preparing:
         self.remove_original_date_column()
         self.add_only_new_unique_movieIDs()
         self.encode_boolean_type_columns()
+        self.encode_userRealm(minidataset_number)
         print(self.current_dataset)
         print('Columns types:')
         print(self.current_dataset.dtypes)
@@ -61,7 +63,26 @@ class Minidatasets_Preparing:
                 self.current_dataset[column] = pd.Series(
                     self.boolean_label_encoder.transform(
                         self.current_dataset[column]
-                    ), dtype = 'int32')
+                ), dtype = 'int32')
+
+    def encode_userRealm(self, current_dataset_num: int):
+        if current_dataset_num == 0:
+            current_userRealm_label_encoder_classes = []
+        else:
+            current_userRealm_label_encoder_classes = list(self.userRealm_label_encoder.classes_)
+        print('Unique values:')
+        print(pd.unique(self.current_dataset['userRealm']))
+        new_userRealm_label_encoder = LabelEncoder()
+        new_userRealm_label_encoder.fit(self.current_dataset['userRealm'])
+        for new_class in new_userRealm_label_encoder.classes_:
+            if new_class not in current_userRealm_label_encoder_classes:
+                current_userRealm_label_encoder_classes.append(new_class)
+                print('Adding new class to userRealm label encoder...')
+        self.userRealm_label_encoder.fit(current_userRealm_label_encoder_classes)
+        self.current_dataset['userRealm'] = pd.Series(
+            new_userRealm_label_encoder.transform(
+                self.current_dataset['userRealm']
+        ), dtype = 'int32')
 
 if __name__ == "__main__":
     minidatasets = [f'data/minidataset_{i}' for i in range(1, 11)]
