@@ -1,6 +1,7 @@
 # Sentiment Analysis with created 10 Films Reviews minidatasets
 
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import LabelEncoder
 
 class Minidatasets_Preparing:
@@ -18,11 +19,13 @@ class Minidatasets_Preparing:
     def prepare_one_minidataset(self, minidataset_number = 0):
         self.current_dataset = pd.read_csv(self.datasets[minidataset_number])
         self.clean_data_from_missing_values()
+        self.remove_duplicated_rows()
         self.add_features_from_date_column()
         self.remove_original_date_column()
         self.add_only_new_unique_movieIDs()
         self.encode_boolean_type_columns()
         self.encode_userRealm(minidataset_number)
+        self.convert_userID_to_numeric_dtype()
         print(self.current_dataset)
         print('Columns types:')
         print(self.current_dataset.dtypes)
@@ -30,6 +33,9 @@ class Minidatasets_Preparing:
     def clean_data_from_missing_values(self):
         self.current_dataset.dropna(axis = 1, how = 'any', inplace = True)
         self.current_dataset.dropna(axis = 0, how = 'all', inplace = True)
+
+    def remove_duplicated_rows(self):
+        self.current_dataset.drop_duplicates(inplace = True)
 
     def add_features_from_date_column(self):
         self.current_dataset['creationDate'] = pd.to_datetime(self.current_dataset['creationDate'])
@@ -83,6 +89,16 @@ class Minidatasets_Preparing:
             new_userRealm_label_encoder.transform(
                 self.current_dataset['userRealm']
         ), dtype = 'int32')
+
+    def convert_userID_to_numeric_dtype(self):
+        self.replace_diff_userIDs_to_NaN()
+        self.current_dataset.dropna(how = 'any', inplace = True)
+        self.current_dataset['userId'] = pd.to_numeric(self.current_dataset['userId'])
+
+    def replace_diff_userIDs_to_NaN(self):
+        self.current_dataset['userId'] = self.current_dataset['userId'].replace(
+            to_replace = '.*-.*', value = np.nan, regex = True
+        )
 
 if __name__ == "__main__":
     minidatasets = [f'data/minidataset_{i}' for i in range(1, 11)]
