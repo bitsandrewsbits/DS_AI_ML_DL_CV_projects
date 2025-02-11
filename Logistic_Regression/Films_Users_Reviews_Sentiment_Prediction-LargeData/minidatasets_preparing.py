@@ -8,10 +8,9 @@ class Minidatasets_Preparing:
     def __init__(self, datasets: list):
         self.datasets = datasets
         self.current_dataset = pd.DataFrame()
-        self.movieIDs_label_encoder = LabelEncoder()
-        self.all_unique_movieIDs = []
         self.boolean_label_encoder = LabelEncoder().fit([True, False])
-        self.userRealm_label_encoder = LabelEncoder()
+        self.label_encoders = {'movieId': LabelEncoder(),
+                               'userRealm': LabelEncoder()}
 
     def prepare_all_saved_minidatasets(self):
         pass
@@ -22,9 +21,8 @@ class Minidatasets_Preparing:
         self.remove_duplicated_rows()
         self.add_features_from_date_column()
         self.remove_original_date_column()
-        self.add_only_new_unique_movieIDs()
         self.encode_boolean_type_columns()
-        self.encode_userRealm(minidataset_number)
+        self.encode_categorical_columns(minidataset_number)
         self.convert_userID_to_numeric_dtype()
         print(self.current_dataset)
         print('Columns types:')
@@ -71,24 +69,27 @@ class Minidatasets_Preparing:
                         self.current_dataset[column]
                 ), dtype = 'int32')
 
-    def encode_userRealm(self, current_dataset_num: int):
-        if current_dataset_num == 0:
-            current_userRealm_label_encoder_classes = []
-        else:
-            current_userRealm_label_encoder_classes = list(self.userRealm_label_encoder.classes_)
-        print('Unique values:')
-        print(pd.unique(self.current_dataset['userRealm']))
-        new_userRealm_label_encoder = LabelEncoder()
-        new_userRealm_label_encoder.fit(self.current_dataset['userRealm'])
-        for new_class in new_userRealm_label_encoder.classes_:
-            if new_class not in current_userRealm_label_encoder_classes:
-                current_userRealm_label_encoder_classes.append(new_class)
-                print('Adding new class to userRealm label encoder...')
-        self.userRealm_label_encoder.fit(current_userRealm_label_encoder_classes)
-        self.current_dataset['userRealm'] = pd.Series(
-            new_userRealm_label_encoder.transform(
-                self.current_dataset['userRealm']
-        ), dtype = 'int32')
+    def encode_categorical_columns(self, current_dataset_num: int):
+        for column_and_label_encoder in self.label_encoders.items():
+            column_for_encoding = column_and_label_encoder[0]
+            label_encoder = column_and_label_encoder[1]
+            if current_dataset_num == 0:
+                current_label_encoder_classes = []
+            else:
+                current_label_encoder_classes = list(label_encoder.classes_)
+            print('Unique values:')
+            print(pd.unique(self.current_dataset[column_for_encoding]))
+            new_label_encoder = LabelEncoder()
+            new_label_encoder.fit(self.current_dataset[column_for_encoding])
+            for new_class in new_label_encoder.classes_:
+                if new_class not in current_label_encoder_classes:
+                    current_label_encoder_classes.append(new_class)
+                    print('Adding new class to current label encoder...')
+            label_encoder.fit(current_label_encoder_classes)
+            self.current_dataset[column_for_encoding] = pd.Series(
+                new_label_encoder.transform(
+                    self.current_dataset[column_for_encoding]
+            ), dtype = 'int32')
 
     def convert_userID_to_numeric_dtype(self):
         self.replace_diff_userIDs_to_NaN()
