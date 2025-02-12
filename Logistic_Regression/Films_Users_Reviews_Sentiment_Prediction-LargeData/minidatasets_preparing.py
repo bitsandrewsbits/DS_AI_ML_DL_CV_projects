@@ -2,6 +2,7 @@
 
 import pandas as pd
 import numpy as np
+import re
 from sklearn.preprocessing import LabelEncoder
 
 class Minidatasets_Preparing:
@@ -24,6 +25,7 @@ class Minidatasets_Preparing:
         self.encode_boolean_type_columns()
         self.encode_categorical_columns(minidataset_number)
         self.convert_userID_to_numeric_dtype()
+        self.add_quote_tag_feature()
         print(self.current_dataset)
         print('Columns types:')
         print(self.current_dataset.dtypes)
@@ -84,7 +86,6 @@ class Minidatasets_Preparing:
             for new_class in new_label_encoder.classes_:
                 if new_class not in current_label_encoder_classes:
                     current_label_encoder_classes.append(new_class)
-                    print('Adding new class to current label encoder...')
             label_encoder.fit(current_label_encoder_classes)
             self.current_dataset[column_for_encoding] = pd.Series(
                 new_label_encoder.transform(
@@ -100,6 +101,18 @@ class Minidatasets_Preparing:
         self.current_dataset['userId'] = self.current_dataset['userId'].replace(
             to_replace = '.*-.*', value = np.nan, regex = True
         )
+
+    def encode_quote_column(self):
+        print(self.current_dataset['quote'])
+        # TODO: finish
+
+    def add_quote_tag_feature(self):
+        quote_tag_regex = r':([a-zA-Z]*):'
+        self.current_dataset['quote_tag'] = self.current_dataset['quote'].str.extract(
+            quote_tag_regex
+        )
+        print('Unique tags:')
+        print(pd.unique(self.current_dataset['quote_tag']))
 
 if __name__ == "__main__":
     minidatasets = [f'data/minidataset_{i}' for i in range(1, 11)]
