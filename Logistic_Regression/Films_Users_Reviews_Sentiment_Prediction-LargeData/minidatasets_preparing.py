@@ -12,6 +12,7 @@ class Minidatasets_Preparing:
         self.boolean_label_encoder = LabelEncoder().fit([True, False])
         self.label_encoders = {'movieId': LabelEncoder(),
                                'userRealm': LabelEncoder()}
+        self.quote_tag_regex = r'^:([a-zA-Z]*):'
 
     def prepare_all_saved_minidatasets(self):
         pass
@@ -26,6 +27,7 @@ class Minidatasets_Preparing:
         self.encode_categorical_columns(minidataset_number)
         self.convert_userID_to_numeric_dtype()
         self.add_quote_tag_feature()
+        self.remove_quote_tag_from_quote_str()
         print(self.current_dataset)
         print('Columns types:')
         print(self.current_dataset.dtypes)
@@ -107,12 +109,16 @@ class Minidatasets_Preparing:
         # TODO: finish
 
     def add_quote_tag_feature(self):
-        quote_tag_regex = r':([a-zA-Z]*):'
         self.current_dataset['quote_tag'] = self.current_dataset['quote'].str.extract(
-            quote_tag_regex
+            self.quote_tag_regex
         )
         print('Unique tags:')
         print(pd.unique(self.current_dataset['quote_tag']))
+
+    def remove_quote_tag_from_quote_str(self):
+        self.current_dataset['quote'] = self.current_dataset['quote'].str.replace(
+            self.quote_tag_regex, '', regex = True
+        )
 
 if __name__ == "__main__":
     minidatasets = [f'data/minidataset_{i}' for i in range(1, 11)]
