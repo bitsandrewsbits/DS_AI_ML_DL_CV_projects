@@ -26,11 +26,9 @@ class Minidatasets_Preparing:
         self.encode_boolean_type_columns()
         self.encode_categorical_columns(minidataset_number)
         self.convert_userID_to_numeric_dtype()
-        self.add_quote_tag_feature()
         self.remove_quote_tag_from_quote_str()
-        print(self.current_dataset)
-        print('Columns types:')
-        print(self.current_dataset.dtypes)
+        self.quote_text_preprocessing()
+        print(self.current_dataset[['quote', 'quote_tokens']])
 
     def clean_data_from_missing_values(self):
         self.current_dataset.dropna(axis = 1, how = 'any', inplace = True)
@@ -104,20 +102,18 @@ class Minidatasets_Preparing:
             to_replace = '.*-.*', value = np.nan, regex = True
         )
 
-    def encode_quote_column(self):
-        print(self.current_dataset['quote'])
-        # TODO: finish
-
-    def add_quote_tag_feature(self):
-        self.current_dataset['quote_tag'] = self.current_dataset['quote'].str.extract(
-            self.quote_tag_regex
-        )
-        print('Unique tags:')
-        print(pd.unique(self.current_dataset['quote_tag']))
-
     def remove_quote_tag_from_quote_str(self):
         self.current_dataset['quote'] = self.current_dataset['quote'].str.replace(
-            self.quote_tag_regex, '', regex = True
+        self.quote_tag_regex, '', regex = True
+        )
+
+    def quote_text_preprocessing(self):
+        self.add_tokenized_quote_column()
+        # TODO: finish
+
+    def add_tokenized_quote_column(self):
+        self.current_dataset['quote_tokens'] = self.current_dataset['quote'].str.findall(
+            '[a-zA-Z]+'
         )
 
 if __name__ == "__main__":
