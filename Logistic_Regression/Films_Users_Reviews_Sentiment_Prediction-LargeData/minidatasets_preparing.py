@@ -5,6 +5,7 @@ import numpy as np
 import re
 from sklearn.preprocessing import LabelEncoder
 from nltk.stem.snowball import SnowballStemmer
+from nltk.corpus import stopwords
 
 class Minidatasets_Preparing:
     def __init__(self, datasets: list):
@@ -15,6 +16,7 @@ class Minidatasets_Preparing:
                                'userRealm': LabelEncoder()}
         self.quote_tag_regex = r'^:([a-zA-Z]*):'
         self.quote_words_stemmer = SnowballStemmer("english", ignore_stopwords = True)
+        self.stopwords = stopwords.words('english')
 
     def prepare_all_saved_minidatasets(self):
         pass
@@ -112,6 +114,7 @@ class Minidatasets_Preparing:
     def quote_text_preprocessing(self):
         self.add_tokenized_quote_column()
         self.quote_column_stemming()
+        self.remove_stopwords_from_quotes()
         # TODO: finish
 
     def add_tokenized_quote_column(self):
@@ -126,6 +129,14 @@ class Minidatasets_Preparing:
 
     def get_stemmed_quote_tokens(self, tokens: list):
         return [self.quote_words_stemmer.stem(token) for token in tokens]
+
+    def remove_stopwords_from_quotes(self):
+        self.current_dataset['quote_tokens'] = self.current_dataset['quote_tokens'].apply(
+            self.remove_stopwords_from_tokens
+        )
+
+    def remove_stopwords_from_tokens(self, tokens: list):
+        return [token for token in tokens if token not in self.stopwords]
 
 if __name__ == "__main__":
     minidatasets = [f'data/minidataset_{i}' for i in range(1, 11)]
