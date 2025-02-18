@@ -32,7 +32,8 @@ class Minidatasets_Preparing:
         self.convert_userID_to_numeric_dtype()
         self.remove_quote_tag_from_quote_str()
         self.quote_text_preprocessing()
-        print(self.current_dataset[['quote', 'quote_tokens']])
+        self.remove_original_quote_column()
+        print(self.current_dataset)
 
     def clean_data_from_missing_values(self):
         self.current_dataset.dropna(axis = 1, how = 'any', inplace = True)
@@ -115,7 +116,6 @@ class Minidatasets_Preparing:
         self.add_tokenized_quote_column()
         self.quote_column_stemming()
         self.remove_stopwords_from_quotes()
-        # TODO: finish
 
     def add_tokenized_quote_column(self):
         self.current_dataset['quote_tokens'] = self.current_dataset['quote'].str.findall(
@@ -137,6 +137,12 @@ class Minidatasets_Preparing:
 
     def remove_stopwords_from_tokens(self, tokens: list):
         return [token for token in tokens if token not in self.stopwords]
+
+    def remove_original_quote_column(self):
+        self.current_dataset.drop("quote", axis = 1, inplace = True)
+
+    def convert_quote_tokens_into_digits(self):
+        # TODO: create method
 
 if __name__ == "__main__":
     minidatasets = [f'data/minidataset_{i}' for i in range(1, 11)]
