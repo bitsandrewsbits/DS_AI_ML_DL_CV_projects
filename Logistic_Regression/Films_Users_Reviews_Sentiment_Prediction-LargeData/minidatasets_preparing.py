@@ -17,12 +17,13 @@ class Minidatasets_Preparing:
         self.quote_tag_regex = r'^:([a-zA-Z]*):'
         self.quote_words_stemmer = SnowballStemmer("english", ignore_stopwords = True)
         self.stopwords = stopwords.words('english')
+        self.quotes_vocabulary = []
 
     def prepare_all_saved_minidatasets(self):
         pass
 
     def prepare_one_minidataset(self, minidataset_number = 0):
-        self.current_dataset = pd.read_csv(self.datasets[minidataset_number])
+        self.current_dataset = pd.read_csv(self.datasets[minidataset_number], nrows = 1000)
         self.clean_data_from_missing_values()
         self.remove_duplicated_rows()
         self.add_features_from_date_column()
@@ -33,6 +34,7 @@ class Minidatasets_Preparing:
         self.remove_quote_tag_from_quote_str()
         self.quote_text_preprocessing()
         self.remove_original_quote_column()
+        self.update_quotes_vocabulary()
         print(self.current_dataset)
 
     def clean_data_from_missing_values(self):
@@ -84,8 +86,8 @@ class Minidatasets_Preparing:
                 current_label_encoder_classes = []
             else:
                 current_label_encoder_classes = list(label_encoder.classes_)
-            print('Unique values:')
-            print(pd.unique(self.current_dataset[column_for_encoding]))
+            # print('Unique values:')
+            # print(pd.unique(self.current_dataset[column_for_encoding]))
             new_label_encoder = LabelEncoder()
             new_label_encoder.fit(self.current_dataset[column_for_encoding])
             for new_class in new_label_encoder.classes_:
@@ -143,6 +145,15 @@ class Minidatasets_Preparing:
 
     def convert_quote_tokens_into_digits(self):
         # TODO: create method
+        pass
+
+    def update_quotes_vocabulary(self):
+        current_unique_quotes_words = self.current_dataset['quote_tokens'].values
+        for current_unique_quote_words in current_unique_quotes_words:
+            self.quotes_vocabulary = np.union1d(
+                current_unique_quote_words, self.quotes_vocabulary
+            )
+        print("Unique quotes words =", len(self.quotes_vocabulary))
 
 if __name__ == "__main__":
     minidatasets = [f'data/minidataset_{i}' for i in range(1, 11)]
