@@ -23,7 +23,7 @@ class Minidatasets_Preparing:
         pass
 
     def prepare_one_minidataset(self, minidataset_number = 0):
-        self.current_dataset = pd.read_csv(self.datasets[minidataset_number], nrows = 1000)
+        self.current_dataset = pd.read_csv(self.datasets[minidataset_number], nrows = 500)
         self.clean_data_from_missing_values()
         self.remove_duplicated_rows()
         self.add_features_from_date_column()
@@ -32,6 +32,7 @@ class Minidatasets_Preparing:
         self.encode_categorical_columns(minidataset_number)
         self.convert_userID_to_numeric_dtype()
         self.remove_quote_tag_from_quote_str()
+        self.convert_rating_column_into_binary_column()
         self.quote_text_preprocessing()
         self.remove_original_quote_column()
         self.update_quotes_vocabulary()
@@ -113,6 +114,17 @@ class Minidatasets_Preparing:
         self.current_dataset['quote'] = self.current_dataset['quote'].str.replace(
         self.quote_tag_regex, '', regex = True
         )
+
+    def convert_rating_column_into_binary_column(self):
+        self.current_dataset['rating'] = self.current_dataset['rating'].apply(
+            self.rating_to_binary_format
+        )
+
+    def rating_to_binary_format(self, rating_score: float):
+        if rating_score >= 5.0:
+            return 1
+        else:
+            return 0
 
     def quote_text_preprocessing(self):
         self.add_tokenized_quote_column()
