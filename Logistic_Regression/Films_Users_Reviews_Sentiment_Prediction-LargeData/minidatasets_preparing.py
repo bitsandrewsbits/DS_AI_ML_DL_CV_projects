@@ -33,6 +33,7 @@ class Minidatasets_Preparing:
         self.convert_userID_to_numeric_dtype()
         self.remove_quote_tag_from_quote_str()
         self.convert_rating_column_into_binary_column()
+        self.delete_columns_with_one_value()
         self.quote_text_preprocessing()
         self.remove_original_quote_column()
         self.update_quotes_vocabulary()
@@ -125,6 +126,18 @@ class Minidatasets_Preparing:
             return 1
         else:
             return 0
+
+    def delete_columns_with_one_value(self):
+        one_value_columns = self.get_columns_with_only_one_value()
+        self.current_dataset.drop(one_value_columns, axis = 1, inplace = True)
+
+    def get_columns_with_only_one_value(self):
+        one_value_columns = []
+        for df_column in self.current_dataset.columns:
+            unique_values_amount = len(pd.unique(self.current_dataset[df_column]))
+            if unique_values_amount == 1:
+                one_value_columns.append(df_column)
+        return one_value_columns
 
     def quote_text_preprocessing(self):
         self.add_tokenized_quote_column()
