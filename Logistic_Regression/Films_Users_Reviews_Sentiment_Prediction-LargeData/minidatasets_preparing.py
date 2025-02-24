@@ -6,10 +6,11 @@ import re
 from sklearn.preprocessing import LabelEncoder
 from nltk.stem.snowball import SnowballStemmer
 from nltk.corpus import stopwords
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 class Minidatasets_Preparing:
     def __init__(self, datasets: list):
-        self.datasets = datasets
+        self.minidatasets = datasets
         self.current_dataset = pd.DataFrame()
         self.boolean_label_encoder = LabelEncoder().fit([True, False])
         self.label_encoders = {'movieId': LabelEncoder(),
@@ -18,12 +19,18 @@ class Minidatasets_Preparing:
         self.quote_words_stemmer = SnowballStemmer("english", ignore_stopwords = True)
         self.stopwords = stopwords.words('english')
         self.quotes_vocabulary = []
+        self.TF_IDF_vectorizer = TfidfVectorizer()
 
-    def prepare_all_saved_minidatasets(self):
-        pass
+    def prepare_all_minidatasets(self):
+        for i in range(len(self.minidatasets)):
+            print(f'[INFO] Preparing minidataset #{i}...', end = '')
+            self.prepare_one_minidataset(i)
+            print('OK')
+
+        self.set_TF_IDF_vectorizer_vocabulary()
 
     def prepare_one_minidataset(self, minidataset_number = 0):
-        self.current_dataset = pd.read_csv(self.datasets[minidataset_number], nrows = 500)
+        self.current_dataset = pd.read_csv(self.minidatasets[minidataset_number], nrows = 5)
         self.clean_data_from_missing_values()
         self.remove_duplicated_rows()
         self.add_features_from_date_column()
@@ -180,7 +187,11 @@ class Minidatasets_Preparing:
             )
         print("Unique quotes words =", len(self.quotes_vocabulary))
 
+    def set_TF_IDF_vectorizer_vocabulary(self):
+        print('Total Unique quotes words amount =', len(self.quotes_vocabulary))
+        self.TF_IDF_vectorizer.vocabulary = self.quotes_vocabulary
+
 if __name__ == "__main__":
     minidatasets = [f'data/minidataset_{i}' for i in range(1, 11)]
     data_preparing = Minidatasets_Preparing(minidatasets)
-    data_preparing.prepare_one_minidataset()
+    data_preparing.prepare_all_minidatasets()
