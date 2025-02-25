@@ -20,6 +20,10 @@ class Minidatasets_Preparing:
         self.stopwords = stopwords.words('english')
         self.quotes_vocabulary = []
         self.TF_IDF_vectorizer = TfidfVectorizer()
+        self.prepared_minidatasets_filenames = self.get_prepared_minidatasets_filenames()
+
+    def get_prepared_minidatasets_filenames(self):
+        return [f'data/prepared_minidataset_{i}.csv' for i in range(len(self.minidatasets))]
 
     def prepare_all_minidatasets(self):
         for i in range(len(self.minidatasets)):
@@ -28,6 +32,8 @@ class Minidatasets_Preparing:
             print('OK')
 
         self.set_TF_IDF_vectorizer_vocabulary()
+        self.fit_TF_IDF_vectorizer()
+        self.convert_quote_tokens_into_digits()
 
     def prepare_one_minidataset(self, minidataset_number = 0):
         self.current_dataset = pd.read_csv(self.minidatasets[minidataset_number], nrows = 5)
@@ -44,6 +50,8 @@ class Minidatasets_Preparing:
         self.quote_text_preprocessing()
         self.remove_original_quote_column()
         self.update_quotes_vocabulary()
+        self.convert_quote_tokens_into_string()
+        self.save_prepared_minidataset_to_csv(minidataset_number)
         print(self.current_dataset)
 
     def clean_data_from_missing_values(self):
@@ -175,8 +183,15 @@ class Minidatasets_Preparing:
     def remove_original_quote_column(self):
         self.current_dataset.drop("quote", axis = 1, inplace = True)
 
+    def convert_quote_tokens_into_string(self):
+        self.current_dataset['quote_tokens'] = self.current_dataset['quote_tokens'].apply(
+            self.quote_tokens_into_string
+        )
+
+    def quote_tokens_into_string(self, tokens: list):
+        return ' '.join(tokens)
+
     def convert_quote_tokens_into_digits(self):
-        # TODO: create method
         pass
 
     def update_quotes_vocabulary(self):
@@ -190,6 +205,15 @@ class Minidatasets_Preparing:
     def set_TF_IDF_vectorizer_vocabulary(self):
         print('Total Unique quotes words amount =', len(self.quotes_vocabulary))
         self.TF_IDF_vectorizer.vocabulary = self.quotes_vocabulary
+
+    def fit_TF_IDF_vectorizer(self):
+        self.TF_IDF_vectorizer.fit(self.current_dataset['quote_tokens'].values)
+
+    def save_prepared_minidataset_to_csv(self, minidataset_number: int):
+        self.current_dataset.to_csv(
+            f'data/prepared_minidataset_{minidataset_number + 1}.csv',
+            index = False
+        )
 
 if __name__ == "__main__":
     minidatasets = [f'data/minidataset_{i}' for i in range(1, 11)]
