@@ -23,11 +23,11 @@ class Minidatasets_Preparing:
         self.prepared_minidatasets_filenames = self.get_prepared_minidatasets_filenames()
 
     def get_prepared_minidatasets_filenames(self):
-        return [f'data/prepared_minidataset_{i}.csv' for i in range(len(self.minidatasets))]
+        return [f'data/prepared_minidataset_{i}.csv' for i in range(1, len(self.minidatasets) + 1)]
 
     def prepare_all_minidatasets(self):
         for i in range(len(self.minidatasets)):
-            print(f'[INFO] Preparing minidataset #{i}...', end = '')
+            print(f'[INFO] Preparing minidataset #{i + 1}...', end = '')
             self.prepare_one_minidataset(i)
             print('OK')
 
@@ -36,7 +36,7 @@ class Minidatasets_Preparing:
         self.convert_quote_tokens_into_digits()
 
     def prepare_one_minidataset(self, minidataset_number = 0):
-        self.current_dataset = pd.read_csv(self.minidatasets[minidataset_number], nrows = 5)
+        self.current_dataset = pd.read_csv(self.minidatasets[minidataset_number], nrows = 10)
         self.clean_data_from_missing_values()
         self.remove_duplicated_rows()
         self.add_features_from_date_column()
@@ -192,7 +192,11 @@ class Minidatasets_Preparing:
         return ' '.join(tokens)
 
     def convert_quote_tokens_into_digits(self):
-        pass
+        for minidataset_file in self.prepared_minidatasets_filenames:
+            self.current_dataset = pd.read_csv(minidataset_file)
+            transform_tokens = self.get_TF_IDF_transform_quote_tokens()
+            transform_tokens_df = self.get_TF_IDF_transform_result_as_DataFrame(transform_tokens)
+            print(transform_tokens_df)
 
     def update_quotes_vocabulary(self):
         current_unique_quotes_words = self.current_dataset['quote_tokens'].values
@@ -208,6 +212,16 @@ class Minidatasets_Preparing:
 
     def fit_TF_IDF_vectorizer(self):
         self.TF_IDF_vectorizer.fit(self.current_dataset['quote_tokens'].values)
+
+    def get_TF_IDF_transform_quote_tokens(self):
+        return self.TF_IDF_vectorizer.transform(
+                self.current_dataset['quote_tokens'].values
+            )
+
+    def get_TF_IDF_transform_result_as_DataFrame(self, transform_result):
+        return pd.DataFrame(transform_result.toarray(),
+                columns = self.TF_IDF_vectorizer.vocabulary
+        )
 
     def save_prepared_minidataset_to_csv(self, minidataset_number: int):
         self.current_dataset.to_csv(
