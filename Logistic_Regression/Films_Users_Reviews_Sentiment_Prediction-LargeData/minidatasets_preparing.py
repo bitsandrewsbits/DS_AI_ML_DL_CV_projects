@@ -36,7 +36,7 @@ class Minidatasets_Preparing:
         self.convert_quote_tokens_into_digits()
 
     def prepare_one_minidataset(self, minidataset_number = 0):
-        self.current_dataset = pd.read_csv(self.minidatasets[minidataset_number], nrows = 10)
+        self.current_dataset = pd.read_csv(self.minidatasets[minidataset_number], nrows = 100)
         self.clean_data_from_missing_values()
         self.remove_duplicated_rows()
         self.add_features_from_date_column()
@@ -52,7 +52,9 @@ class Minidatasets_Preparing:
         self.update_quotes_vocabulary()
         self.convert_quote_tokens_into_string()
         self.save_prepared_minidataset_to_csv(minidataset_number)
-        print(self.current_dataset)
+
+    def get_random_samples_dataframe(self):
+        pass
 
     def clean_data_from_missing_values(self):
         self.current_dataset.dropna(axis = 1, how = 'any', inplace = True)
@@ -196,7 +198,11 @@ class Minidatasets_Preparing:
             self.current_dataset = pd.read_csv(minidataset_file)
             transform_tokens = self.get_TF_IDF_transform_quote_tokens()
             transform_tokens_df = self.get_TF_IDF_transform_result_as_DataFrame(transform_tokens)
-            print(transform_tokens_df)
+            self.current_dataset = pd.concat(
+                [self.current_dataset, transform_tokens_df],
+                axis = 1
+            )
+            print(self.current_dataset)
 
     def update_quotes_vocabulary(self):
         current_unique_quotes_words = self.current_dataset['quote_tokens'].values
