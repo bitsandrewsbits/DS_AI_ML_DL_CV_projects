@@ -36,7 +36,7 @@ class Minidatasets_Preparing:
         self.convert_quote_tokens_into_digits()
 
     def prepare_one_minidataset(self, minidataset_number = 0):
-        self.current_dataset = pd.read_csv(self.minidatasets[minidataset_number], nrows = 100)
+        self.current_dataset = self.get_random_samples_dataframe(minidataset_number)
         self.clean_data_from_missing_values()
         self.remove_duplicated_rows()
         self.add_features_from_date_column()
@@ -52,9 +52,11 @@ class Minidatasets_Preparing:
         self.update_quotes_vocabulary()
         self.convert_quote_tokens_into_string()
         self.save_prepared_minidataset_to_csv(minidataset_number)
+        print(self.current_dataset)
 
-    def get_random_samples_dataframe(self):
-        pass
+    def get_random_samples_dataframe(self, minidataset_number):
+        dataframe = pd.read_csv(self.minidatasets[minidataset_number])
+        return dataframe.sample(100, axis = 0)
 
     def clean_data_from_missing_values(self):
         self.current_dataset.dropna(axis = 1, how = 'any', inplace = True)
@@ -217,6 +219,9 @@ class Minidatasets_Preparing:
         self.TF_IDF_vectorizer.vocabulary = self.quotes_vocabulary
 
     def fit_TF_IDF_vectorizer(self):
+
+        # TODO: find out what is problem with this method?
+
         self.TF_IDF_vectorizer.fit(self.current_dataset['quote_tokens'].values)
 
     def get_TF_IDF_transform_quote_tokens(self):
