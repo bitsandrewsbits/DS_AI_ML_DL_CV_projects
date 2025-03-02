@@ -26,14 +26,16 @@ class Minidatasets_Preparing:
         return [f'data/prepared_minidataset_{i}.csv' for i in range(1, len(self.minidatasets) + 1)]
 
     def prepare_all_minidatasets(self):
-        for i in range(len(self.minidatasets)):
-            print(f'[INFO] Preparing minidataset #{i + 1}...', end = '')
+        for i in range(1):
+            print(f'[INFO] Preparing minidataset #{i + 1}...')
             self.prepare_one_minidataset(i)
             print('OK')
 
+        # self.fit_TF_IDF_vectorizer_quote_tokens_transform()
         self.set_TF_IDF_vectorizer_vocabulary()
-        self.fit_TF_IDF_vectorizer()
-        self.convert_quote_tokens_into_digits()
+        self.add_transformed_quote_tokens_via_fitted_TF_IDF_to_minidataset()
+        # self.fit_TF_IDF_vectorizer()
+        # self.convert_quote_tokens_into_digits()
 
     def prepare_one_minidataset(self, minidataset_number = 0):
         self.current_dataset = self.get_random_samples_dataframe(minidataset_number)
@@ -43,6 +45,7 @@ class Minidatasets_Preparing:
         self.remove_original_date_column()
         self.encode_boolean_type_columns()
         self.encode_categorical_columns(minidataset_number)
+        print(self.current_dataset)
         self.convert_userID_to_numeric_dtype()
         self.remove_quote_tag_from_quote_str()
         self.convert_rating_column_into_binary_column()
@@ -52,11 +55,12 @@ class Minidatasets_Preparing:
         self.update_quotes_vocabulary()
         self.convert_quote_tokens_into_string()
         self.save_prepared_minidataset_to_csv(minidataset_number)
-        print(self.current_dataset)
 
     def get_random_samples_dataframe(self, minidataset_number):
         dataframe = pd.read_csv(self.minidatasets[minidataset_number])
-        return dataframe.sample(100, axis = 0)
+        print('Original minidataset:')
+        print(dataframe)
+        return dataframe.sample(80, axis = 0)
 
     def clean_data_from_missing_values(self):
         self.current_dataset.dropna(axis = 1, how = 'any', inplace = True)
@@ -100,6 +104,9 @@ class Minidatasets_Preparing:
                 ), dtype = 'int32')
 
     def encode_categorical_columns(self, current_dataset_num: int):
+
+        # TODO: find out what is problem with this method ?
+
         for column_and_label_encoder in self.label_encoders.items():
             column_for_encoding = column_and_label_encoder[0]
             label_encoder = column_and_label_encoder[1]
@@ -195,10 +202,10 @@ class Minidatasets_Preparing:
     def quote_tokens_into_string(self, tokens: list):
         return ' '.join(tokens)
 
-    def convert_quote_tokens_into_digits(self):
+    def add_transformed_quote_tokens_via_fitted_TF_IDF_to_minidataset(self):
         for minidataset_file in self.prepared_minidatasets_filenames:
             self.current_dataset = pd.read_csv(minidataset_file)
-            transform_tokens = self.get_TF_IDF_transform_quote_tokens()
+            transform_tokens = self.get_transformed_quote_tokens_via_fitted_TF_IDF()
             transform_tokens_df = self.get_TF_IDF_transform_result_as_DataFrame(transform_tokens)
             self.current_dataset = pd.concat(
                 [self.current_dataset, transform_tokens_df],
@@ -218,14 +225,8 @@ class Minidatasets_Preparing:
         print('Total Unique quotes words amount =', len(self.quotes_vocabulary))
         self.TF_IDF_vectorizer.vocabulary = self.quotes_vocabulary
 
-    def fit_TF_IDF_vectorizer(self):
-
-        # TODO: find out what is problem with this method?
-
-        self.TF_IDF_vectorizer.fit(self.current_dataset['quote_tokens'].values)
-
-    def get_TF_IDF_transform_quote_tokens(self):
-        return self.TF_IDF_vectorizer.transform(
+    def get_transformed_quote_tokens_via_fitted_TF_IDF(self):
+        return self.TF_IDF_vectorizer.fit_transform(
                 self.current_dataset['quote_tokens'].values
             )
 
