@@ -45,7 +45,6 @@ class Minidatasets_Preparing:
         self.remove_original_date_column()
         self.encode_boolean_type_columns()
         self.encode_categorical_columns(minidataset_number)
-        print(self.current_dataset)
         self.convert_userID_to_numeric_dtype()
         self.remove_quote_tag_from_quote_str()
         self.convert_rating_column_into_binary_column()
@@ -98,10 +97,9 @@ class Minidatasets_Preparing:
     def encode_boolean_type_columns(self):
         for column in self.current_dataset.columns:
             if self.current_dataset[column].dtypes == bool:
-                self.current_dataset[column] = pd.Series(
-                    self.boolean_label_encoder.transform(
-                        self.current_dataset[column]
-                ), dtype = 'int32')
+                self.current_dataset[column] = self.boolean_label_encoder.transform(
+                    self.current_dataset[column]
+                )
 
     def encode_categorical_columns(self, current_dataset_num: int):
 
@@ -113,7 +111,7 @@ class Minidatasets_Preparing:
             if current_dataset_num == 0:
                 current_label_encoder_classes = []
             else:
-                current_label_encoder_classes = list(label_encoder.classes_)
+                current_label_encoder_classes = label_encoder.classes_
             # print('Unique values:')
             # print(pd.unique(self.current_dataset[column_for_encoding]))
             new_label_encoder = LabelEncoder()
@@ -121,11 +119,11 @@ class Minidatasets_Preparing:
             for new_class in new_label_encoder.classes_:
                 if new_class not in current_label_encoder_classes:
                     current_label_encoder_classes.append(new_class)
-            label_encoder.fit(current_label_encoder_classes)
-            self.current_dataset[column_for_encoding] = pd.Series(
-                new_label_encoder.transform(
-                    self.current_dataset[column_for_encoding]
-            ), dtype = 'int32')
+            label_encoder.classes_ = current_label_encoder_classes
+            self.current_dataset[column_for_encoding] = label_encoder.fit_transform(
+                    self.current_dataset[column_for_encoding].values
+            )
+            print(self.current_dataset[column_for_encoding])
 
     def convert_userID_to_numeric_dtype(self):
         self.replace_diff_userIDs_to_NaN()
