@@ -12,6 +12,7 @@ class Minidatasets_Preparing:
     def __init__(self, datasets: list):
         self.minidatasets = datasets
         self.current_dataset = pd.DataFrame()
+        self.minidatasets_one_value_columns = []
         self.boolean_label_encoder = LabelEncoder().fit([True, False])
         self.label_encoders = {'movieId': LabelEncoder(),
                                'userRealm': LabelEncoder()}
@@ -26,19 +27,21 @@ class Minidatasets_Preparing:
         return [f'data/prepared_minidataset_{i}.csv' for i in range(1, len(self.minidatasets) + 1)]
 
     def prepare_all_minidatasets(self):
-        for i in range(1):
+        self.define_one_value_columns_in_all_minidatasets()
+        print('[INFO] Defined one-value columns in all minidatasets:')
+        print(self.minidatasets_one_value_columns)
+        for i in range(len(self.minidatasets)):
             print(f'[INFO] Preparing minidataset #{i + 1}...')
             self.prepare_one_minidataset(i)
             print('OK')
 
-        # self.fit_TF_IDF_vectorizer_quote_tokens_transform()
         self.set_TF_IDF_vectorizer_vocabulary()
         self.add_transformed_quote_tokens_via_fitted_TF_IDF_to_minidataset()
-        # self.fit_TF_IDF_vectorizer()
-        # self.convert_quote_tokens_into_digits()
 
     def prepare_one_minidataset(self, minidataset_number = 0):
-        self.current_dataset = self.get_random_samples_dataframe(minidataset_number)
+        minidataset = pd.read_csv(self.minidatasets[minidataset_number])
+        self.remove_one_value_columns(minidataset)
+        self.current_dataset = self.get_random_samples_dataframe(minidataset)
         self.clean_data_from_missing_values()
         self.remove_duplicated_rows()
         self.add_features_from_date_column()
@@ -48,18 +51,14 @@ class Minidatasets_Preparing:
         self.convert_userID_to_numeric_dtype()
         self.remove_quote_tag_from_quote_str()
         self.convert_rating_column_into_binary_column()
-        self.delete_columns_with_one_value()
         self.quote_text_preprocessing()
         self.remove_original_quote_column()
         self.update_quotes_vocabulary()
         self.convert_quote_tokens_into_string()
         self.save_prepared_minidataset_to_csv(minidataset_number)
 
-    def get_random_samples_dataframe(self, minidataset_number):
-        dataframe = pd.read_csv(self.minidatasets[minidataset_number])
-        print('Original minidataset:')
-        print(dataframe)
-        return dataframe.sample(80, axis = 0)
+    def get_random_samples_dataframe(self, minidataset: pd.DataFrame):
+        return minidataset.sample(80, axis = 0)
 
     def clean_data_from_missing_values(self):
         self.current_dataset.dropna(axis = 1, how = 'any', inplace = True)
@@ -102,18 +101,13 @@ class Minidatasets_Preparing:
                 )
 
     def encode_categorical_columns(self, current_dataset_num: int):
-
-        # TODO: find out what is problem with this method ?
-
         for column_and_label_encoder in self.label_encoders.items():
             column_for_encoding = column_and_label_encoder[0]
             label_encoder = column_and_label_encoder[1]
             if current_dataset_num == 0:
                 current_label_encoder_classes = []
             else:
-                current_label_encoder_classes = label_encoder.classes_
-            # print('Unique values:')
-            # print(pd.unique(self.current_dataset[column_for_encoding]))
+                current_label_encoder_classes = list(label_encoder.classes_)
             new_label_encoder = LabelEncoder()
             new_label_encoder.fit(self.current_dataset[column_for_encoding])
             for new_class in new_label_encoder.classes_:
@@ -123,7 +117,6 @@ class Minidatasets_Preparing:
             self.current_dataset[column_for_encoding] = label_encoder.fit_transform(
                     self.current_dataset[column_for_encoding].values
             )
-            print(self.current_dataset[column_for_encoding])
 
     def convert_userID_to_numeric_dtype(self):
         self.replace_diff_userIDs_to_NaN()
@@ -151,14 +144,24 @@ class Minidatasets_Preparing:
         else:
             return 0
 
-    def delete_columns_with_one_value(self):
-        one_value_columns = self.get_columns_with_only_one_value()
-        self.current_dataset.drop(one_value_columns, axis = 1, inplace = True)
+    def define_one_value_columns_in_all_minidatasets(self):
+        for minidataset in self.minidatasets:
+            minidf = pd.read_csv(minidataset)
+            one_value_columns = self.get_minidataset_columns_with_only_one_value(minidf)
+            self.update_minidatasets_one_value_columns(one_value_columns)
 
-    def get_columns_with_only_one_value(self):
+    def update_minidatasets_one_value_columns(self, new_one_value_columns: list):
+        for new_column in new_one_value_columns:
+            if new_column not in self.minidatasets_one_value_columns:
+                self.minidatasets_one_value_columns.append(new_column)
+
+    def remove_one_value_columns(self, df: pd.DataFrame):
+        df.drop(self.minidatasets_one_value_columns, axis = 1, inplace = True)
+
+    def get_minidataset_columns_with_only_one_value(self, minidataset):
         one_value_columns = []
-        for df_column in self.current_dataset.columns:
-            unique_values_amount = len(pd.unique(self.current_dataset[df_column]))
+        for df_column in minidataset.columns:
+            unique_values_amount = len(pd.unique(minidataset[df_column]))
             if unique_values_amount == 1:
                 one_value_columns.append(df_column)
         return one_value_columns
@@ -209,6 +212,7 @@ class Minidatasets_Preparing:
                 [self.current_dataset, transform_tokens_df],
                 axis = 1
             )
+            print('[INFO] Result minidataset:')
             print(self.current_dataset)
 
     def update_quotes_vocabulary(self):
@@ -224,6 +228,8 @@ class Minidatasets_Preparing:
         self.TF_IDF_vectorizer.vocabulary = self.quotes_vocabulary
 
     def get_transformed_quote_tokens_via_fitted_TF_IDF(self):
+        print('Current TF-IDF vocabulary len:', end = ' ')
+        print(len(self.TF_IDF_vectorizer.vocabulary))
         return self.TF_IDF_vectorizer.fit_transform(
                 self.current_dataset['quote_tokens'].values
             )
