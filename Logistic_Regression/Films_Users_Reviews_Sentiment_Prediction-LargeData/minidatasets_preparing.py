@@ -30,7 +30,7 @@ class Minidatasets_Preparing:
         self.define_one_value_columns_in_all_minidatasets()
         print('[INFO] Defined one-value columns in all minidatasets:')
         print(self.minidatasets_one_value_columns)
-        for i in range(len(self.minidatasets)):
+        for i in range(1):
             print(f'[INFO] Preparing minidataset #{i + 1}...')
             self.prepare_one_minidataset(i)
             print('OK')
@@ -47,6 +47,7 @@ class Minidatasets_Preparing:
         self.add_features_from_date_column()
         self.remove_original_date_column()
         self.encode_boolean_type_columns()
+        self.get_categorical_columns()
         self.encode_categorical_columns(minidataset_number)
         self.convert_userID_to_numeric_dtype()
         self.remove_quote_tag_from_quote_str()
@@ -60,9 +61,11 @@ class Minidatasets_Preparing:
     def get_random_samples_dataframe(self, minidataset: pd.DataFrame):
         return minidataset.sample(80, axis = 0)
 
+
     def clean_data_from_missing_values(self):
         self.current_dataset.dropna(axis = 1, how = 'any', inplace = True)
         self.current_dataset.dropna(axis = 0, how = 'all', inplace = True)
+
 
     def remove_duplicated_rows(self):
         self.current_dataset.drop_duplicates(inplace = True)
@@ -99,6 +102,19 @@ class Minidatasets_Preparing:
                 self.current_dataset[column] = self.boolean_label_encoder.transform(
                     self.current_dataset[column]
                 )
+
+    def get_categorical_columns(self):
+        for column in self.current_dataset.columns:
+            if self.current_dataset[column].dtypes == object and column != 'quote':
+                # self.convert_object_columns_to_best_dtypes(column)
+                print(self.current_dataset[column])
+
+    def convert_object_columns_to_numeric_dtype(self, obj_column):
+        self.current_dataset[obj_column] = pd.to_numeric(self.current_dataset[obj_column])
+
+    def column_has_incorrect_values(self, df_column: str):
+        # # TODO: think how to create method
+        pass
 
     def encode_categorical_columns(self, current_dataset_num: int):
         for column_and_label_encoder in self.label_encoders.items():
