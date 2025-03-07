@@ -47,6 +47,7 @@ class Minidatasets_Preparing:
         self.add_features_from_date_column()
         self.remove_original_date_column()
         self.encode_boolean_type_columns()
+        print(self.current_dataset.dtypes)
         self.get_categorical_columns()
         self.encode_categorical_columns(minidataset_number)
         self.convert_userID_to_numeric_dtype()
@@ -61,11 +62,9 @@ class Minidatasets_Preparing:
     def get_random_samples_dataframe(self, minidataset: pd.DataFrame):
         return minidataset.sample(80, axis = 0)
 
-
     def clean_data_from_missing_values(self):
         self.current_dataset.dropna(axis = 1, how = 'any', inplace = True)
         self.current_dataset.dropna(axis = 0, how = 'all', inplace = True)
-
 
     def remove_duplicated_rows(self):
         self.current_dataset.drop_duplicates(inplace = True)
@@ -106,15 +105,33 @@ class Minidatasets_Preparing:
     def get_categorical_columns(self):
         for column in self.current_dataset.columns:
             if self.current_dataset[column].dtypes == object and column != 'quote':
-                # self.convert_object_columns_to_best_dtypes(column)
-                print(self.current_dataset[column])
+                if self.object_column_has_numeric_dtype_in_majority(column):
+                    print(f'{column} can be convert to numeric dtype.')
+                else:
+                    print('Categorical column:')
+                    print(self.current_dataset[column])
 
-    def convert_object_columns_to_numeric_dtype(self, obj_column):
-        self.current_dataset[obj_column] = pd.to_numeric(self.current_dataset[obj_column])
+    def object_column_has_numeric_dtype_in_majority(self, df_column: str):
+        numeric_dtype_amount = 0
+        non_numeric_dtype_amount = 0
+        for value in self.current_dataset[df_column].values:
+            try:
+                pd.to_numeric(value)
+                numeric_dtype_amount += 1
+            except:
+                non_numeric_dtype_amount += 1
+        if numeric_dtype_amount > non_numeric_dtype_amount:
+            print(f'Column {df_column} has numeric values in majority.')
+            return True
+        else:
+            print(f'Column {df_column} has non-numeric values in majority.')
+            return False
 
-    def column_has_incorrect_values(self, df_column: str):
-        # # TODO: think how to create method
-        pass
+    def convert_object_columns_to_numeric_dtype(self, df_column):
+        # TODO: finish method
+        for value in self.current_dataset[df_column].values:
+            pass
+        self.current_dataset[df_column] = pd.to_numeric(self.current_dataset[df_column])
 
     def encode_categorical_columns(self, current_dataset_num: int):
         for column_and_label_encoder in self.label_encoders.items():
