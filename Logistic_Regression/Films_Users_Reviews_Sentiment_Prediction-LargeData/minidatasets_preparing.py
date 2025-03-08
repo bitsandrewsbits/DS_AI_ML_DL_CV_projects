@@ -14,8 +14,9 @@ class Minidatasets_Preparing:
         self.current_dataset = pd.DataFrame()
         self.minidatasets_one_value_columns = []
         self.boolean_label_encoder = LabelEncoder().fit([True, False])
-        self.label_encoders = {'movieId': LabelEncoder(),
-                               'userRealm': LabelEncoder()}
+        self.categorical_columns_from_obj_columns = []
+        self.numeric_columns_from_obj_columns = []
+        self.label_encoders = {}
         self.quote_tag_regex = r'^:([a-zA-Z]*):'
         self.quote_words_stemmer = SnowballStemmer("english", ignore_stopwords = True)
         self.stopwords = stopwords.words('english')
@@ -30,7 +31,7 @@ class Minidatasets_Preparing:
         self.define_one_value_columns_in_all_minidatasets()
         print('[INFO] Defined one-value columns in all minidatasets:')
         print(self.minidatasets_one_value_columns)
-        for i in range(1):
+        for i in range(len(self.minidatasets)):
             print(f'[INFO] Preparing minidataset #{i + 1}...')
             self.prepare_one_minidataset(i)
             print('OK')
@@ -47,16 +48,18 @@ class Minidatasets_Preparing:
         self.add_features_from_date_column()
         self.remove_original_date_column()
         self.encode_boolean_type_columns()
+        self.define_categorical_and_numeric_from_object_columns()
+        self.convert_object_columns_to_numeric_dtype()
+        self.set_label_encoders_for_categorical_columns()
         print(self.current_dataset.dtypes)
-        self.get_categorical_columns()
         self.encode_categorical_columns(minidataset_number)
-        self.convert_userID_to_numeric_dtype()
         self.remove_quote_tag_from_quote_str()
         self.convert_rating_column_into_binary_column()
         self.quote_text_preprocessing()
         self.remove_original_quote_column()
         self.update_quotes_vocabulary()
         self.convert_quote_tokens_into_string()
+        print(self.current_dataset)
         self.save_prepared_minidataset_to_csv(minidataset_number)
 
     def get_random_samples_dataframe(self, minidataset: pd.DataFrame):
@@ -102,14 +105,16 @@ class Minidatasets_Preparing:
                     self.current_dataset[column]
                 )
 
-    def get_categorical_columns(self):
+    def define_categorical_and_numeric_from_object_columns(self):
         for column in self.current_dataset.columns:
             if self.current_dataset[column].dtypes == object and column != 'quote':
                 if self.object_column_has_numeric_dtype_in_majority(column):
                     print(f'{column} can be convert to numeric dtype.')
+                    self.numeric_columns_from_obj_columns.append(column)
                 else:
                     print('Categorical column:')
                     print(self.current_dataset[column])
+                    self.categorical_columns_from_obj_columns.append(column)
 
     def object_column_has_numeric_dtype_in_majority(self, df_column: str):
         numeric_dtype_amount = 0
@@ -121,19 +126,30 @@ class Minidatasets_Preparing:
             except:
                 non_numeric_dtype_amount += 1
         if numeric_dtype_amount > non_numeric_dtype_amount:
-            print(f'Column {df_column} has numeric values in majority.')
             return True
         else:
-            print(f'Column {df_column} has non-numeric values in majority.')
             return False
 
-    def convert_object_columns_to_numeric_dtype(self, df_column):
-        # TODO: finish method
-        for value in self.current_dataset[df_column].values:
-            pass
-        self.current_dataset[df_column] = pd.to_numeric(self.current_dataset[df_column])
+    def convert_object_columns_to_numeric_dtype(self):
+        for df_column in self.numeric_columns_from_obj_columns:
+            self.current_dataset[df_column] = self.current_dataset[df_column].apply(
+                self.object_type_to_numeric
+            )
+        self.current_dataset.dropna(axis = 0, inplace = True)
+
+    def object_type_to_numeric(self, obj_value):
+        try:
+            return pd.to_numeric(obj_value)
+        except:
+            return np.nan
+
+    def set_label_encoders_for_categorical_columns(self):
+        for column in self.categorical_columns_from_obj_columns:
+            self.label_encoders[column] = LabelEncoder()
 
     def encode_categorical_columns(self, current_dataset_num: int):
+        # TODO: fix method
+
         for column_and_label_encoder in self.label_encoders.items():
             column_for_encoding = column_and_label_encoder[0]
             label_encoder = column_and_label_encoder[1]
