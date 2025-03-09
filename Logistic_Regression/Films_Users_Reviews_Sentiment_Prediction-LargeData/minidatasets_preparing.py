@@ -17,6 +17,7 @@ class Minidatasets_Preparing:
         self.categorical_columns_from_obj_columns = []
         self.numeric_columns_from_obj_columns = []
         self.label_encoders = {}
+        self.label_encoders_classes = {}
         self.quote_tag_regex = r'^:([a-zA-Z]*):'
         self.quote_words_stemmer = SnowballStemmer("english", ignore_stopwords = True)
         self.stopwords = stopwords.words('english')
@@ -49,9 +50,9 @@ class Minidatasets_Preparing:
         self.remove_original_date_column()
         self.encode_boolean_type_columns()
         self.define_categorical_and_numeric_from_object_columns()
+        self.set_init_label_encoders_classes()
         self.convert_object_columns_to_numeric_dtype()
         self.set_label_encoders_for_categorical_columns()
-        print(self.current_dataset.dtypes)
         self.encode_categorical_columns(minidataset_number)
         self.remove_quote_tag_from_quote_str()
         self.convert_rating_column_into_binary_column()
@@ -59,6 +60,7 @@ class Minidatasets_Preparing:
         self.remove_original_quote_column()
         self.update_quotes_vocabulary()
         self.convert_quote_tokens_into_string()
+        print(self.current_dataset.dtypes)
         print(self.current_dataset)
         self.save_prepared_minidataset_to_csv(minidataset_number)
 
@@ -80,23 +82,6 @@ class Minidatasets_Preparing:
 
     def remove_original_date_column(self):
         self.current_dataset.drop('creationDate', axis = 1, inplace = True)
-
-    def encode_movieIDs_column(self):
-        for minidataset in self.datasets:
-            minidataset['movieId'] = self.movieIDs_label_encoder.transform(minidataset['movieId'])
-
-    def fit_all_classes_to_movieIDs_label_encoder(self):
-        self.movieIDs_label_encoder.fit(self.all_unique_movieIDs)
-
-    def add_only_new_unique_movieIDs(self):
-        current_unique_movieIDs = self.get_unique_movieIDs()
-        for unique_movieID in current_unique_movieIDs:
-            if unique_movieID not in self.all_unique_movieIDs:
-                self.all_unique_movieIDs.append(unique_movieID)
-        print('Total unique movieIDs =', len(self.all_unique_movieIDs))
-
-    def get_unique_movieIDs(self):
-        return pd.unique(self.current_dataset['movieId'])
 
     def encode_boolean_type_columns(self):
         for column in self.current_dataset.columns:
@@ -139,17 +124,23 @@ class Minidatasets_Preparing:
 
     def object_type_to_numeric(self, obj_value):
         try:
-            return pd.to_numeric(obj_value)
+            return pd.to_numeric(obj_value, downcast = 'integer')
         except:
             return np.nan
+
+    def set_init_label_encoders_classes(self):
+        for column in self.categorical_columns_from_obj_columns:
+            self.label_encoders_classes[column] = []
 
     def set_label_encoders_for_categorical_columns(self):
         for column in self.categorical_columns_from_obj_columns:
             self.label_encoders[column] = LabelEncoder()
+            self.label_encoders[column].classes_ = self.label_encoders_classes[column]
+
+    def update_label_encoders_classes(self, column: str, classes: list):
+        self.label_encoders_classes[column] = classes
 
     def encode_categorical_columns(self, current_dataset_num: int):
-        # TODO: fix method
-
         for column_and_label_encoder in self.label_encoders.items():
             column_for_encoding = column_and_label_encoder[0]
             label_encoder = column_and_label_encoder[1]
@@ -162,7 +153,14 @@ class Minidatasets_Preparing:
             for new_class in new_label_encoder.classes_:
                 if new_class not in current_label_encoder_classes:
                     current_label_encoder_classes.append(new_class)
-            label_encoder.classes_ = current_label_encoder_classes
+
+            # TODO: find out what is problem with updating classes for label encoders ?
+
+            self.update_label_encoders_classes(
+                column_for_encoding, current_label_encoder_classes
+            )
+            print('Current label encoder classes amount:', end = ' ')
+            print(len(current_label_encoder_classes))
             self.current_dataset[column_for_encoding] = label_encoder.fit_transform(
                     self.current_dataset[column_for_encoding].values
             )
