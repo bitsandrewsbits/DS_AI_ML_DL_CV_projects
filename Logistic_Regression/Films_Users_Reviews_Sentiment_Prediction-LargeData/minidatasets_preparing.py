@@ -49,8 +49,10 @@ class Minidatasets_Preparing:
         self.add_features_from_date_column()
         self.remove_original_date_column()
         self.encode_boolean_type_columns()
-        self.define_categorical_and_numeric_from_object_columns()
-        self.set_init_label_encoders_classes()
+        if minidataset_number == 0:
+            self.define_categorical_and_numeric_from_object_columns()
+            self.set_init_label_encoders_classes()
+
         self.convert_object_columns_to_numeric_dtype()
         self.set_label_encoders_for_categorical_columns()
         self.encode_categorical_columns(minidataset_number)
@@ -65,7 +67,7 @@ class Minidatasets_Preparing:
         self.save_prepared_minidataset_to_csv(minidataset_number)
 
     def get_random_samples_dataframe(self, minidataset: pd.DataFrame):
-        return minidataset.sample(80, axis = 0)
+        return minidataset.sample(2000, axis = 0)
 
     def clean_data_from_missing_values(self):
         self.current_dataset.dropna(axis = 1, how = 'any', inplace = True)
@@ -153,9 +155,6 @@ class Minidatasets_Preparing:
             for new_class in new_label_encoder.classes_:
                 if new_class not in current_label_encoder_classes:
                     current_label_encoder_classes.append(new_class)
-
-            # TODO: find out what is problem with updating classes for label encoders ?
-
             self.update_label_encoders_classes(
                 column_for_encoding, current_label_encoder_classes
             )
@@ -164,16 +163,6 @@ class Minidatasets_Preparing:
             self.current_dataset[column_for_encoding] = label_encoder.fit_transform(
                     self.current_dataset[column_for_encoding].values
             )
-
-    def convert_userID_to_numeric_dtype(self):
-        self.replace_diff_userIDs_to_NaN()
-        self.current_dataset.dropna(how = 'any', inplace = True)
-        self.current_dataset['userId'] = pd.to_numeric(self.current_dataset['userId'])
-
-    def replace_diff_userIDs_to_NaN(self):
-        self.current_dataset['userId'] = self.current_dataset['userId'].replace(
-            to_replace = '.*-.*', value = np.nan, regex = True
-        )
 
     def remove_quote_tag_from_quote_str(self):
         self.current_dataset['quote'] = self.current_dataset['quote'].str.replace(
@@ -268,7 +257,6 @@ class Minidatasets_Preparing:
             self.quotes_vocabulary = np.union1d(
                 current_unique_quote_words, self.quotes_vocabulary
             )
-        print("Unique quotes words =", len(self.quotes_vocabulary))
 
     def set_TF_IDF_vectorizer_vocabulary(self):
         print('Total Unique quotes words amount =', len(self.quotes_vocabulary))
@@ -277,6 +265,10 @@ class Minidatasets_Preparing:
     def get_transformed_quote_tokens_via_fitted_TF_IDF(self):
         print('Current TF-IDF vocabulary len:', end = ' ')
         print(len(self.TF_IDF_vectorizer.vocabulary))
+
+        # TODO: find out what is problem in some minidatasets 'qoute_tokens' column
+        # why np.nan values exist on this stage ?
+
         return self.TF_IDF_vectorizer.fit_transform(
                 self.current_dataset['quote_tokens'].values
             )
