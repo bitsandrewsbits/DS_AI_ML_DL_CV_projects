@@ -61,9 +61,6 @@ class Minidatasets_Preparing:
         self.quote_text_preprocessing()
         self.remove_original_quote_column()
         self.update_quotes_vocabulary()
-        self.convert_quote_tokens_into_string()
-        print(self.current_dataset.dtypes)
-        print(self.current_dataset)
         self.save_prepared_minidataset_to_csv(minidataset_number)
 
     def get_random_samples_dataframe(self, minidataset: pd.DataFrame):
@@ -99,8 +96,8 @@ class Minidatasets_Preparing:
                     print(f'{column} can be convert to numeric dtype.')
                     self.numeric_columns_from_obj_columns.append(column)
                 else:
-                    print('Categorical column:')
-                    print(self.current_dataset[column])
+                    # print('Categorical column:')
+                    # print(self.current_dataset[column])
                     self.categorical_columns_from_obj_columns.append(column)
 
     def object_column_has_numeric_dtype_in_majority(self, df_column: str):
@@ -126,7 +123,7 @@ class Minidatasets_Preparing:
 
     def object_type_to_numeric(self, obj_value):
         try:
-            return pd.to_numeric(obj_value, downcast = 'integer')
+            return int(pd.to_numeric(obj_value))
         except:
             return np.nan
 
@@ -218,7 +215,8 @@ class Minidatasets_Preparing:
         )
 
     def get_stemmed_quote_tokens(self, tokens: list):
-        return [self.quote_words_stemmer.stem(token) for token in tokens]
+        stemmed_tokens = [self.quote_words_stemmer.stem(token) for token in tokens]
+        return stemmed_tokens
 
     def remove_stopwords_from_quotes(self):
         self.current_dataset['quote_tokens'] = self.current_dataset['quote_tokens'].apply(
@@ -226,22 +224,17 @@ class Minidatasets_Preparing:
         )
 
     def remove_stopwords_from_tokens(self, tokens: list):
-        return [token for token in tokens if token not in self.stopwords]
+        result_tokens = [token for token in tokens if token not in self.stopwords]
+        return result_tokens
 
     def remove_original_quote_column(self):
         self.current_dataset.drop("quote", axis = 1, inplace = True)
 
-    def convert_quote_tokens_into_string(self):
-        self.current_dataset['quote_tokens'] = self.current_dataset['quote_tokens'].apply(
-            self.quote_tokens_into_string
-        )
-
-    def quote_tokens_into_string(self, tokens: list):
-        return ' '.join(tokens)
-
     def add_transformed_quote_tokens_via_fitted_TF_IDF_to_minidataset(self):
         for minidataset_file in self.prepared_minidatasets_filenames:
+            print(f'Reading {minidataset_file}...')
             self.current_dataset = pd.read_csv(minidataset_file)
+            print(self.current_dataset)
             transform_tokens = self.get_transformed_quote_tokens_via_fitted_TF_IDF()
             transform_tokens_df = self.get_TF_IDF_transform_result_as_DataFrame(transform_tokens)
             self.current_dataset = pd.concat(
@@ -250,6 +243,7 @@ class Minidatasets_Preparing:
             )
             print('[INFO] Result minidataset:')
             print(self.current_dataset)
+            print()
 
     def update_quotes_vocabulary(self):
         current_unique_quotes_words = self.current_dataset['quote_tokens'].values
@@ -265,12 +259,8 @@ class Minidatasets_Preparing:
     def get_transformed_quote_tokens_via_fitted_TF_IDF(self):
         print('Current TF-IDF vocabulary len:', end = ' ')
         print(len(self.TF_IDF_vectorizer.vocabulary))
-
-        # TODO: find out what is problem in some minidatasets 'qoute_tokens' column
-        # why np.nan values exist on this stage ?
-
         return self.TF_IDF_vectorizer.fit_transform(
-                self.current_dataset['quote_tokens'].values
+                self.current_dataset['quote_tokens']
             )
 
     def get_TF_IDF_transform_result_as_DataFrame(self, transform_result):
