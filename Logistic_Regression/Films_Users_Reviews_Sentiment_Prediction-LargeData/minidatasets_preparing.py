@@ -96,8 +96,6 @@ class Minidatasets_Preparing:
                     print(f'{column} can be convert to numeric dtype.')
                     self.numeric_columns_from_obj_columns.append(column)
                 else:
-                    # print('Categorical column:')
-                    # print(self.current_dataset[column])
                     self.categorical_columns_from_obj_columns.append(column)
 
     def object_column_has_numeric_dtype_in_majority(self, df_column: str):
@@ -116,16 +114,10 @@ class Minidatasets_Preparing:
 
     def convert_object_columns_to_numeric_dtype(self):
         for df_column in self.numeric_columns_from_obj_columns:
-            self.current_dataset[df_column] = self.current_dataset[df_column].apply(
-                self.object_type_to_numeric
+            self.current_dataset[df_column] = pd.to_numeric(
+                self.current_dataset[df_column], errors = 'coerce'
             )
         self.current_dataset.dropna(axis = 0, inplace = True)
-
-    def object_type_to_numeric(self, obj_value):
-        try:
-            return int(pd.to_numeric(obj_value))
-        except:
-            return np.nan
 
     def set_init_label_encoders_classes(self):
         for column in self.categorical_columns_from_obj_columns:
