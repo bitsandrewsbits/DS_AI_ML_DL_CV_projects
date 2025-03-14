@@ -7,6 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 from nltk.stem.snowball import SnowballStemmer
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
+import random
 
 class Minidatasets_Preparing:
     def __init__(self, datasets: list):
@@ -23,10 +24,15 @@ class Minidatasets_Preparing:
         self.stopwords = stopwords.words('english')
         self.quotes_vocabulary = []
         self.TF_IDF_vectorizer = TfidfVectorizer()
-        self.prepared_minidatasets_filenames = self.get_prepared_minidatasets_filenames()
+        self.prepared_minidatasets_filenames = self.get_prepared_minidatasets_for_TFIDF_filenames()
+        self.train_minidatasets_amount = int(len(self.minidatasets) * 0.8)
+        self.test_minidatasets_amount = len(self.minidatasets) - self.train_minidatasets_amount
+        self.saved_train_minidatasets_amount = 0
+        self.saved_test_minidatasets_amount = 0
+        self.save_minidataset_as_train = 0
 
-    def get_prepared_minidatasets_filenames(self):
-        return [f'data/prepared_minidataset_{i}.csv' for i in range(1, len(self.minidatasets) + 1)]
+    def get_prepared_minidatasets_for_TFIDF_filenames(self):
+        return [f'data/prepared_minidataset_for_TFIDF_{i}.csv' for i in range(1, len(self.minidatasets) + 1)]
 
     def prepare_all_minidatasets(self):
         self.define_one_value_columns_in_all_minidatasets()
@@ -223,7 +229,7 @@ class Minidatasets_Preparing:
         self.current_dataset.drop("quote", axis = 1, inplace = True)
 
     def add_transformed_quote_tokens_via_fitted_TF_IDF_to_minidataset(self):
-        for minidataset_file in self.prepared_minidatasets_filenames:
+        for (i, minidataset_file) in enumerate(self.prepared_minidatasets_filenames, 1):
             print(f'Reading {minidataset_file}...')
             self.current_dataset = pd.read_csv(minidataset_file)
             print(self.current_dataset)
@@ -233,9 +239,25 @@ class Minidatasets_Preparing:
                 [self.current_dataset, transform_tokens_df],
                 axis = 1
             )
-            print('[INFO] Result minidataset:')
-            print(self.current_dataset)
-            print()
+            self.save_minidataset_as_train_or_test_in_random_way(i)
+
+    def save_minidataset_as_train_or_test_in_random_way(self, df_number: int):
+        values_for_random_choice = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1]
+        print('[INFO] Result minidataset:')
+        print(self.current_dataset)
+        if self.save_minidataset_as_train + random.choice(values_for_random_choice) and \
+            self.saved_train_minidatasets_amount < self.train_minidatasets_amount:
+            print(f'[INFO] Saving minidataset #{df_number} for TRAINing...')
+            self.save_minidatasets_for_training(df_number)
+            self.saved_train_minidatasets_amount += 1
+        elif self.saved_test_minidatasets_amount < self.test_minidatasets_amount:
+            print(f'[INFO] Saving minidataset #{df_number} for TESTing...')
+            self.save_minidatasets_for_testing(df_number)
+            self.saved_test_minidatasets_amount += 1
+        else:
+            print(f'[INFO] Saving minidataset #{df_number} for TRAINing...')
+            self.save_minidatasets_for_training(df_number)
+            self.save_minidataset_as_train = 1
 
     def update_quotes_vocabulary(self):
         current_unique_quotes_words = self.current_dataset['quote_tokens'].values
@@ -262,8 +284,18 @@ class Minidatasets_Preparing:
 
     def save_prepared_minidataset_to_csv(self, minidataset_number: int):
         self.current_dataset.to_csv(
-            f'data/prepared_minidataset_{minidataset_number + 1}.csv',
+            f'data/prepared_minidataset_for_TFIDF_{minidataset_number + 1}.csv',
             index = False
+        )
+
+    def save_minidatasets_for_training(self, df_number: int):
+        self.current_dataset.to_csv(
+            f'data/result_minidataset_{df_number}_for_train.csv', index = False
+        )
+
+    def save_minidatasets_for_testing(self, df_number: int):
+        self.current_dataset.to_csv(
+            f'data/result_minidataset_{df_number}_for_test.csv', index = False
         )
 
 if __name__ == "__main__":
