@@ -239,7 +239,11 @@ class Minidatasets_Preparing:
                 [self.current_dataset, transform_tokens_df],
                 axis = 1
             )
+            self.remove_quote_tokens_column()
             self.save_minidataset_as_train_or_test_in_random_way(i)
+
+    def remove_quote_tokens_column(self):
+        self.current_dataset.drop('quote_tokens', axis = 1, inplace = True)
 
     def save_minidataset_as_train_or_test_in_random_way(self, df_number: int):
         values_for_random_choice = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1]
