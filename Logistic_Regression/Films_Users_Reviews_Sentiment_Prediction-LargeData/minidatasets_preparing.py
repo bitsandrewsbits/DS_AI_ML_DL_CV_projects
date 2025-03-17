@@ -8,10 +8,11 @@ from nltk.stem.snowball import SnowballStemmer
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 import random
+from additional_functions import get_minidatasets_filenames_in_data_dir
 
 class Minidatasets_Preparing:
-    def __init__(self, datasets: list):
-        self.minidatasets = datasets
+    def __init__(self):
+        self.minidatasets = self.get_minidatasets_filenames_with_data_dir()
         self.current_dataset = pd.DataFrame()
         self.minidatasets_one_value_columns = []
         self.boolean_label_encoder = LabelEncoder().fit([True, False])
@@ -30,6 +31,10 @@ class Minidatasets_Preparing:
         self.saved_train_minidatasets_amount = 0
         self.saved_test_minidatasets_amount = 0
         self.save_minidataset_as_train = 0
+
+    def get_minidatasets_filenames_with_data_dir(self):
+        minids_filenames = get_minidatasets_filenames_in_data_dir()
+        return [f'data/{filename}' for filename in minids_filenames]
 
     def get_prepared_minidatasets_for_TFIDF_filenames(self):
         return [f'data/prepared_minidataset_for_TFIDF_{i}.csv' for i in range(1, len(self.minidatasets) + 1)]
@@ -303,6 +308,5 @@ class Minidatasets_Preparing:
         )
 
 if __name__ == "__main__":
-    minidatasets = [f'data/minidataset_{i}' for i in range(1, 11)]
-    data_preparing = Minidatasets_Preparing(minidatasets)
+    data_preparing = Minidatasets_Preparing()
     data_preparing.prepare_all_minidatasets()
