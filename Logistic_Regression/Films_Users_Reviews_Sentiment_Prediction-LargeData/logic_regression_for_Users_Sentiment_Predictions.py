@@ -7,7 +7,7 @@ import re
 import os
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, accuracy_score
 
 class Logic_Regression_for_Sentiment_Prediction:
     def __init__(self):
@@ -21,6 +21,7 @@ class Logic_Regression_for_Sentiment_Prediction:
         self.logistic_regression = LogisticRegression()
         self.predictions_for_test_minidatasets = {}
         self.classification_reports_for_test_minidatasets = {}
+        self.accuracy_scores_on_test_minidatasets = {}
 
     def main(self):
         self.define_train_and_test_datasets_files()
@@ -29,7 +30,7 @@ class Logic_Regression_for_Sentiment_Prediction:
 
         self.make_logistic_regression_predictions()
 
-        self.show_classification_reports_by_minidatasets()
+        self.show_classification_reports_and_accuracies_by_minidatasets()
 
     def define_train_and_test_datasets_files(self):
         for data_dir_file in self.data_dir_files:
@@ -76,13 +77,17 @@ class Logic_Regression_for_Sentiment_Prediction:
                 self.current_target_y, self.predictions_for_test_minidatasets[i],
                 zero_division = 0
             )
+            self.accuracy_scores_on_test_minidatasets[i] = accuracy_score(
+                self.current_target_y, self.predictions_for_test_minidatasets[i]
+            )
             print('OK')
             print('->' * 30)
 
-    def show_classification_reports_by_minidatasets(self):
+    def show_classification_reports_and_accuracies_by_minidatasets(self):
         for i in self.classification_reports_for_test_minidatasets:
             print(f'[INFO] Result Metrics for Logistic Regression on test ds #{i}:')
             print(self.classification_reports_for_test_minidatasets[i])
+            print('Accuracy =', self.accuracy_scores_on_test_minidatasets[i])
             print('=' * 60)
 
 if __name__ == '__main__':
