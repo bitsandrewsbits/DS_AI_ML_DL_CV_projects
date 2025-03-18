@@ -8,11 +8,12 @@ from nltk.stem.snowball import SnowballStemmer
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 import random
-from additional_functions import get_minidatasets_filenames_in_data_dir
+import additional_functions as add_funcs
 
 class Minidatasets_Preparing:
     def __init__(self):
         self.minidatasets = self.get_minidatasets_filenames_with_data_dir()
+        self.random_samples_amount = 3000
         self.current_dataset = pd.DataFrame()
         self.minidatasets_one_value_columns = []
         self.boolean_label_encoder = LabelEncoder().fit([True, False])
@@ -33,13 +34,16 @@ class Minidatasets_Preparing:
         self.save_minidataset_as_train = 0
 
     def get_minidatasets_filenames_with_data_dir(self):
-        minids_filenames = get_minidatasets_filenames_in_data_dir()
+        minids_filenames = add_funcs.get_minidatasets_filenames_in_data_dir()
         return [f'data/{filename}' for filename in minids_filenames]
 
     def get_prepared_minidatasets_for_TFIDF_filenames(self):
         return [f'data/prepared_minidataset_for_TFIDF_{i}.csv' for i in range(1, len(self.minidatasets) + 1)]
 
     def prepare_all_minidatasets(self):
+        print('[INFO] Deleting old result minidatasets if exist...')
+        add_funcs.remove_old_result_minidatasets()
+        print('OK')
         self.define_one_value_columns_in_all_minidatasets()
         print('[INFO] Defined one-value columns in all minidatasets:')
         print(self.minidatasets_one_value_columns)
@@ -68,14 +72,14 @@ class Minidatasets_Preparing:
         self.set_label_encoders_for_categorical_columns()
         self.encode_categorical_columns(minidataset_number)
         self.remove_quote_tag_from_quote_str()
-        self.convert_rating_column_into_binary_column()
+        self.convert_rating_column_into_integer_column()
         self.quote_text_preprocessing()
         self.remove_original_quote_column()
         self.update_quotes_vocabulary()
         self.save_prepared_minidataset_to_csv(minidataset_number)
 
     def get_random_samples_dataframe(self, minidataset: pd.DataFrame):
-        return minidataset.sample(2000, axis = 0)
+        return minidataset.sample(self.random_samples_amount, axis = 0)
 
     def clean_data_from_missing_values(self):
         self.current_dataset.dropna(axis = 1, how = 'any', inplace = True)
@@ -169,16 +173,13 @@ class Minidatasets_Preparing:
         self.quote_tag_regex, '', regex = True
         )
 
-    def convert_rating_column_into_binary_column(self):
+    def convert_rating_column_into_integer_column(self):
         self.current_dataset['rating'] = self.current_dataset['rating'].apply(
-            self.rating_to_binary_format
+            self.rating_to_integer_format
         )
 
-    def rating_to_binary_format(self, rating_score: float):
-        if rating_score >= 5.0:
-            return 1
-        else:
-            return 0
+    def rating_to_integer_format(self, rating_score: float):
+        return int(rating_score)
 
     def define_one_value_columns_in_all_minidatasets(self):
         for minidataset in self.minidatasets:
