@@ -23,13 +23,12 @@ class Logic_Regression_for_Sentiment_Prediction:
         self.classification_reports_for_test_minidatasets = {}
 
     def main(self):
-        # read CSV file, separate features-X and target y(prediction)
         self.define_train_and_test_datasets_files()
-        # train model
+
         self.train_logistic_regression_model_on_current_minidataset()
-        # test model on test minidatasets
+
         self.make_logistic_regression_predictions()
-        # show classification reports(metrics) for each test minidataset
+
         self.show_classification_reports_by_minidatasets()
 
     def define_train_and_test_datasets_files(self):

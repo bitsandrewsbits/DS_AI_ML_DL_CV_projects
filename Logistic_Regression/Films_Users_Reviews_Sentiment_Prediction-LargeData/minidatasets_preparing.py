@@ -1,4 +1,3 @@
-# Sentiment Analysis with created 10 Films Reviews minidatasets
 
 import pandas as pd
 import numpy as np
@@ -13,7 +12,7 @@ import additional_functions as add_funcs
 class Minidatasets_Preparing:
     def __init__(self):
         self.minidatasets = self.get_minidatasets_filenames_with_data_dir()
-        self.random_samples_amount = 3000
+        self.random_samples_amount = 500
         self.current_dataset = pd.DataFrame()
         self.minidatasets_one_value_columns = []
         self.boolean_label_encoder = LabelEncoder().fit([True, False])
@@ -41,8 +40,8 @@ class Minidatasets_Preparing:
         return [f'data/prepared_minidataset_for_TFIDF_{i}.csv' for i in range(1, len(self.minidatasets) + 1)]
 
     def prepare_all_minidatasets(self):
-        print('[INFO] Deleting old result minidatasets if exist...')
-        add_funcs.remove_old_result_minidatasets()
+        print('[INFO] Deleting old prepared and result minidatasets if exist...')
+        add_funcs.remove_old_prepared_result_minidatasets()
         print('OK')
         self.define_one_value_columns_in_all_minidatasets()
         print('[INFO] Defined one-value columns in all minidatasets:')
@@ -72,7 +71,7 @@ class Minidatasets_Preparing:
         self.set_label_encoders_for_categorical_columns()
         self.encode_categorical_columns(minidataset_number)
         self.remove_quote_tag_from_quote_str()
-        self.convert_rating_column_into_integer_column()
+        self.convert_rating_column_into_binary_rating()
         self.quote_text_preprocessing()
         self.remove_original_quote_column()
         self.update_quotes_vocabulary()
@@ -173,13 +172,16 @@ class Minidatasets_Preparing:
         self.quote_tag_regex, '', regex = True
         )
 
-    def convert_rating_column_into_integer_column(self):
+    def convert_rating_column_into_binary_rating(self):
         self.current_dataset['rating'] = self.current_dataset['rating'].apply(
-            self.rating_to_integer_format
+            self.rating_to_binary_format
         )
 
-    def rating_to_integer_format(self, rating_score: float):
-        return int(rating_score)
+    def rating_to_binary_format(self, rating_score: float):
+        if rating_score >= 4:
+            return 1
+        else:
+            return 0
 
     def define_one_value_columns_in_all_minidatasets(self):
         for minidataset in self.minidatasets:
