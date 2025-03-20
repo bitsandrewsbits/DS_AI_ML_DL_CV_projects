@@ -1,9 +1,11 @@
-In this file I will write every step for data downloading, processing. Maybe it's will be usefull for auto-deployment.
+In this file I will write every step for data downloading, processing. Maybe it's will be useful for auto-deployment.
 
-#1)Install gsutil via curl (gsutil provides tools for efficiently accessing this data.)
-curl https://sdk.cloud.google.com | bash
+#1)Create 3 dirs - train2017, val2017, test2017
 
-#2)Create 3 dirs - train2017, val2017, test2017
+#2)install axel util for downloading files.
+sudo apt install axel
 
-#3)Synchronize via gsutil(3 files - train2017.zip, val2017.zip, test2017.zip)
-gsutil -m rsync gs://images.cocodataset.org/train2017.zip
+#3)download files via axel and curl(3 files - train2017.zip, val2017.zip, test2017.zip)
+axel -o train2017/train2017.zip http://images.cocodataset.org/zips/train2017.zip
+curl -o validation2017/val2017.zip http://images.cocodataset.org/zips/val2017.zip
+axel -o test2017/test2017.zip http://images.cocodataset.org/zips/test2017.zip
