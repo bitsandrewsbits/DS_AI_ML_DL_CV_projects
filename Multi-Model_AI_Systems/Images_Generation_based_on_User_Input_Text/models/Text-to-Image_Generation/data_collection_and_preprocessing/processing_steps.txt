@@ -1,11 +1,36 @@
 In this file I will write every step for data downloading, processing. Maybe it's will be useful for auto-deployment.
+pwd - ../data
 
-#1)Create 3 dirs - train2017, val2017, test2017
+#1)Create 6 dirs - train2017/images, train2017/annotations
+#                - val2017/images, val2017/annotations
+#                - test2017/images, test2017/annotations
 
 #2)install axel util for downloading files.
 sudo apt install axel
 
-#3)download files via axel and curl(3 files - train2017.zip, val2017.zip, test2017.zip)
+#3)download files via axel and curl(4 files - train2017.zip, val2017.zip, test2017.zip,
+# annotations_trainval2017.zip)
 axel -o train2017/train2017.zip http://images.cocodataset.org/zips/train2017.zip
 curl -o validation2017/val2017.zip http://images.cocodataset.org/zips/val2017.zip
 axel -o test2017/test2017.zip http://images.cocodataset.org/zips/test2017.zip
+axel -o annotation2017/annotation_train_val_2017.zip http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+axel -o annotation2017/test_annotation2017.zip http://images.cocodataset.org/annotations/image_info_test2017.zip
+
+#4) unzip files with respect to their dirs
+# TRAIN dir
+unzip -q train2017/train2017.zip -d train2017/images
+unzip -q annotation2017/annotation_train_val_2017.zip -d train2017
+
+# delete annotations for validation
+rm train2017/annotations/*val2017.json
+
+#VALIDATION dir
+unzip -q validation2017/val2017.zip -d validation2017/images
+unzip -q annotation2017/annotation_train_val_2017.zip -d validation2017
+
+# delete annotations for training
+rm validation2017/annotations/*train2017.json
+
+# TEST dir
+unzip -q test2017/test2017.zip -d test2017/images
+unzip -q annotation2017/test_annotation2017.zip -d test2017
