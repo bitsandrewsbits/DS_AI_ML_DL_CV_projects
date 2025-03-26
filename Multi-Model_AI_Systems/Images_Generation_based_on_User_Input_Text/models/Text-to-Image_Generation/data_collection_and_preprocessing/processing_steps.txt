@@ -1,25 +1,30 @@
 In this file I will write every step for data downloading, processing. Maybe it's will be useful for auto-deployment.
 
-IMPORTANT:As we will use pre-trained Text-to-Image model, we use only test2017 dataset and annotations for
+IMPORTANT:As we will use pre-trained Text-to-Image model, we use only validation2017_for_fine-tune dataset and annotations for
 Stable Diffusion model fine-tuning.
 
 pwd - ../data
 
-#1)Create 2 dirs - test2017/images, test2017/annotations
+#1)Create 2 dirs - validation2017_for_fine-tune/images, validation2017_for_fine-tune/annotations:
+mkdir -p validation2017_for_fine-tune/images validation2017_for_fine-tune/annotations
 
 #2)install axel util for downloading files.
 sudo apt install axel
 
-#3)download files via axel(2 files - test2017.zip, image_info_test2017.zip):
-axel -o test2017/test2017.zip http://images.cocodataset.org/zips/test2017.zip
-axel -o test2017/test_annotation2017.zip http://images.cocodataset.org/annotations/image_info_test2017.zip
+#3)download files via axel(2 files - val2017.zip, 2017.zip):
+axel -o validation2017_for_fine-tune/val2017.zip http://images.cocodataset.org/zips/val2017.zip
+axel -o validation2017_for_fine-tune/annotations_trainval2017.zip http://images.cocodataset.org/annotations/annotations_trainval2017.zip
 
 #4) unzip files with respect to their dirs:
-unzip -q test2017/test2017.zip -d test2017/images
-unzip -q test2017/test_annotation2017.zip -d test2017/annotations
+unzip -q validation2017_for_fine-tune/val2017.zip -d validation2017_for_fine-tune/images
+unzip -q validation2017_for_fine-tune/annotations_trainval2017.zip -d validation2017_for_fine-tune
 
-#5) remove image_info_test-dev2017.json from annotations:
-rm test2017/annotations/image_info_test-dev2017.json
+#5)move images from val2017 to images dir, remove empty val2017:
+mv validation2017_for_fine-tune/images/val2017/* validation2017_for_fine-tune/images
+rm -d validation2017_for_fine-tune/images/val2017
+
+#6)remove train2017 annotation files from annotation dir:
+rm validation2017_for_fine-tune/annotations/*train2017.json
 
 # Create project VENV(pwd - ../data) and libs for cocoAPI:
 1)cd to project root dir: cd ../../../../

@@ -4,10 +4,10 @@ import numpy as np
 import skimage.io as io
 import matplotlib.pyplot as plt
 
-#data dirs - TEST data
+#data dirs - VALIDATION data
 dataDir = 'data'
-dataType = 'test2017'
-annotation_file = f'{dataDir}/{dataType}/annotations/image_info_{dataType}.json'
+validation_dir = 'validation2017_for_fine-tune'
+annotation_file = f'{dataDir}/{validation_dir}/annotations/instances_val2017.json'
 
 # initialize COCO API for instance annotations
 cocoAPI = COCO(annotation_file)
@@ -21,6 +21,7 @@ print(f'COCO supercategories:\n{supercategories}')
 
 test_categories = ['person', 'train']
 test_categories_IDs = cocoAPI.getCatIds(catNms = test_categories)
+print('Test choose categories IDs:')
 print(test_categories_IDs)
 test_images_IDs = cocoAPI.getImgIds(catIds = test_categories_IDs)
 print('Test categories Images IDs:')
