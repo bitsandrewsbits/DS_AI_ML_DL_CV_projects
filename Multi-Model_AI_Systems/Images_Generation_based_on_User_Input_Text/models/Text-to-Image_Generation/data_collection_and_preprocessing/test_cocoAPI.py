@@ -3,6 +3,7 @@ from pycocotools.coco import COCO
 import numpy as np
 import skimage.io as io
 import matplotlib.pyplot as plt
+import random
 
 #data dirs - VALIDATION data
 dataDir = 'data'
@@ -26,3 +27,19 @@ print(test_categories_IDs)
 test_images_IDs = cocoAPI.getImgIds(catIds = test_categories_IDs)
 print('Test categories Images IDs:')
 print(test_images_IDs)
+
+# show test image by random ID
+random_image_ID = random.randint(0, len(test_images_IDs))
+
+def get_image_info_by_ID(img_id: int):
+    return cocoAPI.loadImgs(test_images_IDs[img_id])[0]
+
+img_info = get_image_info_by_ID(random_image_ID)
+print('Image Info:')
+print(img_info)
+
+def get_image_by_img_info(img_info: dict):
+    return f"{dataDir}/{validation_dir}/images/{img_info['file_name']}"
+
+image = io.imread(get_image_by_img_info(img_info))
+# print(image) # image as numpy ndarray
