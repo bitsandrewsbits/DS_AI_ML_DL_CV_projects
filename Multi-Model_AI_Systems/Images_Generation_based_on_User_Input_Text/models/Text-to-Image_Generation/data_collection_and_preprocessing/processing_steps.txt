@@ -1,30 +1,36 @@
 In this file I will write every step for data downloading, processing. Maybe it's will be useful for auto-deployment.
 
-IMPORTANT:As we will use pre-trained Text-to-Image model, we use only validation2017_for_fine-tune dataset and annotations for
-Stable Diffusion model fine-tuning.
+IMPORTANT: After some reading about Stable Diffusion model, I'll use train2017 for training model and
+validation2017 dataset and annotations for Stable Diffusion model fine-tuning.
 
-pwd - ../data
+pwd - ../data_collection_and_preprocessing
 
-#1)Create 2 dirs - validation2017_for_fine-tune/images, validation2017_for_fine-tune/annotations:
-mkdir -p validation2017_for_fine-tune/images validation2017_for_fine-tune/annotations
+#1) Create 3 dirs - data/train2017, data/train2017/annotations,
+# data/validation2017_for_fine-tune:
+mkdir -p data/train2017/images data/train2017/annotations
+mkdir -p data/validation2017_for_fine-tune
 
-#2)install axel util for downloading files.
+#2) install axel util for downloading files.
 sudo apt install axel
 
-#3)download files via axel(2 files - val2017.zip, 2017.zip):
-axel -o validation2017_for_fine-tune/val2017.zip http://images.cocodataset.org/zips/val2017.zip
-axel -o validation2017_for_fine-tune/annotations_trainval2017.zip http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+#3) download files via axel(3 files - train2017.zip, val2017.zip, annotations_trainval2017.zip):
+axel -o data/train2017/train2017.zip http://images.cocodataset.org/zips/train2017.zip
+axel -o data/validation2017_for_fine-tune/val2017.zip http://images.cocodataset.org/zips/val2017.zip
+axel -o data/validation2017_for_fine-tune/annotations_trainval2017.zip http://images.cocodataset.org/annotations/annotations_trainval2017.zip
 
 #4) unzip files with respect to their dirs:
-unzip -q validation2017_for_fine-tune/val2017.zip -d validation2017_for_fine-tune/images
-unzip -q validation2017_for_fine-tune/annotations_trainval2017.zip -d validation2017_for_fine-tune
+unzip -q data/train2017/train2017.zip -d data/train2017
+unzip -q data/validation2017_for_fine-tune/val2017.zip -d data/validation2017_for_fine-tune
+unzip -q data/validation2017_for_fine-tune/annotations_trainval2017.zip -d data/validation2017_for_fine-tune
 
-#5)move images from val2017 to images dir, remove empty val2017:
-mv validation2017_for_fine-tune/images/val2017/* validation2017_for_fine-tune/images
-rm -d validation2017_for_fine-tune/images/val2017
+#5) rename unziped data/train2017/train2017 dir -> to data/train2017/images,
+# rename unziped data/validation2017_for_fine-tune/val2017 dir -> data/validation2017_for_fine-tune/images:
+mv data/train2017/train2017 data/train2017/images
+mv data//validation2017_for_fine-tune/val2017 data/validation2017_for_fine-tune/images
 
-#6)remove train2017 annotation files from annotation dir:
-rm validation2017_for_fine-tune/annotations/*train2017.json
+#6) move train2017 annotation files from validation2017 annotation dir
+# to train2017 annotations dir:
+mv data/validation2017_for_fine-tune/annotations/*train2017.json data/train2017/annotations
 
 # Create project VENV(pwd - ../data) and libs for cocoAPI:
 1)cd to project root dir: cd ../../../../
@@ -39,3 +45,10 @@ rm validation2017_for_fine-tune/annotations/*train2017.json
 1)cd to project COCO API path - ../data_collection_and_preprocessing
 2)pip3 install git+https://github.com/philferriere/cocoapi.git#subdirectory=PythonAPI
 3)cp -r /home/kov_andrew/.local/lib/python3.10/site-packages/pycocotools .
+
+# Installing Text-to-Image(Stable Diffusion) model modules, scripts for fine-tuning:
+#1)a) git clone https://github.com/huggingface/diffusers
+   b) cd diffusers
+   c) pip install .
+#2)a) cd examples/text_to_image
+   b) pip install -r requirements.txt
