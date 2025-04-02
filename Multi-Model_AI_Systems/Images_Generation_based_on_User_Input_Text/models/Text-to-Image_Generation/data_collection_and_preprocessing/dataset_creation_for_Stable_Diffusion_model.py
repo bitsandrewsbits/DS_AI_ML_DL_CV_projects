@@ -5,6 +5,9 @@ from pycocotools.coco import COCO
 import numpy as np
 import pandas as pd
 import skimage.io as io
+import matplotlib
+matplotlib.use('QtAgg')
+import matplotlib.pyplot as plt
 
 class Dataset_Creating_for_Stable_Diffusion:
     def __init__(self, dataset_dir: str,
@@ -18,13 +21,51 @@ class Dataset_Creating_for_Stable_Diffusion:
         self.images_cocoAPI = COCO(self.images_annotation_file)
         self.annotations_cocoAPI = COCO(self.images_description_annot_file)
 
-        self.images_categories_IDs = self.images_cocoAPI.getCatIds()
-        self.images_IDs = []
+        self.images_IDs_by_categories_IDs = self.images_cocoAPI.catToImgs
+        self.images_IDs = self.get_all_unique_images_IDs()
 
-    def define_all_images_IDs(self):
-        self.images_IDs = self.images_cocoAPI.getImgIds(
-            catIds = self.images_categories_IDs
-        )
+        self.dataset_for_Stable_Diffusion = pd.DataFrame()
+
+    def get_all_unique_images_IDs(self):
+        unique_images_IDs = self.images_IDs_by_categories_IDs[1]
+        for category_ID in self.images_IDs_by_categories_IDs:
+            unique_images_IDs = (
+                np.union1d(
+                    unique_images_IDs,
+                    self.images_IDs_by_categories_IDs[category_ID]
+                )
+            )
+        return unique_images_IDs
+
+    def main(self):
+        # TODO: finish method
+        for image_ID in self.images_IDs[:4]:
+            self.concat_image_and_image_annotation(image_ID)
+
+    def concat_image_and_image_annotation(self, img_id: int):
+        image = self.get_image_as_arrays(img_id)
+        image_annotation_ID = self.get_image_annotation_ID(img_id)
+        image_annotations = self.get_image_annotations(image_annotation_ID)
+
+    def get_image_as_arrays(self, image_id: int):
+        img_info = self.get_image_info_by_ID(image_id)
+        image = io.imread(self.get_image_by_img_info(img_info))
+        return image
+
+    def get_image_info_by_ID(self, img_id: int):
+        return self.images_cocoAPI.loadImgs([img_id])[0]
+
+    def get_image_by_img_info(self, img_info: dict):
+        return f"{self.dataDir}/{self.dataset_dir}/images/{img_info['file_name']}"
+
+    def get_image_annotation_ID(self, img_id: int):
+        return self.annotations_cocoAPI.getAnnIds(imgIds = [img_id])
+
+    def get_image_annotations(self, annotations_IDs: list):
+        image_annotations = []
+        for annotation_info in self.annotations_cocoAPI.loadAnns(annotations_IDs):
+            image_annotations.append(annotation_info['caption'])
+        return image_annotations
 
 if __name__ == '__main__':
     stable_diffusion_ds = Dataset_Creating_for_Stable_Diffusion(
@@ -32,6 +73,4 @@ if __name__ == '__main__':
         'instances_val2017.json',
         'captions_val2017.json'
     )
-    print(stable_diffusion_ds.images_categories_IDs)
-    stable_diffusion_ds.define_all_images_IDs()
-    print(stable_diffusion_ds.images_IDs)
+    stable_diffusion_ds.main()
