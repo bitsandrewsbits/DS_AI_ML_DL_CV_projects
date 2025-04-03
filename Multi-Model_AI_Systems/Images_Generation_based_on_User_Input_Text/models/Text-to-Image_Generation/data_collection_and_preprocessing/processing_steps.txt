@@ -7,7 +7,7 @@ pwd - ../data_collection_and_preprocessing
 
 #1) Create 3 dirs - data/train2017, data/train2017/annotations,
 # data/validation2017_for_fine-tune:
-mkdir -p data/train2017/images data/train2017/annotations
+mkdir -p data/train2017 data/train2017/annotations
 mkdir -p data/validation2017_for_fine-tune
 
 #2) install axel util for downloading files.
@@ -26,7 +26,7 @@ unzip -q data/validation2017_for_fine-tune/annotations_trainval2017.zip -d data/
 #5) rename unziped data/train2017/train2017 dir -> to data/train2017/images,
 # rename unziped data/validation2017_for_fine-tune/val2017 dir -> data/validation2017_for_fine-tune/images:
 mv data/train2017/train2017 data/train2017/images
-mv data//validation2017_for_fine-tune/val2017 data/validation2017_for_fine-tune/images
+mv data/validation2017_for_fine-tune/val2017 data/validation2017_for_fine-tune/images
 
 #6) move train2017 annotation files from validation2017 annotation dir
 # to train2017 annotations dir:

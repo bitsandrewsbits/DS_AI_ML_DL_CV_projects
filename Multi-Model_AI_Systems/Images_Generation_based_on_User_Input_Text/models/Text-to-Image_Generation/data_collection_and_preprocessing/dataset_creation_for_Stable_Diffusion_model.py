@@ -1,12 +1,9 @@
 # merging images annotations and images into
 # separate columns but in the same dataset.
-
 from pycocotools.coco import COCO
 import numpy as np
 import pandas as pd
 import skimage.io as io
-import matplotlib
-matplotlib.use('QtAgg')
 import matplotlib.pyplot as plt
 
 class Dataset_Creating_for_Stable_Diffusion:
@@ -37,20 +34,36 @@ class Dataset_Creating_for_Stable_Diffusion:
             )
         return unique_images_IDs
 
-    def main(self):
-        # TODO: finish method
-        for image_ID in self.images_IDs[:4]:
-            self.concat_image_and_image_annotation(image_ID)
+    def main(self, dataset_type = "TRAIN"):
+        self.add_image_ID_column_to_dataset()
+        self.add_image_and_img_annotation_columns_to_dataset()
+        self.remove_image_ID_column()
+        print(self.dataset_for_Stable_Diffusion)
+        self.save_dataset_to_CSV(dataset_type)
 
-    def concat_image_and_image_annotation(self, img_id: int):
-        image = self.get_image_as_arrays(img_id)
-        image_annotation_ID = self.get_image_annotation_ID(img_id)
-        image_annotations = self.get_image_annotations(image_annotation_ID)
+    def add_image_ID_column_to_dataset(self):
+        self.dataset_for_Stable_Diffusion['image_ID'] = self.images_IDs
+
+    def add_image_and_img_annotation_columns_to_dataset(self):
+        self.dataset_for_Stable_Diffusion['image'] = \
+        self.dataset_for_Stable_Diffusion['image_ID'].apply(
+            self.get_image_as_arrays
+        )
+        self.dataset_for_Stable_Diffusion['image_annotations'] = \
+        self.dataset_for_Stable_Diffusion['image_ID'].apply(
+            self.get_img_annotations
+        )
 
     def get_image_as_arrays(self, image_id: int):
         img_info = self.get_image_info_by_ID(image_id)
         image = io.imread(self.get_image_by_img_info(img_info))
         return image
+
+    def get_img_annotations(self, img_id: int):
+        image_annotation_IDs = self.get_image_annotation_IDs(img_id)
+        image_annotations = self.get_image_annotations_by_IDs(image_annotation_IDs)
+        return image_annotations
+
 
     def get_image_info_by_ID(self, img_id: int):
         return self.images_cocoAPI.loadImgs([img_id])[0]
@@ -58,14 +71,27 @@ class Dataset_Creating_for_Stable_Diffusion:
     def get_image_by_img_info(self, img_info: dict):
         return f"{self.dataDir}/{self.dataset_dir}/images/{img_info['file_name']}"
 
-    def get_image_annotation_ID(self, img_id: int):
+    def get_image_annotation_IDs(self, img_id: int):
         return self.annotations_cocoAPI.getAnnIds(imgIds = [img_id])
 
-    def get_image_annotations(self, annotations_IDs: list):
+    def get_image_annotations_by_IDs(self, annotations_IDs: list):
         image_annotations = []
         for annotation_info in self.annotations_cocoAPI.loadAnns(annotations_IDs):
             image_annotations.append(annotation_info['caption'])
         return image_annotations
+
+    def remove_image_ID_column(self):
+        self.dataset_for_Stable_Diffusion.drop(
+        'image_ID',
+        axis = 1,
+        inplace = True
+        )
+
+    def save_dataset_to_CSV(self, dataset_type: str):
+        self.dataset_for_Stable_Diffusion.to_csv(
+            f"data/validation2017_for_fine-tune/dataset({dataset_type})_for_Stable_Diffusion_model.csv",
+            index = False
+        )
 
 if __name__ == '__main__':
     stable_diffusion_ds = Dataset_Creating_for_Stable_Diffusion(
@@ -73,4 +99,4 @@ if __name__ == '__main__':
         'instances_val2017.json',
         'captions_val2017.json'
     )
-    stable_diffusion_ds.main()
+    stable_diffusion_ds.main("TRAIN")
