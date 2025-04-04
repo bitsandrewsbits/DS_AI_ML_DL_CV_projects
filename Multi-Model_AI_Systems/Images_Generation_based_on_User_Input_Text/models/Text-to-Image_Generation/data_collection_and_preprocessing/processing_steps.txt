@@ -32,12 +32,24 @@ mv data/validation2017_for_fine-tune/val2017 data/validation2017_for_fine-tune/i
 # to train2017 annotations dir:
 mv data/validation2017_for_fine-tune/annotations/*train2017.json data/train2017/annotations
 
+# ===IF USE COLAB ENV === #
+# Cause of small amount of RAM memory, I will use Google Colab env for
+# datasets creation for Stable Diffusion model training, validation. For this(as was tested),
+# I use virtualenv as venv in order to install pycocotools(PythonAPI):
+!pip3 install virtualenv
+!virtualenv datasets_for_SD_model
+!source datasets_for_SD_model/bin/activate
+!pip3 install git+https://github.com/philferriere/cocoapi.git#subdirectory=PythonAPI
+# After that, we can start our dataset creation program. Make sure you choose right
+# runtime type(GPU, TPU) and have enough disk, RAM memory.
+# ========================= #
+
 # Create project VENV(pwd - ../data) and libs for cocoAPI:
 1)cd to project root dir: cd ../../../../
 2)#1)create Project venv in project root dir - images_gen-tion_user_input-env:
   python3 -m venv "images_gen-tion_user_input-env"
   #2)activate venv: source images_gen-tion_user_input-env/bin/activate
-  #3)pip install numpy==1.26(!)
+  #3)pip install numpy==1.26
   #4)pip install scikit-image
   #5)pip install matplotlib
 

@@ -89,7 +89,7 @@ class Dataset_Creating_for_Stable_Diffusion:
 
     def save_dataset_to_CSV(self, dataset_type: str):
         self.dataset_for_Stable_Diffusion.to_csv(
-            f"data/validation2017_for_fine-tune/dataset({dataset_type})_for_Stable_Diffusion_model.csv",
+            f"{self.dataDir}/{self.dataset_dir}/dataset({dataset_type})_for_Stable_Diffusion_model.csv",
             index = False
         )
 
@@ -99,4 +99,4 @@ if __name__ == '__main__':
         'instances_val2017.json',
         'captions_val2017.json'
     )
-    stable_diffusion_ds.main("TRAIN")
+    stable_diffusion_ds.main("VALIDATION")
