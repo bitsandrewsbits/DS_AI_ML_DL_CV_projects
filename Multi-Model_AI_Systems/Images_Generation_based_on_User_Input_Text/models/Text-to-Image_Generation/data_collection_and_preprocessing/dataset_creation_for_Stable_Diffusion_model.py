@@ -38,7 +38,6 @@ class Dataset_Creating_for_Stable_Diffusion:
         self.add_image_ID_column_to_dataset()
         self.add_image_and_img_annotation_columns_to_dataset()
         self.remove_image_ID_column()
-        print(self.dataset_for_Stable_Diffusion)
         self.save_dataset_to_CSV(dataset_type)
 
     def add_image_ID_column_to_dataset(self):
@@ -64,7 +63,6 @@ class Dataset_Creating_for_Stable_Diffusion:
         image_annotations = self.get_image_annotations_by_IDs(image_annotation_IDs)
         return image_annotations
 
-
     def get_image_info_by_ID(self, img_id: int):
         return self.images_cocoAPI.loadImgs([img_id])[0]
 
@@ -82,9 +80,9 @@ class Dataset_Creating_for_Stable_Diffusion:
 
     def remove_image_ID_column(self):
         self.dataset_for_Stable_Diffusion.drop(
-        'image_ID',
-        axis = 1,
-        inplace = True
+            'image_ID',
+            axis = 1,
+            inplace = True
         )
 
     def save_dataset_to_CSV(self, dataset_type: str):
