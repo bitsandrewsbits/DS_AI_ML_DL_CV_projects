@@ -15,9 +15,9 @@ datasets_info = {
 def create_datasets(datasets_info: dict):
     for dataset_type in datasets_info:
         ds_creation = ds_for_sd.Dataset_Creating_for_Stable_Diffusion(
-            dataset_info[dataset_type][0],
-            dataset_info[dataset_type][1],
-            dataset_info[dataset_type][2],
+            datasets_info[dataset_type][0],
+            datasets_info[dataset_type][1],
+            datasets_info[dataset_type][2],
         )
         ds_creation.main(dataset_type)
 

@@ -40,6 +40,7 @@ mv data/validation2017_for_fine-tune/annotations/*train2017.json data/train2017/
 !virtualenv datasets_for_SD_model
 !source datasets_for_SD_model/bin/activate
 # ===If use TPU(!)===:
+!pip install --upgrade setuptools wheel
 !pip install "cython<3.0.0" && pip install --no-build-isolation pyyaml==5.4.1
 # ===================
 !pip3 install git+https://github.com/philferriere/cocoapi.git#subdirectory=PythonAPI
@@ -68,4 +69,4 @@ mv data/validation2017_for_fine-tune/annotations/*train2017.json data/train2017/
 #2)a) cd examples/text_to_image
    b) pip install -r requirements.txt
 #3)Init Accelerate environment(pwd - ../data_collection_and_preprocessing):
-   a)accelerate config
+   a)accelerate config default
