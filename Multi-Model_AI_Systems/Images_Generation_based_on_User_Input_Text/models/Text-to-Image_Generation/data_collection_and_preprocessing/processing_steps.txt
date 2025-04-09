@@ -5,10 +5,11 @@ validation2017 dataset and annotations for Stable Diffusion model fine-tuning.
 
 pwd - ../data_collection_and_preprocessing
 
-#1) Create 3 dirs - data/train2017, data/train2017/annotations,
-# data/validation2017_for_fine-tune:
-mkdir -p data/train2017 data/train2017/annotations
+#1) Create 4 dirs tree - data/train2017/annotations, data/datasets_for_fine-tune:
+mkdir -p data/train2017/annotations
 mkdir -p data/validation2017_for_fine-tune
+mkdir -p data/train2017/dataset_for_fine-tuning
+mkdir -p data/validation2017_for_fine/dataset_for_fine-tuning
 
 #2) install axel util for downloading files.
 sudo apt install axel
