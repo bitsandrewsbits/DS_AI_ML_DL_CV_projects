@@ -1,5 +1,5 @@
 # datasets creation for Stable Diffusion model(train, validation datasets)
-import dataset_creation_for_Stable_Diffusion_model as ds_for_sd
+import images_annotations_file_creation_for_img_dataset as ds_for_sd
 
 datasets_info = {
     "TRAIN": [
@@ -12,7 +12,7 @@ datasets_info = {
         'captions_val2017.json']
 }
 
-def create_datasets(datasets_info: dict):
+def create_images_metadata_datasets(datasets_info: dict):
     for dataset_type in datasets_info:
         ds_creation = ds_for_sd.Dataset_Creating_for_Stable_Diffusion(
             datasets_info[dataset_type][0],
