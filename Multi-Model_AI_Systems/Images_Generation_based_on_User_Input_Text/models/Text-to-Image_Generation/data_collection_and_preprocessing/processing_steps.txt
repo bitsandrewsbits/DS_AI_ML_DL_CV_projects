@@ -8,8 +8,6 @@ pwd - ../data_collection_and_preprocessing
 #1) Create 4 dirs tree - data/train2017/annotations, data/datasets_for_fine-tune:
 mkdir -p data/train2017/annotations
 mkdir -p data/validation2017_for_fine-tune
-mkdir data/train2017/images_metadata
-mkdir data/validation2017_for_fine-tune/images_metadata
 
 #2) install axel util for downloading files.
 sudo apt install axel

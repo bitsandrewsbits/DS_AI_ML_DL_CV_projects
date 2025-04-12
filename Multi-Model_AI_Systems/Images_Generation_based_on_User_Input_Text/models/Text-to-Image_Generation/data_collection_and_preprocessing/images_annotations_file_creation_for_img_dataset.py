@@ -9,7 +9,6 @@ class Images_Annotations_File_Creation_For_Images_Dataset:
         images_annotation_file: str, images_description_annot_file: str):
         self.dataDir = 'data'
         self.dataset_dir = dataset_dir
-        self.images_metadata_dir = "images_metadata"
         self.images_dir = f'{self.dataDir}/{self.dataset_dir}/images'
         self.images_annotation_file = f'{self.dataDir}/{self.dataset_dir}/annotations/{images_annotation_file}'
         self.images_description_annot_file = f'{self.dataDir}/{self.dataset_dir}/annotations/{images_description_annot_file}'
@@ -21,6 +20,7 @@ class Images_Annotations_File_Creation_For_Images_Dataset:
         self.images_IDs = self.get_all_unique_images_IDs()
 
         self.images_dataset_metadata = pd.DataFrame()
+        self.images_dataset_JSON_metadata = []
 
     def get_all_unique_images_IDs(self):
         unique_images_IDs = self.images_IDs_by_categories_IDs[1]
@@ -33,29 +33,30 @@ class Images_Annotations_File_Creation_For_Images_Dataset:
             )
         return unique_images_IDs
 
-    def main(self, dataset_type = "TRAIN"):
+    def main(self):
         self.add_image_ID_column_to_dataset()
-        self.add_image_and_img_annotation_columns_to_dataset()
+        self.add_image_filename_and_img_annotation_columns_to_dataset()
         self.remove_image_ID_column()
         print(self.images_dataset_metadata)
-        self.save_dataset_to_CSV()
+        self.convert_dataset_into_JSON_format()
+        self.create_JSONL_images_metadata_file()
 
     def add_image_ID_column_to_dataset(self):
         self.images_dataset_metadata['image_ID'] = self.images_IDs
 
-    def add_image_and_img_annotation_columns_to_dataset(self):
-        self.images_dataset_metadata['image_filename'] = \
+    def add_image_filename_and_img_annotation_columns_to_dataset(self):
+        self.images_dataset_metadata["file_name"] = \
         self.images_dataset_metadata['image_ID'].apply(
             self.get_image_filename
         )
-        self.images_dataset_metadata['image_annotations'] = \
+        self.images_dataset_metadata["image_annotations"] = \
         self.images_dataset_metadata['image_ID'].apply(
             self.get_img_annotations
         )
 
     def get_image_filename(self, img_id: int):
         image_info = self.get_image_info_by_ID(img_id)
-        return f"{self.images_dir}/{image_info['file_name']}"
+        return image_info['file_name']
 
     def get_img_annotations(self, img_id: int):
         image_annotation_IDs = self.get_image_annotation_IDs(img_id)
@@ -81,11 +82,14 @@ class Images_Annotations_File_Creation_For_Images_Dataset:
             inplace = True
         )
 
-    def save_dataset_to_CSV(self):
-        self.images_dataset_metadata.to_parquet(
-            f"{self.dataDir}/{self.dataset_dir}/{self.images_metadata_dir}/images_dataset_metadata.csv",
-            index = False
+    def convert_dataset_into_JSON_format(self):
+        self.images_dataset_JSON_metadata = self.images_dataset_metadata.to_json(
+            orient = 'records', lines = True
         )
+
+    def create_JSONL_images_metadata_file(self):
+        with open(f'{self.images_dir}/metadata.jsonl', 'w') as imgs_metadata:
+            imgs_metadata.write(self.images_dataset_JSON_metadata)
 
 if __name__ == '__main__':
     stable_diffusion_ds = Images_Annotations_File_Creation_For_Images_Dataset(
@@ -93,4 +97,4 @@ if __name__ == '__main__':
         'instances_val2017.json',
         'captions_val2017.json'
     )
-    stable_diffusion_ds.main("VALIDATION")
+    stable_diffusion_ds.main()

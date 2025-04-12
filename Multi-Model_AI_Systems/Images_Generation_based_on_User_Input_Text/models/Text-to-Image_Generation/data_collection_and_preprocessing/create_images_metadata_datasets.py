@@ -14,12 +14,12 @@ datasets_info = {
 
 def create_images_metadata_datasets(datasets_info: dict):
     for dataset_type in datasets_info:
-        ds_creation = ds_for_sd.Dataset_Creating_for_Stable_Diffusion(
+        ds_creation = ds_for_sd.Images_Annotations_File_Creation_For_Images_Dataset(
             datasets_info[dataset_type][0],
             datasets_info[dataset_type][1],
             datasets_info[dataset_type][2],
         )
-        ds_creation.main(dataset_type)
+        ds_creation.main()
 
 if __name__ == '__main__':
-    create_datasets(datasets_info)
+    create_images_metadata_datasets(datasets_info)
