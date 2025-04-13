@@ -73,3 +73,6 @@ mv data/validation2017_for_fine-tune/annotations/*train2017.json data/train2017/
 
 # Dir for saving of trained S_D models:
 mkdir trained_S_D_models
+
+# If training script has error, execute cmd:
+!pip install --force-reinstall --no-deps --pre xformers
