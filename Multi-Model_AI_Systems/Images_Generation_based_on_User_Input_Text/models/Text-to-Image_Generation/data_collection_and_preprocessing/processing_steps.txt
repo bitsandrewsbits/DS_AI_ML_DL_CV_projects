@@ -56,7 +56,7 @@ mv data/validation2017_for_fine-tune/annotations/*train2017.json data/train2017/
   #5)pip install matplotlib
 
 # Installing COCO PythonAPI:
-1)cd to project COCO API path - ../data_collection_and_preprocessing
+1)pwd - ../data_collection_and_preprocessing
 2)pip3 install git+https://github.com/philferriere/cocoapi.git#subdirectory=PythonAPI
 3)cp -r /home/kov_andrew/.local/lib/python3.10/site-packages/pycocotools .
 
@@ -67,8 +67,9 @@ mv data/validation2017_for_fine-tune/annotations/*train2017.json data/train2017/
 #2)Init Accelerate environment(pwd - ../data_collection_and_preprocessing):
    a)accelerate config default
 
-# Dir for saving of trained S_D models:
-mkdir trained_S_D_models
+# Dir for saving of trained S_D model(on model level):
+cd ..
+mkdir trained_S_D_model
 
 # If training script has xFormers error, execute cmd:
 pip install --force-reinstall --no-deps --pre xformers
