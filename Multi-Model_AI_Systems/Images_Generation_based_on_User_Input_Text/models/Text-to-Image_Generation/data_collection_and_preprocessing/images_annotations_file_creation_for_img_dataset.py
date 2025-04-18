@@ -16,7 +16,11 @@ class Images_Annotations_File_Creation_For_Images_Dataset:
         self.images_cocoAPI = COCO(self.images_annotation_file)
         self.annotations_cocoAPI = COCO(self.images_description_annot_file)
 
+        self.categories_IDs = self.images_cocoAPI.getCatIds()
+        self.categories_info = self.images_cocoAPI.loadCats(self.categories_IDs)
+
         self.images_IDs_by_categories_IDs = self.images_cocoAPI.catToImgs
+        self.images_amount_per_categories_IDs = {}
         self.images_IDs = self.get_all_unique_images_IDs()
 
         self.images_dataset_metadata = pd.DataFrame()
@@ -31,15 +35,41 @@ class Images_Annotations_File_Creation_For_Images_Dataset:
                     self.images_IDs_by_categories_IDs[category_ID]
                 )
             )
-        return unique_images_IDs
+        return unique_images_IDs[:2]
 
     def main(self):
+        self.define_images_amount_per_categories_IDs()
+        self.define_anomaly_big_imgs_categories()
+
         self.add_image_ID_column_to_dataset()
         self.add_image_filename_and_img_annotation_columns_to_dataset()
         self.remove_image_ID_column()
-        print(self.images_dataset_metadata)
         self.convert_dataset_into_JSON_format()
         self.create_JSONL_images_metadata_file()
+
+    def define_images_amount_per_categories_IDs(self):
+        for category_ID in self.images_IDs_by_categories_IDs:
+            self.images_amount_per_categories_IDs[category_ID] = len(
+                self.images_IDs_by_categories_IDs[category_ID]
+            )
+        return True
+
+    def define_anomaly_big_imgs_categories(self):
+        st_deviation = np.std(list(self.images_amount_per_categories_IDs.values()))
+        mean_val = np.average(list(self.images_amount_per_categories_IDs.values()))
+        print('Standart Deviation =', st_deviation)
+        print('Average =', mean_val)
+        for categ_ID in self.images_amount_per_categories_IDs:
+            if self.images_amount_per_categories_IDs[categ_ID] > st_deviation * 2 or \
+            self.images_amount_per_categories_IDs[categ_ID] > mean_val * 2:
+                categ_name = self.get_category_name_by_ID(categ_ID)
+                print(f'Anomaly category - {categ_name}(ID = {categ_ID}) - detected.')
+                print('Images amount =', self.images_amount_per_categories_IDs[categ_ID])
+                print('-' * 20)
+        return True
+
+    def get_category_name_by_ID(self, categ_ID: int):
+        return self.images_cocoAPI.loadCats([categ_ID])[0]['name']
 
     def add_image_ID_column_to_dataset(self):
         self.images_dataset_metadata['image_ID'] = self.images_IDs
@@ -92,9 +122,9 @@ class Images_Annotations_File_Creation_For_Images_Dataset:
             imgs_metadata.write(self.images_dataset_JSON_metadata)
 
 if __name__ == '__main__':
-    stable_diffusion_ds = Images_Annotations_File_Creation_For_Images_Dataset(
-        'validation2017_for_fine-tune',
-        'instances_val2017.json',
-        'captions_val2017.json'
+    img_annotations_ds = Images_Annotations_File_Creation_For_Images_Dataset(
+        'train2017',
+        'instances_train2017.json',
+        'captions_train2017.json'
     )
-    stable_diffusion_ds.main()
+    img_annotations_ds.main()
