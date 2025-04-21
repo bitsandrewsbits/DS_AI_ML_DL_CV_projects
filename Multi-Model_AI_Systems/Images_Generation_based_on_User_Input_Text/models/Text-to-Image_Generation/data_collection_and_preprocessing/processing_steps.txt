@@ -1,7 +1,7 @@
 In this file I will write every step for data downloading, processing. Maybe it's will be useful for auto-deployment.
 
-IMPORTANT: After some reading about Stable Diffusion model, I'll use train2017 for training model and
-validation2017 dataset and annotations for Stable Diffusion model fine-tuning.
+IMPORTANT: After some reading about Stable Diffusion model, I'll use train2017 for fune-tuning S-D model and
+validation2017 dataset for validation.
 
 pwd - ../data_collection_and_preprocessing
 
@@ -67,9 +67,9 @@ mv data/validation2017_for_fine-tune/annotations/*train2017.json data/train2017/
 #2)Init Accelerate environment(pwd - ../data_collection_and_preprocessing):
    a)accelerate config default
 
-# Dir for saving of trained S_D model(on model level):
+# Dir for saving of finetuned S_D model(on model level):
 cd ..
-mkdir trained_S_D_model
+mkdir finetuned_S_D_model
 
 # If training script has xFormers error, execute cmd:
 pip install --force-reinstall --no-deps --pre xformers
