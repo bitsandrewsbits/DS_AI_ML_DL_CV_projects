@@ -35,7 +35,7 @@ class Images_Annotations_File_Creation_For_Images_Dataset:
                     self.images_IDs_by_categories_IDs[category_ID]
                 )
             )
-        return unique_images_IDs[:2]
+        return unique_images_IDs
 
     def main(self):
         self.define_images_amount_per_categories_IDs()

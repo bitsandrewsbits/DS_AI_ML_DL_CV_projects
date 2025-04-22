@@ -42,9 +42,6 @@ mv data/validation2017_for_fine-tune/annotations/*train2017.json data/train2017/
 # After that, we can start our dataset creation program. Make sure you choose right
 # runtime GPU type and have enough disk, RAM memory.
 # ========================= #
-# === GPU Runtime(after error occur when importing pycocotools) ===:
-!pip install --upgrade setuptools wheel
-# ================================================================= #
 
 # Create project VENV(pwd - ../data) and libs for cocoAPI:
 1)cd to project root dir: cd ../../../../
@@ -54,6 +51,8 @@ mv data/validation2017_for_fine-tune/annotations/*train2017.json data/train2017/
   #3)pip install numpy==1.26
   #4)pip install scikit-image
   #5)pip install matplotlib
+  # for GPU Runtime
+  #6)pip install --upgrade setuptools wheel
 
 # Installing COCO PythonAPI:
 1)pwd - ../data_collection_and_preprocessing

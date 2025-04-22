@@ -1,11 +1,11 @@
 from diffusers import DiffusionPipeline
 import torch
 
-trained_S_D_model_dir = "trained_S_D_model"
+finetuned_S_D_model_dir = "finetuned_S_D_model"
 
 def get_Stable_Diffusion_Pipeline():
     pipeline = DiffusionPipeline.from_pretrained(
-        trained_S_D_model_dir, torch_dtype = torch.float16,
+        finetuned_S_D_model_dir, torch_dtype = torch.float16,
         use_safetensors = True
     ).to("cuda")
     return pipeline
