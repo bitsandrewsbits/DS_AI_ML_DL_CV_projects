@@ -42,8 +42,10 @@ class Images_Annotations_File_Creation_For_Images_Dataset:
         self.define_anomaly_big_imgs_categories()
 
         self.add_image_ID_column_to_dataset()
-        self.add_image_filename_and_img_annotation_columns_to_dataset()
+        self.add_image_filename_column_to_dataset()
+        self.add_image_annotations_column_to_dataset()
         self.remove_image_ID_column()
+
         self.convert_dataset_into_JSON_format()
         self.create_JSONL_images_metadata_file()
 
@@ -74,11 +76,13 @@ class Images_Annotations_File_Creation_For_Images_Dataset:
     def add_image_ID_column_to_dataset(self):
         self.images_dataset_metadata['image_ID'] = self.images_IDs
 
-    def add_image_filename_and_img_annotation_columns_to_dataset(self):
-        self.images_dataset_metadata["file_name"] = \
+    def add_image_filename_column_to_dataset(self):
+        self.images_dataset_metadata["image"] = \
         self.images_dataset_metadata['image_ID'].apply(
             self.get_image_filename
         )
+
+    def add_image_annotations_column_to_dataset(self):
         self.images_dataset_metadata["image_annotations"] = \
         self.images_dataset_metadata['image_ID'].apply(
             self.get_img_annotations

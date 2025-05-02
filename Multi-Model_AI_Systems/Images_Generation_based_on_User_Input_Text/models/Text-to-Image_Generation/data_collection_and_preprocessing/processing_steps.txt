@@ -31,6 +31,11 @@ mv data/validation2017_for_fine-tune/val2017 data/validation2017_for_fine-tune/i
 # to train2017 annotations dir:
 mv data/validation2017_for_fine-tune/annotations/*train2017.json data/train2017/annotations
 
+#7)One-Time step(for COLAB) - copy prepared data dir into drive/MyDrive(IF you have > 30GB free space):
+!cp -r data drive/MyDrive/
+!rm drive/MyDrive/data/train2017/*.zip
+!rm drive/MyDrive/data/validation2017_for_fine-tune/*.zip
+
 # ===IF USE COLAB ENV === #
 # Cause of small amount of RAM memory, I will use Google Colab env for
 # datasets creation for Stable Diffusion model training, validation. For this(as was tested),
