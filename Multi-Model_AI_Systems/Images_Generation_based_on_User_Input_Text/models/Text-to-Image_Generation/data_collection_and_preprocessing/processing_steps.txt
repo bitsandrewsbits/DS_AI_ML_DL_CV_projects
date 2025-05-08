@@ -77,3 +77,5 @@ mkdir finetuned_S_D_model
 
 # If training script has xFormers error, execute cmd:
 pip install --force-reinstall --no-deps --pre xformers
+or
+pip install torch==2.7.0+cu126 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
