@@ -14,7 +14,7 @@ class Images_Annotations_File_Creation_For_Images_Dataset:
         self.images_annotation_file = f'{self.dataDir}/{self.dataset_dir}/annotations/{images_annotation_file}'
         self.images_description_annot_file = f'{self.dataDir}/{self.dataset_dir}/annotations/{images_description_annot_file}'
         self.validation_data_dir_regex = re.compile(r'.*validation.*')
-        self.validation_samples_amount = 500
+        self.validation_samples_amount = 200
 
         self.images_cocoAPI = COCO(self.images_annotation_file)
         self.annotations_cocoAPI = COCO(self.images_description_annot_file)
