@@ -1,7 +1,7 @@
 #!bin/bash
 export HF_ENDPOINT=https://hf-mirror.com
 
-accelerate launch diffusers/examples/text_to_image/train_text_to_image_lora.py \
+accelerate launch diffusers/examples/text_to_image/fine-tune_SD_LoRA_model_with_validation.py \
   --pretrained_model_name_or_path="stable-diffusion-v1-5/stable-diffusion-v1-5" \
   --snr_gamma=5.0 \
   --dataset_name="data" \
@@ -10,7 +10,6 @@ accelerate launch diffusers/examples/text_to_image/train_text_to_image_lora.py \
   --gradient_checkpointing \
   --max_train_samples=1000 \
   --train_batch_size=20 \
-  --max_train_steps=10 \
   --total_train_epochs=100 \
   --learning_rate=1e-04 \
   --max_grad_norm=5 \
@@ -20,4 +19,4 @@ accelerate launch diffusers/examples/text_to_image/train_text_to_image_lora.py \
   --val_batch_size=20 \
   --validation_epochs=1 \
   --report_to="tensorboard" \
-  --output_dir="finetuned_S_D_model"
+  --output_dir="finetuned_S_D_LoRA_model"
