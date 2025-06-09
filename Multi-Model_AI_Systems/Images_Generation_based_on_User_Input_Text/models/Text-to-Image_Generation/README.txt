@@ -1,4 +1,4 @@
-In this file I will write every step for data downloading, processing. Maybe it's will be useful for auto-deployment.
+In this file I will write every step for data downloading, processing COCO dataset for SD model fine-tuning.
 
 IMPORTANT: After some reading about Stable Diffusion model, I'll use train2017 for fune-tuning S-D model and
 validation2017 dataset for validation.
@@ -71,11 +71,15 @@ mv data/validation2017_for_fine-tune/annotations/*train2017.json data/train2017/
 #2)Init Accelerate environment(pwd - ../data_collection_and_preprocessing):
    a)accelerate config default
 
-# Dir for saving of finetuned S_D model(on model level):
-cd ..
-mkdir finetuned_S_D_model
+# Dir for saving of finetuned SD model(on model level):
+mkdir finetuned_S_D_LoRA_model
 
 # If training script has xFormers error, execute cmd:
-pip install --force-reinstall --no-deps --pre xformers
-or
 pip install torch==2.7.0+cu126 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+pip install --force-reinstall --no-deps --pre xformers
+
+# Now, time to model fine-tuning by executing bash script:
+stable_diffusion_model_fine-tune_training.sh
+
+# All details and additional steps
+# see in Colab Notebook file - Stable_Diffusion_Model_Fine-Tuning_with_Dataset_Preparation.ipynb
