@@ -1,9 +1,6 @@
-In this file I will write every step for data downloading, processing COCO dataset for SD model fine-tuning.
+# Steps for data downloading, processing COCO dataset, SD model fine-tuning.
 
-IMPORTANT: After some reading about Stable Diffusion model, I'll use train2017 for fune-tuning S-D model and
-validation2017 dataset for validation.
-
-pwd - ../data_collection_and_preprocessing
+# current dir should be - data_collection_and_preprocessing
 
 #1) Create 4 dirs tree - data/train2017/annotations, data/datasets_for_fine-tune:
 mkdir -p data/train2017/annotations
