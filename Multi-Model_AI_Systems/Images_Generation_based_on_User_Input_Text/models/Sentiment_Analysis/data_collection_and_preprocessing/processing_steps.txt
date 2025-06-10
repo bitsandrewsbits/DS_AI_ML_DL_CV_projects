@@ -1,10 +1,17 @@
-Steps for loading, preprocessing data for Sentiment Analysis model:
+Steps for loading, processing data for Sentiment Analysis model (BERT):
 #1) switch dir to data:
 cd data
 
-#2)download Large Movie Review Dataset as archive:
+#2) download Large Movie Review Dataset as archive:
 curl --output large_movie_review_dataset.tar.gz https://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz
 
-#3)unzip dataset:
+#3) unzip dataset:
 gzip -d large_movie_review_dataset.tar.gz
 tar -xf large_movie_review_dataset.tar
+
+# Total words in Review Dataset vocabulary: 89526 -> columns amount = 89526 + rating column)
+# Train/Test splits: 25000 reviews -> rows amount = 25000
+# matrix(train/test) - (89527 x 25000)
+
+# TODO: How to extract info of film review file(review id, rating) ?
+# TODO: How to map review_id -> labeledBoW row (encoded review words)?
