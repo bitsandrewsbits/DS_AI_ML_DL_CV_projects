@@ -4,11 +4,7 @@ import re
 import numpy as np
 
 class DistilBERT_Fune_Tuning_Dataset_Creation:
-    def __init__(self, dataset_vocabulary_file_path: str,
-    positive_reviews_dir_path: str, negative_reviews_dir_path: str):
-        self.dataset_vocab_file_path = dataset_vocabulary_file_path
-        self.vocab_word_via_index_dict = {}
-
+    def __init__(self, positive_reviews_dir_path: str, negative_reviews_dir_path: str):
         self.positive_reviews_dir_path = positive_reviews_dir_path
         self.negative_reviews_dir_path = negative_reviews_dir_path
         self.positive_reviews_filenames = ad_fncs.get_filenames_from_dir(positive_reviews_dir_path)
@@ -17,15 +13,8 @@ class DistilBERT_Fune_Tuning_Dataset_Creation:
         self.result_reviews_dataset = []
 
     def main(self, samples_amount = 'all'):
-        self.create_dict_for_access_vocabulary_word_via_index()
         self.result_reviews_dataset = self.create_result_dataset(samples_amount)
         return self.result_reviews_dataset
-
-    def create_dict_for_access_vocabulary_word_via_index(self):
-        with open(self.dataset_vocab_file_path, 'r') as dataset_vocab_file:
-            for (i, word) in enumerate(dataset_vocab_file):
-                self.vocab_word_via_index_dict[i] = word[:-1]
-        return True
 
     def create_result_dataset(self, samples_amount) -> list[dict]:
         positive_reviews_dataset = []
@@ -53,11 +42,22 @@ class DistilBERT_Fune_Tuning_Dataset_Creation:
     reviews_dir_path: str, reviews_filenames: list) -> list[dict]:
         result_reviews_info = []
         for review_filename in reviews_filenames:
-            review_rating = self.get_review_rating_from_filename(review_filename)
-            review_text = self.get_review_text_from_file(reviews_dir_path, review_filename)
-            review_info = {"rating": int(review_rating), "text": review_text}
+            review_rating = int(self.get_review_rating_from_filename(review_filename))
+            review_text = self.get_review_text_from_file(
+                reviews_dir_path, review_filename
+            )
+            converted_review_rating = self.get_converted_rating_number_into_binary_class(
+                review_rating
+            )
+            review_info = {"label": converted_review_rating, "text": review_text}
             result_reviews_info.append(review_info)
         return result_reviews_info
+
+    def get_converted_rating_number_into_binary_class(self, rating: int):
+        if rating <= 4:
+            return 0
+        elif rating >= 7:
+            return 1
 
     def get_review_rating_from_filename(self, filename: str):
         review_ID_and_rating = re.split('[_.]', filename)[:-1]
@@ -72,7 +72,7 @@ class DistilBERT_Fune_Tuning_Dataset_Creation:
 
 if __name__ == '__main__':
     fine_tune_dataset_creation = DistilBERT_Fune_Tuning_Dataset_Creation(
-        'data/imdb.vocab', 'data/train/pos', 'data/train/neg'
+        'data/train/pos', 'data/train/neg'
     )
     part_of_result_dataset = fine_tune_dataset_creation.main()
     print(part_of_result_dataset)
