@@ -26,7 +26,7 @@ class DistilBERT_Fune_Tuning_Dataset_Creation:
             self.negative_reviews_dir_path, self.negative_reviews_filenames
         )
         if samples_amount == 'all':
-            return positive_reviews_dataset + negative_reviews_dataset
+            result_dataset = positive_reviews_dataset + negative_reviews_dataset
         else:
             positive_samples_amount = samples_amount // 2
             negative_samples_amount = samples_amount - positive_samples_amount
@@ -36,7 +36,13 @@ class DistilBERT_Fune_Tuning_Dataset_Creation:
             result_neg_samples = list(np.random.choice(
                 negative_reviews_dataset, negative_samples_amount, replace = False
             ))
-            return result_pos_samples + result_neg_samples
+            result_dataset = result_pos_samples + result_neg_samples
+
+        self.shuffle_data(result_dataset)
+        return result_dataset
+
+    def shuffle_data(self, dataset: list):
+        np.random.shuffle(dataset)
 
     def get_reviews_info_from_filenames(self,
     reviews_dir_path: str, reviews_filenames: list) -> list[dict]:
@@ -74,5 +80,5 @@ if __name__ == '__main__':
     fine_tune_dataset_creation = DistilBERT_Fune_Tuning_Dataset_Creation(
         'data/train/pos', 'data/train/neg'
     )
-    part_of_result_dataset = fine_tune_dataset_creation.main()
+    part_of_result_dataset = fine_tune_dataset_creation.main(5)
     print(part_of_result_dataset)
