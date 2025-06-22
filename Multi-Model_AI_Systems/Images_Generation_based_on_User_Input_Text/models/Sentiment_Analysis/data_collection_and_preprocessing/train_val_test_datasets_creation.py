@@ -12,6 +12,10 @@ datasets_files_info = {
     }
 }
 
+# TODO: create method, maybe use sklearn.model_selection -> train_test_split()
+def get_train_validation_test_datasets(target_dataset: list):
+    pass
+
 def get_datasets_from_reviews_files(datasets_files_info: dict) -> dict[list]:
     result_datasets = {}
     for dataset_type in datasets_files_info:
@@ -23,10 +27,12 @@ def get_datasets_from_reviews_files(datasets_files_info: dict) -> dict[list]:
 
     return result_datasets
 
-# TODO: create method, maybe need to rename it.
-def get_merged_train_test_datasets(train_dataset: list, test_dataset: list):
-    pass
+def get_merged_train_test_datasets_into_one(train_test_datasets: dict):
+    target_dataset_for_splitting = []
+    target_dataset_for_splitting += train_test_datasets['train']
+    target_dataset_for_splitting += train_test_datasets['test']
+    return target_dataset_for_splitting
 
 if __name__ == '__main__':
     datasets = get_datasets_from_reviews_files(datasets_files_info)
-    print(datasets)
+    target_dataset_for_split = get_merged_train_test_datasets_into_one(datasets)
