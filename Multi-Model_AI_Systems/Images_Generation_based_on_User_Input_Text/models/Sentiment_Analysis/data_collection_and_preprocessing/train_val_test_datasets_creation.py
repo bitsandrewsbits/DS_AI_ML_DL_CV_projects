@@ -1,5 +1,6 @@
 # Train, Validation, Test datasets creation for DistilBERT fine-tuning
 import DistilBERT_FineTuning_dataset_creation as ft_ds
+from sklearn.model_selection import train_test_split
 
 datasets_files_info = {
     "train": {
@@ -12,9 +13,18 @@ datasets_files_info = {
     }
 }
 
-# TODO: create method, maybe use sklearn.model_selection -> train_test_split()
 def get_train_validation_test_datasets(target_dataset: list):
-    pass
+    train_dataset_for_split, test_dataset = train_test_split(
+        target_dataset, test_size = 0.1, shuffle = True
+    )
+    train_dataset, validation_dataset = train_test_split(
+        train_dataset_for_split, train_size = 0.92, shuffle = True
+    )
+    return {
+        "train": train_dataset,
+        "validation": validation_dataset,
+        "test": test_dataset
+    }
 
 def get_datasets_from_reviews_files(datasets_files_info: dict) -> dict[list]:
     result_datasets = {}
@@ -36,3 +46,4 @@ def get_merged_train_test_datasets_into_one(train_test_datasets: dict):
 if __name__ == '__main__':
     datasets = get_datasets_from_reviews_files(datasets_files_info)
     target_dataset_for_split = get_merged_train_test_datasets_into_one(datasets)
+    train_val_test_ds = get_train_validation_test_datasets(target_dataset_for_split)
