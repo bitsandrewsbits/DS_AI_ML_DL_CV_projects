@@ -13,6 +13,14 @@ datasets_files_info = {
     }
 }
 
+def main(datasets_files: dict) -> dict[list]:
+    datasets = get_datasets_from_reviews_files(datasets_files)
+    target_dataset_for_split = get_merged_train_test_datasets_into_one(datasets)
+    train_val_test_datasets = get_train_validation_test_datasets(
+        target_dataset_for_split
+    )
+    return train_val_test_datasets
+
 def get_train_validation_test_datasets(target_dataset: list):
     train_dataset_for_split, test_dataset = train_test_split(
         target_dataset, test_size = 0.1, shuffle = True
@@ -44,6 +52,5 @@ def get_merged_train_test_datasets_into_one(train_test_datasets: dict):
     return target_dataset_for_splitting
 
 if __name__ == '__main__':
-    datasets = get_datasets_from_reviews_files(datasets_files_info)
-    target_dataset_for_split = get_merged_train_test_datasets_into_one(datasets)
-    train_val_test_ds = get_train_validation_test_datasets(target_dataset_for_split)
+    result_datasets = main(datasets_files_info)
+    print(result_datasets)
