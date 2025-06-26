@@ -1,6 +1,8 @@
 # Train, Validation, Test datasets creation for DistilBERT fine-tuning
 import DistilBERT_FineTuning_dataset_creation as ft_ds
 from sklearn.model_selection import train_test_split
+import json
+import additional_functions_for_data_preprocessing as ad_fncs
 
 datasets_files_info = {
     "train": {
@@ -19,7 +21,12 @@ def main(datasets_files: dict) -> dict[list]:
     train_val_test_datasets = get_train_validation_test_datasets(
         target_dataset_for_split
     )
-    return train_val_test_datasets
+    save_train_val_test_datasets_into_JSON_file(train_val_test_datasets)
+
+def save_train_val_test_datasets_into_JSON_file(datasets: dict):
+    with open("train_validation_test_datasets.json", 'w') as datasets_f:
+        json.dump(datasets, datasets_f)
+        print('Train, Validation, Test datasets saved into train_validation_test_datasets.json')
 
 def get_train_validation_test_datasets(target_dataset: list):
     train_dataset_for_split, test_dataset = train_test_split(
@@ -52,5 +59,12 @@ def get_merged_train_test_datasets_into_one(train_test_datasets: dict):
     return target_dataset_for_splitting
 
 if __name__ == '__main__':
-    result_datasets = main(datasets_files_info)
-    print(result_datasets)
+    if 'train_validation_test_datasets.json' not in ad_fncs.get_filenames_from_dir('.'):
+        main(datasets_files_info)
+    else:
+        print("Datasets file already exists. Reading...")
+        with open('train_validation_test_datasets.json', 'r') as datasets_f:
+            saved_dses = json.load(datasets_f)
+            print("Train samples:", len(saved_dses["train"]))
+            print("Validation samples:", len(saved_dses["validation"]))
+            print("Test samples:", len(saved_dses["test"]))
