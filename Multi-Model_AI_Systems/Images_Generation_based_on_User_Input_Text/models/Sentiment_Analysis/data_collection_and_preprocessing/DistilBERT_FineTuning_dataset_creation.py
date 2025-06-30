@@ -2,6 +2,7 @@
 import additional_functions_for_data_preprocessing as ad_fncs
 import re
 import numpy as np
+import pandas as pd
 
 class DistilBERT_Fune_Tuning_Dataset_Creation:
     def __init__(self, positive_reviews_dir_path: str, negative_reviews_dir_path: str):
@@ -10,43 +11,47 @@ class DistilBERT_Fune_Tuning_Dataset_Creation:
         self.positive_reviews_filenames = ad_fncs.get_filenames_from_dir(positive_reviews_dir_path)
         self.negative_reviews_filenames = ad_fncs.get_filenames_from_dir(negative_reviews_dir_path)
 
-        self.result_reviews_dataset = []
+        self.result_reviews_dataset = {"text": [], "label": []}
 
     def main(self, samples_amount = 'all'):
         self.result_reviews_dataset = self.create_result_dataset(samples_amount)
         return self.result_reviews_dataset
 
-    def create_result_dataset(self, samples_amount) -> list[dict]:
-        positive_reviews_dataset = []
-        negative_reviews_dataset = []
-        positive_reviews_dataset += self.get_reviews_info_from_filenames(
-            self.positive_reviews_dir_path, self.positive_reviews_filenames
+    def create_result_dataset(self, samples_amount) -> pd.DataFrame:
+        positive_reviews_dataset = pd.DataFrame(
+            self.get_prepared_revews_info_from_filenames(
+                self.positive_reviews_dir_path, self.positive_reviews_filenames
+            )
         )
-        negative_reviews_dataset += self.get_reviews_info_from_filenames(
-            self.negative_reviews_dir_path, self.negative_reviews_filenames
+        negative_reviews_dataset = pd.DataFrame(
+            self.get_prepared_revews_info_from_filenames(
+                self.negative_reviews_dir_path, self.negative_reviews_filenames
+            )
         )
-        if samples_amount == 'all':
-            result_dataset = positive_reviews_dataset + negative_reviews_dataset
-        else:
+        if samples_amount != 'all':
             positive_samples_amount = samples_amount // 2
             negative_samples_amount = samples_amount - positive_samples_amount
-            result_pos_samples = list(np.random.choice(
-                positive_reviews_dataset, positive_samples_amount, replace = False
-            ))
-            result_neg_samples = list(np.random.choice(
-                negative_reviews_dataset, negative_samples_amount, replace = False
-            ))
-            result_dataset = result_pos_samples + result_neg_samples
-
-        self.shuffle_data(result_dataset)
+            result_pos_samples = positive_reviews_dataset.sample(
+                positive_samples_amount, axis = 0
+            )
+            result_neg_samples = negative_reviews_dataset.sample(
+                negative_samples_amount, axis = 0
+            )
+            result_dataset = pd.concat(
+                [result_pos_samples, result_neg_samples],
+                axis = 0, ignore_index = True
+            )
+        else:
+            result_dataset = pd.concat(
+                [positive_reviews_dataset, negative_reviews_dataset],
+                axis = 0, ignore_index = True
+            )
+        result_dataset = result_dataset.sample(frac = 1).reset_index(drop = True)
         return result_dataset
 
-    def shuffle_data(self, dataset: list):
-        np.random.shuffle(dataset)
-
-    def get_reviews_info_from_filenames(self,
-    reviews_dir_path: str, reviews_filenames: list) -> list[dict]:
-        result_reviews_info = []
+    def get_prepared_revews_info_from_filenames(self,
+    reviews_dir_path: str, reviews_filenames: list) -> dict[list]:
+        reviews_info = {"text": [], "label": []}
         for review_filename in reviews_filenames:
             review_rating = int(self.get_review_rating_from_filename(review_filename))
             review_text = self.get_review_text_from_file(
@@ -55,9 +60,10 @@ class DistilBERT_Fune_Tuning_Dataset_Creation:
             converted_review_rating = self.get_converted_rating_number_into_binary_class(
                 review_rating
             )
-            review_info = {"label": converted_review_rating, "text": review_text}
-            result_reviews_info.append(review_info)
-        return result_reviews_info
+            reviews_info["text"].append(review_text)
+            reviews_info["label"].append(converted_review_rating)
+
+        return reviews_info
 
     def get_converted_rating_number_into_binary_class(self, rating: int):
         if rating <= 4:
