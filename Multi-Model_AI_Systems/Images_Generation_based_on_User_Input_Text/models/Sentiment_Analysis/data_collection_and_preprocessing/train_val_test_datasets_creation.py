@@ -2,6 +2,7 @@
 import DistilBERT_FineTuning_dataset_creation as ft_ds
 from sklearn.model_selection import train_test_split
 import json
+import pandas as pd
 import additional_functions_for_data_preprocessing as ad_fncs
 
 datasets_files_info = {
@@ -15,13 +16,16 @@ datasets_files_info = {
     }
 }
 
-def main(datasets_files: dict) -> dict[list]:
+def main(datasets_files: dict):
     datasets = get_datasets_from_reviews_files(datasets_files)
     target_dataset_for_split = get_merged_train_test_datasets_into_one(datasets)
     train_val_test_datasets = get_train_validation_test_datasets(
         target_dataset_for_split
     )
-    save_train_val_test_datasets_into_JSON_file(train_val_test_datasets)
+    train_val_test_datasets_in_dict_type = get_converted_datasets_into_dict(
+        train_val_test_datasets
+    )
+    save_train_val_test_datasets_into_JSON_file(train_val_test_datasets_in_dict_type)
 
 def save_train_val_test_datasets_into_JSON_file(datasets: dict):
     with open("train_validation_test_datasets.json", 'w') as datasets_f:
@@ -41,30 +45,32 @@ def get_train_validation_test_datasets(target_dataset: list):
         "test": test_dataset
     }
 
-def get_datasets_from_reviews_files(datasets_files_info: dict) -> dict[list]:
+def get_converted_datasets_into_dict(datasets: dict[pd.DataFrame]) -> dict[dict]:
+    converted_datasets = {
+        "train": datasets["train"].to_dict(orient = 'list'),
+        "validation": datasets["validation"].to_dict(orient = 'list'),
+        "test": datasets["test"].to_dict(orient = 'list')
+    }
+    return converted_datasets
+
+def get_datasets_from_reviews_files(datasets_files_info: dict) -> dict[pd.DataFrame]:
     result_datasets = {}
     for dataset_type in datasets_files_info:
         dataset_creation = ft_ds.DistilBERT_Fune_Tuning_Dataset_Creation(
             datasets_files_info[dataset_type]["positive_reviews_path"],
             datasets_files_info[dataset_type]["negative_reviews_path"]
         )
-        result_datasets[dataset_type] = dataset_creation.main()
+        result_datasets[dataset_type] = dataset_creation.main(5)
 
     return result_datasets
 
-def get_merged_train_test_datasets_into_one(train_test_datasets: dict):
-    target_dataset_for_splitting = []
-    target_dataset_for_splitting += train_test_datasets['train']
-    target_dataset_for_splitting += train_test_datasets['test']
+def get_merged_train_test_datasets_into_one(
+train_test_datasets: dict[pd.DataFrame]) -> pd.DataFrame:
+    target_dataset_for_splitting = pd.concat(
+        [train_test_datasets["train"], train_test_datasets["test"]],
+        axis = 0, ignore_index = True
+    )
     return target_dataset_for_splitting
 
 if __name__ == '__main__':
-    if 'train_validation_test_datasets.json' not in ad_fncs.get_filenames_from_dir('.'):
-        main(datasets_files_info)
-    else:
-        print("Datasets file already exists. Reading...")
-        with open('train_validation_test_datasets.json', 'r') as datasets_f:
-            saved_dses = json.load(datasets_f)
-            print("Train samples:", len(saved_dses["train"]))
-            print("Validation samples:", len(saved_dses["validation"]))
-            print("Test samples:", len(saved_dses["test"]))
+    main(datasets_files_info)
