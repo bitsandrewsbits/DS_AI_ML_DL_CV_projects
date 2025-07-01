@@ -13,11 +13,7 @@ class DistilBERT_Fune_Tuning_Dataset_Creation:
 
         self.result_reviews_dataset = {"text": [], "label": []}
 
-    def main(self, samples_amount = 'all'):
-        self.result_reviews_dataset = self.create_result_dataset(samples_amount)
-        return self.result_reviews_dataset
-
-    def create_result_dataset(self, samples_amount) -> pd.DataFrame:
+    def main(self, samples_amount = 'all') -> pd.DataFrame:
         positive_reviews_dataset = pd.DataFrame(
             self.get_prepared_revews_info_from_filenames(
                 self.positive_reviews_dir_path, self.positive_reviews_filenames
