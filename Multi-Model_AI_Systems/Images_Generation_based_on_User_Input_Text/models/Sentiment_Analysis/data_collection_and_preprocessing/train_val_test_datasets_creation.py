@@ -60,7 +60,7 @@ def get_datasets_from_reviews_files(datasets_files_info: dict) -> dict[pd.DataFr
             datasets_files_info[dataset_type]["positive_reviews_path"],
             datasets_files_info[dataset_type]["negative_reviews_path"]
         )
-        result_datasets[dataset_type] = dataset_creation.main(5)
+        result_datasets[dataset_type] = dataset_creation.main()
 
     return result_datasets
 
