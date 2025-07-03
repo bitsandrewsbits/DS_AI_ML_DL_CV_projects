@@ -1,7 +1,10 @@
 *.csv
 /**/*env/
 __pycache__
-data/
 pycocotools
 diffusers
 *.json
+/**/data
+/**/train
+/**/validation
+/**/test
