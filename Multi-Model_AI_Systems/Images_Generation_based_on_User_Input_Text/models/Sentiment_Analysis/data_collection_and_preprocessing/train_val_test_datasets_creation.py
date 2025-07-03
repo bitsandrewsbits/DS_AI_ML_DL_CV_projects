@@ -4,6 +4,7 @@ from sklearn.model_selection import train_test_split
 import json
 import pandas as pd
 import additional_functions_for_data_preprocessing as ad_fncs
+from datasets import DatasetDict, Dataset
 
 datasets_files_info = {
     "train": {
@@ -16,21 +17,24 @@ datasets_files_info = {
     }
 }
 
-def main(datasets_files: dict):
+datasets_save_path = "."
+
+def main(datasets_files: dict, save_path: str):
     datasets = get_datasets_from_reviews_files(datasets_files)
     target_dataset_for_split = get_merged_train_test_datasets_into_one(datasets)
     train_val_test_datasets = get_train_validation_test_datasets(
         target_dataset_for_split
     )
-    train_val_test_datasets_in_dict_type = get_converted_datasets_into_dict(
+    converted_train_val_test_datasets = get_converted_datasets_into_DatasetDict_Dataset(
         train_val_test_datasets
     )
-    save_train_val_test_datasets_into_JSON_file(train_val_test_datasets_in_dict_type)
+    save_train_val_test_datasets_to_disk(
+        converted_train_val_test_datasets, save_path
+    )
 
-def save_train_val_test_datasets_into_JSON_file(datasets: dict):
-    with open("train_validation_test_datasets.json", 'w') as datasets_f:
-        json.dump(datasets, datasets_f)
-        print('Train, Validation, Test datasets saved into train_validation_test_datasets.json')
+def save_train_val_test_datasets_to_disk(datasets: DatasetDict, save_path: str):
+    datasets.save_to_disk(dataset_dict_path = save_path)
+    print('Train, Validation, Test datasets saved.')
 
 def get_train_validation_test_datasets(target_dataset: list):
     train_dataset_for_split, test_dataset = train_test_split(
@@ -45,13 +49,10 @@ def get_train_validation_test_datasets(target_dataset: list):
         "test": test_dataset
     }
 
-def get_converted_datasets_into_dict(datasets: dict[pd.DataFrame]) -> dict[dict]:
-    converted_datasets = {
-        "train": datasets["train"].to_dict(orient = 'list'),
-        "validation": datasets["validation"].to_dict(orient = 'list'),
-        "test": datasets["test"].to_dict(orient = 'list')
-    }
-    return converted_datasets
+def get_converted_datasets_into_DatasetDict_Dataset(datasets: dict[pd.DataFrame]):
+    for dataset in datasets:
+        datasets[dataset] = Dataset.from_pandas(datasets[dataset])
+    return DatasetDict(datasets)
 
 def get_datasets_from_reviews_files(datasets_files_info: dict) -> dict[pd.DataFrame]:
     result_datasets = {}
@@ -73,4 +74,4 @@ train_test_datasets: dict[pd.DataFrame]) -> pd.DataFrame:
     return target_dataset_for_splitting
 
 if __name__ == '__main__':
-    main(datasets_files_info)
+    main(datasets_files_info, datasets_save_path)
