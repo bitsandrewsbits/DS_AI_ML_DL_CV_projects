@@ -33,7 +33,10 @@ def main(datasets_files: dict, save_path: str):
     )
 
 def save_train_val_test_datasets_to_disk(datasets: DatasetDict, save_path: str):
-    datasets.save_to_disk(dataset_dict_path = save_path)
+    datasets.save_to_disk(
+        dataset_dict_path = save_path,
+        storage_options = {}
+    )
     print('Train, Validation, Test datasets saved.')
 
 def get_train_validation_test_datasets(target_dataset: list):
@@ -51,7 +54,9 @@ def get_train_validation_test_datasets(target_dataset: list):
 
 def get_converted_datasets_into_DatasetDict_Dataset(datasets: dict[pd.DataFrame]):
     for dataset in datasets:
-        datasets[dataset] = Dataset.from_pandas(datasets[dataset])
+        datasets[dataset] = Dataset.from_pandas(
+            datasets[dataset], preserve_index = False
+        )
     return DatasetDict(datasets)
 
 def get_datasets_from_reviews_files(datasets_files_info: dict) -> dict[pd.DataFrame]:
