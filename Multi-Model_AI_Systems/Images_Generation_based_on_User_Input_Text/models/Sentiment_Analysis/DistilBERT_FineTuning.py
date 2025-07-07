@@ -1,11 +1,15 @@
 # DistilBERT model fine-tuning
 from transformers import AutoTokenizer, DataCollatorWithPadding
+from transformers import TrainingArguments, TFAutoModelForSequenceClassification
 from datasets import DatasetDict
 import evaluate
-import numpy
+import numpy as np
 
 datasets_parent_dir = "data_collection_and_preprocessing"
 accuracy = evaluate.load("accuracy")
+
+ID_to_label = {0: "negative", 1: "positive"}
+label_to_ID = {"negative": 0, "positive": 1}
 
 def main():
     train_val_test_datasets = load_train_val_test_datasets(datasets_parent_dir)
@@ -14,9 +18,19 @@ def main():
         lambda dataset: tokenizer(dataset["text"], truncation = True),
         batched = True
     )
-    print(tokenized_datasets)
+
     data_collator = DataCollatorWithPadding(
         tokenizer = tokenizer, return_tensors = "tf"
+    )
+
+    training_args = TrainingArguments(
+        output_dir = "fine_tuned_DistilBERT",
+        eval_strategy = "epoch"
+    )
+
+    model = TFAutoModelForSequenceClassification.from_pretrained(
+        "distilbert/distilbert-base-uncased", num_label = 2,
+        id2label = ID_to_label, label2id = label_to_ID
     )
 
 def load_train_val_test_datasets(datasets_parent_dir_path: str) -> DatasetDict:
