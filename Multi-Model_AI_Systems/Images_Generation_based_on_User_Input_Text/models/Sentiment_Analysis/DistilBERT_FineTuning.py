@@ -2,6 +2,7 @@
 from transformers import AutoTokenizer, DataCollatorWithPadding
 from transformers import TrainingArguments, TFAutoModelForSequenceClassification
 from transformers import create_optimizer
+from transformers.keras_callbacks import KerasMetricCallback
 from datasets import DatasetDict, Dataset
 import evaluate
 import numpy as np
@@ -48,7 +49,11 @@ def main():
     train_val_test_tf_datasets = get_converted_all_datasets(
         model, tokenized_datasets, batch_size, data_collator
     )
-    print(train_val_test_tf_datasets)
+    accuracy_callback = KerasMetricCallback(
+        metric_fn = compute_accuracy_metric,
+        eval_dataset = train_val_test_tf_datasets["validation"]
+    )
+    model.compile(optimizer = tf.keras.optimizers.Adam(3e-5))
 
 def load_train_val_test_datasets(datasets_parent_dir_path: str) -> DatasetDict:
     loaded_datasets = DatasetDict.load_from_disk(
