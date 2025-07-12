@@ -37,7 +37,7 @@ def main():
     )
 
     batch_size = 10
-    epochs_amount = 40
+    epochs_amount = 4
     init_learing_rate = 1e-5
     warmup_steps = 0
     batches_per_epoch = len(tokenized_datasets["train"]) // batch_size
@@ -54,6 +54,14 @@ def main():
         eval_dataset = train_val_test_tf_datasets["validation"]
     )
     model.compile(optimizer = tf.keras.optimizers.Adam(3e-5))
+
+    training_history = model.fit(
+        x = train_val_test_tf_datasets["train"],
+        validation_data = train_val_test_tf_datasets["validation"],
+        validation_freq = 1,
+        epochs = epochs_amount,
+        callbacks = [accuracy_callback]
+    )
 
 def load_train_val_test_datasets(datasets_parent_dir_path: str) -> DatasetDict:
     loaded_datasets = DatasetDict.load_from_disk(
