@@ -1,4 +1,5 @@
-Steps for loading, processing data for Sentiment Analysis model (BERT):
+Steps for loading, processing data for Sentiment Analysis model (DistilBERT):
+#0) mkdir data
 #1) switch dir to data:
 cd data
 
@@ -13,10 +14,13 @@ tar -xf large_movie_review_dataset.tar
 # Train/Test splits: 25000 reviews -> rows amount = 25000
 # matrix(train/test) - (89527 x 25000)
 
-# TODO: How to extract info of film review file(review id, rating) ?
-# TODO: How to map review_id -> labeledBoW row (encoded review words)?
-
-# 4) move files from aclImdb dir -> just data:
+#4) move files from aclImdb dir -> just data:
 mv aclImdb/* data/
-# 5) remove empty aclImdb dir:
-rm -r data/aclImdb
+#5) remove empty aclImdb dir:
+rm -r aclImdb
+
+# ===For COLAB venv! === #
+# Upload two files - additional_functions_for_data_preprocessing.py, DistilBERT_FineTuning_dataset_creation.py
+# ====================== #
+#6) install some libs(If you executing on your local compute, activate venv from previous SD fine-tuning step):
+pip install evaluate
