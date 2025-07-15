@@ -13,7 +13,7 @@ class DistilBERT_Fune_Tuning_Dataset_Creation:
 
         self.result_reviews_dataset = {"text": [], "label": []}
 
-    def main(self, samples_amount = 'all') -> pd.DataFrame:
+    def main(self, class_samples_amount = 'all') -> pd.DataFrame:
         positive_reviews_dataset = pd.DataFrame(
             self.get_prepared_revews_info_from_filenames(
                 self.positive_reviews_dir_path, self.positive_reviews_filenames
@@ -24,7 +24,9 @@ class DistilBERT_Fune_Tuning_Dataset_Creation:
                 self.negative_reviews_dir_path, self.negative_reviews_filenames
             )
         )
-        if samples_amount != 'all':
+        total_samples_amount = positive_reviews_dataset.shape[0] + negative_reviews_dataset.shape[0]
+
+        if class_samples_amount != 'all' and 2 * class_samples_amount < total_samples_amount:
             positive_samples_amount = samples_amount // 2
             negative_samples_amount = samples_amount - positive_samples_amount
             result_pos_samples = positive_reviews_dataset.sample(
