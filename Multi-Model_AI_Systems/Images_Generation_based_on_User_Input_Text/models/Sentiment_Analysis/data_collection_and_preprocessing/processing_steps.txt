@@ -24,3 +24,6 @@ rm -r aclImdb
 # ====================== #
 #6) install some libs(If you executing on your local compute, activate venv from previous SD fine-tuning step):
 pip install evaluate
+
+# Now for neutral reviews rating class (rating 5, 6), I'm trying to setup Zembra API for getting reviews text with ratings.
+# TODO: test Zembra API with test token to get few reviews.
