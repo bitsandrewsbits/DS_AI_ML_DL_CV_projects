@@ -25,5 +25,15 @@ rm -r aclImdb
 #6) install some libs(If you executing on your local compute, activate venv from previous SD fine-tuning step):
 pip install evaluate
 
-# Now for neutral reviews rating class (rating 5, 6), I'm trying to setup Zembra API for getting reviews text with ratings.
-# TODO: test Zembra API with test token to get few reviews.
+# install Zembra SDK:
+# (pwd - data_collection_and_preprocessing)
+# 1) mkdir neutral_reviews_via_Zembra_API
+# 2) cd neutral_reviews_via_Zembra_API
+# 3) wget https://cdn.sdks.zembratech.com/zembra-sdk-python.zip
+# 4) unzip zembra-sdk-python.zip
+# 5) pip install -r python/requirements.txt
+# 6) mv python/openapi_client .
+# 7) rm neutral_reviews_via_Zembra_API/zembra-sdk-python.zip
+# 8) rm -r neutral_reviews_via_Zembra_API/python/
+
+# TODO: test Zembra API with API token to get few reviews.
