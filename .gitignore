@@ -8,3 +8,4 @@ diffusers
 /**/train
 /**/validation
 /**/test
+openapi_client
