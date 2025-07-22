@@ -4,16 +4,16 @@ import openapi_client
 from openapi_client.rest import ApiException
 import pandas as pd
 
-sandbox_token = "your_zembra_sandbox_token"
-network_name = 'google'
-slug = "ChoIzsbB-eTP8MqzARoNL2cvMTFiNXZfMWdoZhABs"
+API_token = "your_token"
+network_name = "appstore"
+slug = "1523383806"
 
 configuration = openapi_client.Configuration(
-  host = "https://sandbox.zembra.io",
-  access_token = f"Bearer {sandbox_token}"
+  host = "https://api.zembra.io",
+  access_token = f"Bearer {API_token}"
 )
 
-reviews_max_amount = 2
+reviews_max_amount = 10
 
 def get_neutral_reviews_via_ReviewsAPI(reviews_max_amount = 2) -> pd.DataFrame:
   neutral_reviews = {"text": [], "label": []}
@@ -22,10 +22,9 @@ def get_neutral_reviews_via_ReviewsAPI(reviews_max_amount = 2) -> pd.DataFrame:
     network = openapi_client.ReviewNetwork(network_name)
     try:
       api_response = api_instance.get_review_job(
-        network = network, slug = slug, fields = ['text', 'rating'], 
-        has_replies = False, 
-        min_rating = 3, max_rating = 3, language = 'en',
-        include_deleted = True, limit = reviews_max_amount
+        network = network, slug = slug, fields = ['text', 'rating'],
+        min_rating = 2.5, max_rating = 4,
+        limit = reviews_max_amount
       )
       reviews_objects = api_response.data.reviews
       for review_obj in reviews_objects:
@@ -34,7 +33,11 @@ def get_neutral_reviews_via_ReviewsAPI(reviews_max_amount = 2) -> pd.DataFrame:
     except ApiException as e:
       print(e)
   print(pd.DataFrame(neutral_reviews))
-  return 0
+  return pd.DataFrame(neutral_reviews)
+
+def save_neutral_reviews_as_JSON_file(dataframe: pd.DataFrame):
+  dataframe.to_json("neutral_reviews.json", orient = 'records', lines = True)
 
 if __name__ == "__main__":
-  get_neutral_reviews_via_ReviewsAPI(reviews_max_amount)
+  neutral_reviews_df = get_neutral_reviews_via_ReviewsAPI(reviews_max_amount)
+  save_neutral_reviews_as_JSON_file(neutral_reviews_df)
