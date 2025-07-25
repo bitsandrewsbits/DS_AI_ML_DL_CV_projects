@@ -35,5 +35,3 @@ pip install evaluate
 # 6) mv python/openapi_client .
 # 7) rm neutral_reviews_via_Zembra_API/zembra-sdk-python.zip
 # 8) rm -r neutral_reviews_via_Zembra_API/python/
-
-# TODO: test Zembra API with API token to get few reviews.
