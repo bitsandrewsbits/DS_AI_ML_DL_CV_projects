@@ -19,6 +19,7 @@ datasets_files_info = {
 datasets_save_path = "."
 Class_Samples_Amount = 1000
 
+# TODO: think how to integrate and oversample(if needed) neutral_reviews to main()
 def main(datasets_files: dict, save_path: str, class_samples_amount = 'all'):
     datasets = get_datasets_from_reviews_files(datasets_files, class_samples_amount)
     target_dataset_for_split = get_merged_train_test_datasets_into_one(datasets)
@@ -60,7 +61,8 @@ def get_converted_datasets_into_DatasetDict_Dataset(datasets: dict[pd.DataFrame]
     return DatasetDict(datasets)
 
 def get_datasets_from_reviews_files(
-datasets_files_info: dict, class_samples_amount: int) -> dict[pd.DataFrame]:
+datasets_files_info: dict, class_samples_amount: int,
+include_neutral_reviews = False) -> dict[pd.DataFrame]:
     result_datasets = {}
     for dataset_type in datasets_files_info:
         dataset_creation = ft_ds.DistilBERT_Fune_Tuning_Dataset_Creation(
@@ -68,8 +70,21 @@ datasets_files_info: dict, class_samples_amount: int) -> dict[pd.DataFrame]:
             datasets_files_info[dataset_type]["negative_reviews_path"]
         )
         result_datasets[dataset_type] = dataset_creation.main(class_samples_amount)
-
+    if include_neutral_reviews:
+        neutral_reviews_df = pd.read_json(
+            "neutral_reviews.json", orient = 'records', lines = True
+        )
+        if neutral_reviews_df.shape[0] < result_datasets["train"].shape[0]:
+            # TODO: integrate below functions
     return result_datasets
+
+# TODO: create function
+def get_oversampling_coefficient(real_reviews_amount, target_reviews_amount):
+    pass
+
+# TODO: create function
+def make_dataset_oversampling(dataset: pd.DataFrame) -> pd.DataFrame:
+    pass
 
 def get_merged_train_test_datasets_into_one(
 train_test_datasets: dict[pd.DataFrame]) -> pd.DataFrame:
