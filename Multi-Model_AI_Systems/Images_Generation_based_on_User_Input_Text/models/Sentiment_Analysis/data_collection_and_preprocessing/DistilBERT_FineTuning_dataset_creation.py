@@ -27,8 +27,8 @@ class DistilBERT_Fune_Tuning_Dataset_Creation:
         total_samples_amount = positive_reviews_dataset.shape[0] + negative_reviews_dataset.shape[0]
 
         if class_samples_amount != 'all' and 2 * class_samples_amount < total_samples_amount:
-            positive_samples_amount = samples_amount // 2
-            negative_samples_amount = samples_amount - positive_samples_amount
+            positive_samples_amount = class_samples_amount
+            negative_samples_amount = class_samples_amount
             result_pos_samples = positive_reviews_dataset.sample(
                 positive_samples_amount, axis = 0
             )
