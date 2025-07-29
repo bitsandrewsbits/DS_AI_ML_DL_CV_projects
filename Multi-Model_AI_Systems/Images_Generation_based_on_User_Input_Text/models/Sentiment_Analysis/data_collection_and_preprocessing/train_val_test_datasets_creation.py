@@ -17,19 +17,18 @@ datasets_files_info = {
 }
 
 datasets_save_path = "."
-Class_Samples_Amount = 1000
+Class_Samples_Amount = 100
 
-# TODO: think how to integrate and oversample(if needed) neutral_reviews to main()
 def main(datasets_files: dict, save_path: str, class_samples_amount = 'all'):
     datasets = get_datasets_from_reviews_files(datasets_files, class_samples_amount)
     target_dataset_for_split = get_merged_train_test_datasets_into_one(datasets)
     dataset_with_neutral_reviews = include_neutral_reviews_to_result_dataset(
         target_dataset_for_split
     )
-    print(dataset_with_neutral_reviews)
     train_val_test_datasets = get_train_validation_test_datasets(
         dataset_with_neutral_reviews
     )
+    print(train_val_test_datasets)
     converted_train_val_test_datasets = get_converted_datasets_into_DatasetDict_Dataset(
         train_val_test_datasets
     )
