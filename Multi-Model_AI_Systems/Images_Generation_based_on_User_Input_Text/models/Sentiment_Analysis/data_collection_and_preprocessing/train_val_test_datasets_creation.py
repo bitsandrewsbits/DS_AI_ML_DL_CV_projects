@@ -89,11 +89,11 @@ oversampling = False):
     )
     # TODO: test without neutral reviews oversampling
     if oversampling:
-        if neutral_reviews_df.shape[0] < result_datasets["train"].shape[0]:
+        if neutral_reviews_df.shape[0] < res_dataset.shape[0]:
             oversample_coefficient = get_oversampling_coefficient(
-                neutral_reviews_df.shape[0], result_datasets["train"].shape[0]
+                neutral_reviews_df.shape[0], res_dataset.shape[0]
             )
-        neutral_reviews_df = make_dataset_oversampling(neutral_reviews_df)
+        neutral_reviews_df = get_oversampled_dataset(neutral_reviews_df)
 
     reviews_3_types_dataset = pd.concat(
         [res_dataset, neutral_reviews_df],
@@ -109,7 +109,7 @@ def get_oversampling_coefficient(real_reviews_amount, target_reviews_amount):
     return oversampling_coeff
 
 # TODO: create function
-def make_dataset_oversampling(dataset: pd.DataFrame) -> pd.DataFrame:
+def get_oversampled_dataset(dataset: pd.DataFrame) -> pd.DataFrame:
     pass
 
 if __name__ == '__main__':
