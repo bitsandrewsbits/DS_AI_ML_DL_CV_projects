@@ -4,6 +4,7 @@ from openapi_client.models.create_review_job_request import CreateReviewJobReque
 from openapi_client.rest import ApiException
 import pandas as pd
 import numpy as np
+import emoji
 
 API_token = "your_API_token"
 network_name = "google"
@@ -22,8 +23,9 @@ def main():
 def get_neutral_reviews_via_ReviewsAPI(max_reviews_from_API = 1000) -> pd.DataFrame:
     neutral_reviews = {"text": [], "label": []}
     with openapi_client.ApiClient(configuration) as api_client:
-    api_instance = openapi_client.ReviewsApi(api_client)
-    network = openapi_client.ReviewNetwork(network_name)
+        api_instance = openapi_client.ReviewsApi(api_client)
+        network = openapi_client.ReviewNetwork(network_name)
+
     job_request_json = json.dumps({
       "network": network_name,
       "slug": slug,
@@ -59,16 +61,23 @@ def get_neutral_reviews_via_ReviewsAPI(max_reviews_from_API = 1000) -> pd.DataFr
 
 def filter_and_clean_neutral_reviews_df(reviews_df: pd.DataFrame):
     reviews_df["text"] = reviews_df["text"].apply(
-        get_review_text
+        get_long_review_text
+    )
+    reviews_df["text"] = reviews_df["text"].apply(
+        clean_review_from_emoji
     )
     reviews_df.dropna(axis = 0, inplace = True, ignore_index = True)
 
-def get_review_text(text):
+def get_long_review_text(text):
     text_words = text.split(' ')
     if len(text_words) > 2:
         return text
     else:
         return np.nan
+
+def clean_review_from_emoji(text):
+    cleaned_review = emoji.replace_emoji(text, replace = '')
+    return cleaned_review
 
 def save_neutral_reviews_as_JSON_file(dataframe: pd.DataFrame):
     dataframe.to_json("neutral_reviews.json", orient = 'records', lines = True)
@@ -78,3 +87,4 @@ if __name__ == "__main__":
     neutral_reviews_df = pd.read_json(
         "neutral_reviews.json", orient = 'records', lines = True
     )
+    print(neutral_reviews_df)
