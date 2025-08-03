@@ -28,11 +28,6 @@ def main():
         tokenizer = tokenizer, padding = True, return_tensors = "tf"
     )
 
-    training_args = TrainingArguments(
-        output_dir = "fine_tuned_DistilBERT",
-        eval_strategy = "epoch"
-    )
-
     model = TFAutoModelForSequenceClassification.from_pretrained(
         "distilbert/distilbert-base-uncased", num_labels = 3,
         id2label = ID_to_label, label2id = label_to_ID
