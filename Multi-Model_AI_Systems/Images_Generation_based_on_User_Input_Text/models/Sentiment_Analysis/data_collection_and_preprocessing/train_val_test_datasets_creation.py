@@ -87,6 +87,7 @@ oversampling = False):
     neutral_reviews_df = pd.read_json(
         "neutral_reviews.json", orient = 'records', lines = True
     )
+    neutral_reviews_df['label'] = 2
     # TODO: test without neutral reviews oversampling
     if oversampling:
         if neutral_reviews_df.shape[0] < res_dataset.shape[0]:
