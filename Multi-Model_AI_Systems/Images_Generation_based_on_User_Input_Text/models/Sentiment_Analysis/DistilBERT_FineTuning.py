@@ -1,9 +1,8 @@
 # DistilBERT model fine-tuning
 from transformers import AutoTokenizer, DataCollatorWithPadding
-from transformers import TFAutoModelForSequenceClassification
+from transformers import AutoModelForSequenceClassification
 from transformers import create_optimizer
-from transformers.keras_callbacks import KerasMetricCallback
-from datasets import DatasetDict, Dataset
+from datasets import DatasetDict
 import evaluate
 import numpy as np
 import tensorflow as tf
@@ -14,6 +13,8 @@ accuracy = evaluate.load("accuracy")
 
 ID_to_label = {0: "negative", 1: "positive", 2: "neutral"}
 label_to_ID = {"negative": 0, "positive": 1, "neutral": 2}
+
+model_id = "distilbert/distilbert-base-uncased"
 
 def main():
     train_val_test_datasets = load_train_val_test_datasets(datasets_parent_dir)
@@ -35,15 +36,14 @@ def main():
     training_args = TrainingArguments(
         output_dir = "fine_tuned_DistilBERT",
         learning_rate = 2e-5,
-        per_device_train_batch_size = 60,
-        per_device_eval_batch_size = 60,
-        num_train_epochs = 2,
+        per_device_train_batch_size = 85,  # max for Colab T4 GPU = 15GB
+        per_device_eval_batch_size = 85,   # the same
+        num_train_epochs = 2,              # need testing...
         weight_decay = 0.01,
-        eval_strategy = "steps",
-        logging_strategy = 'steps',
-        save_strategy = "steps",
+        eval_strategy = "epoch",
+        logging_strategy = 'epoch',
+        save_strategy = "epoch",
         logging_steps = 1,
-        load_best_model_at_end = True,
         report_to = "tensorboard"
     )
 
