@@ -1,12 +1,13 @@
-#project OpenCV - task_8_1 - car_number detection on video
-
+# Car number detection on video
 import cv2
 import numpy as np
 import imutils
 import easyocr
 from matplotlib import pyplot as plt
 
-video = cv2.VideoCapture('videos/Car_OpenCV.mp4')
+videofile_path = 'videos/Car_OpenCV.mp4'
+
+video = cv2.VideoCapture(videofile_path)
 
 while True:
     success, img = video.read()
@@ -26,12 +27,11 @@ while True:
     pos = None
 
     for curve in cont:
-        approx = cv2.approxPolyDP(curve, 6, True)   # read about approxPolyDP!
+        approx = cv2.approxPolyDP(curve, 6, True)
         if len(approx == 4):
             pos = approx
             break
 
-    
     #create mask
     mask = np.zeros(gray.shape, np.uint8)
     new_img = cv2.drawContours(mask, [pos], 0, 255, -1)
@@ -44,8 +44,6 @@ while True:
     x2, y2 = np.max(x), np.max(y)
 
     crop = gray[x1:x2, y1:y2]  #slicing
-##    cv2.imshow('car number', crop)
-##    cv2.waitKey(0)
 
     #read info from car number
     text = easyocr.Reader(['en'])
