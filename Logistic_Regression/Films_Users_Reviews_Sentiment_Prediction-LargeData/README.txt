@@ -5,4 +5,9 @@
 	-> downloading datasets archive from Kaggle platform
 	-> extructing CSV datasets files to data dir
 
-# 2) Execute a logic_regression_for_Users_Sentiment_Predictions.py script
+# 2) Create virt environment: python3 -m venv "your_venv_name" 
+# (or you can use other method)
+
+# 3) Run pip install -r requirements.txt
+
+# 4) Execute a logic_regression_for_Users_Sentiment_Predictions.py
