@@ -1,5 +1,6 @@
-# A first realization of K-Means Clustering classification algorithm
-# for any datasets
+# Realization of K-Means Clustering classification algorithm
+# for Global Soil Health by Geographic Locations.
+
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler, LabelEncoder
@@ -200,7 +201,7 @@ class K_Means_Clustering:
         max_n_clusters = self.get_max_n_clusters()
         print('[INFO] Training K-Means model for different n_clusters...')
         for test_n_clusters in range(min_n_clusters, max_n_clusters + 1):
-            print(f'\_[INFO] K-Means with {test_n_clusters} clusters.')
+            print(f'[INFO] K-Means with {test_n_clusters} clusters.')
             self.clusters_amount = test_n_clusters
             self.K_means_model = self.get_k_means_model()
             self.train_model()
