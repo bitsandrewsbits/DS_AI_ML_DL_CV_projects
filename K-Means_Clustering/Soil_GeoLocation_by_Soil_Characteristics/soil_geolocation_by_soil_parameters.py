@@ -1,6 +1,5 @@
 # Realization of K-Means Clustering classification algorithm
-# for Global Soil Health by Geographic Locations.
-
+# Soil Geographic Location(Latitude, Longitude) Predictions by Soil Parameters.
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler, LabelEncoder
@@ -11,35 +10,21 @@ import seaborn as sns
 class K_Means_Clustering:
     def __init__(self, dataset_name: str):
         self.dataset = pd.read_csv(dataset_name)
-        self.selected_target_y = self.get_selected_target_y_column_name()
+        self.target_y = ''
         self.features_X = self.get_features_X()
-        self.date_columns_names = self.get_date_columns_names()
         self.clusters_amount = self.get_n_clusters_for_dataset()
         self.K_means_model = self.get_k_means_model()
         self.n_clusters_and_inertia_values = {}
 
     def main(self):
         self.prepare_data()
-        self.train_model()
-        self.add_labels_column_to_dataset('cluster')
-        self.set_optimal_n_clusters_for_model()
-        self.train_model()
-        self.add_labels_column_to_dataset('Optimal cluster')
-        print(self.dataset.head())
-        self.show_scatterplot_of_target_Y_segmentation()
-
-    def get_selected_target_y_column_name(self):
-        user_input = ''
-        while user_input != 'e':
-            print('Dataset columns:')
-            print(self.dataset.columns)
-            user_input = input('Enter target y column for prediction[e - for exit]: ')
-            if user_input in self.dataset.columns:
-                return user_input
-            elif user_input == 'e':
-                print('Exitting from y target selection mode...')
-            else:
-                print('Wrong column name!')
+        # self.train_model()
+        # self.add_labels_column_to_dataset('cluster')
+        # self.set_optimal_n_clusters_for_model()
+        # self.train_model()
+        # self.add_labels_column_to_dataset('Optimal cluster')
+        # print(self.dataset.head())
+        # self.show_scatterplot_of_target_Y_segmentation()
 
     def show_scatterplot_of_target_Y_segmentation(self):
         selected_feature = self.get_selected_feature_for_scatterplot()
@@ -53,20 +38,6 @@ class K_Means_Clustering:
             plt.show()
         else:
             print('Bye.')
-
-    def get_selected_feature_for_scatterplot(self):
-        user_input = ''
-        while user_input != 'e':
-            print('Features X column names:')
-            print(self.features_X.columns)
-            user_input = input('Enter feature column for scatterplot[e - for exit]: ')
-            if user_input in self.features_X.columns:
-                return user_input
-            elif user_input == 'e':
-                print('Exitting from y target selection mode...')
-                return False
-            else:
-                print('Wrong feature name!')
 
     def get_features_X(self):
         print('[INFO] Defining features X for model training...')
@@ -83,13 +54,10 @@ class K_Means_Clustering:
         print('[INFO] Preparing data...')
         self.dataset.dropna(inplace = True)
         self.dataset.drop_duplicates(inplace = True)
-        self.add_year_columns()
-        self.add_month_columns()
-        self.add_day_columns()
-        self.delete_original_date_columns()
-        self.encode_categorical_features()
-        self.update_features_X_after_encoding()
-        self.scale_feature_columns()
+        print(self.dataset.dtypes)
+        # self.encode_categorical_features()
+        # self.update_features_X_after_encoding()
+        # self.scale_feature_columns()
 
     def scale_feature_columns(self):
         print('[INFO] Scaling feature columns...')
@@ -248,5 +216,5 @@ class K_Means_Clustering:
         return unique_values_amount_by_columns
 
 if __name__ == "__main__":
-    k_means_classifier = K_Means_Clustering("your_dataset.csv")
+    k_means_classifier = K_Means_Clustering("data/soil_data.csv")
     k_means_classifier.main()
