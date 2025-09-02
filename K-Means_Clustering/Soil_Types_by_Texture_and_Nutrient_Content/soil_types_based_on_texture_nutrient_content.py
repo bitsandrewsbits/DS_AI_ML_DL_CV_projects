@@ -1,5 +1,5 @@
 # Realization of K-Means Clustering classification algorithm
-# Classification Soil types based on Soil texture and nutrient content.
+# Classification Soil types based on Soil texture and nutrient content(N, P, K).
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler, LabelEncoder
@@ -46,6 +46,7 @@ class K_Means_Clustering:
     def get_features_X_columns_names(self):
         df_columns = list(self.dataset.columns)
         print(df_columns)
+        print(self.dataset[['Nitrogen_N_ppm', 'Phosphorus_P_ppm', 'Potassium_K_ppm']])
         df_columns.remove(self.target_y)
         features_names = df_columns
         return features_names
@@ -69,26 +70,6 @@ class K_Means_Clustering:
     def update_features_X_after_encoding(self):
         updated_column_names = self.get_features_X_columns_names()
         self.features_X = self.dataset[updated_column_names]
-
-    def get_date_columns_names(self):
-        # TODO: fix method(many false positive reactions)
-        date_columns_names = []
-        for column in self.dataset.columns:
-            test_date_value = self.dataset[column].values[0]
-            if self.value_has_right_datetime_format(test_date_value):
-                date_columns_names.append(column)
-        print('Date columns:', date_columns_names)
-        return date_columns_names
-
-    def value_has_right_datetime_format(self, date_value):
-        common_date_formats = ["%d/%m/%Y", "%Y-%m-%d", "%m/%d/%Y", "%d-%m-%Y"]
-        for date_format in common_date_formats:
-            try:
-                if pd.to_datetime(date_value, format = date_format):
-                    return True
-            except:
-                continue
-        return False
 
     def add_year_columns(self):
         target_period_of_date = 'Year'
