@@ -1,5 +1,5 @@
 # Realization of K-Means Clustering classification algorithm
-# Soil Geographic Location(Latitude, Longitude) Predictions by Soil Parameters.
+# Classification Soil types based on Soil texture and nutrient content.
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler, LabelEncoder
@@ -21,7 +21,6 @@ class K_Means_Clustering:
         # self.train_model()
         # self.add_labels_column_to_dataset('cluster')
         # self.set_optimal_n_clusters_for_model()
-        # self.train_model()
         # self.add_labels_column_to_dataset('Optimal cluster')
         # print(self.dataset.head())
         # self.show_scatterplot_of_target_Y_segmentation()
@@ -46,7 +45,8 @@ class K_Means_Clustering:
 
     def get_features_X_columns_names(self):
         df_columns = list(self.dataset.columns)
-        df_columns.remove(self.selected_target_y)
+        print(df_columns)
+        df_columns.remove(self.target_y)
         features_names = df_columns
         return features_names
 
@@ -155,14 +155,6 @@ class K_Means_Clustering:
     def set_optimal_n_clusters_for_model(self):
         self.clusters_amount = self.get_optimal_n_clusters_for_model()
 
-    def get_optimal_n_clusters_for_model(self):
-        print('[INFO] Defining optimal clusters amount for target y...')
-        self.define_inertia_values_for_diff_n_clusters()
-        self.show_plot_inertia_from_n_clusters()
-        optimal_n_clusters = np.median(list(self.n_clusters_and_inertia_values.keys()))
-        print('Optimal n-clusters =', optimal_n_clusters)
-        return optimal_n_clusters
-
     def define_inertia_values_for_diff_n_clusters(self):
         min_n_clusters = 2
         median_of_unique_values_amount = self.get_median_from_unique_values_amounts()
@@ -175,12 +167,6 @@ class K_Means_Clustering:
             self.train_model()
             self.n_clusters_and_inertia_values[test_n_clusters] = self.K_means_model.inertia_
         return True
-
-    def get_max_n_clusters(self):
-        if self.clusters_amount > 20:
-            return 20
-        else:
-            return self.clusters_amount * 1.5
 
     def show_plot_inertia_from_n_clusters(self):
         plt.plot(self.n_clusters_and_inertia_values.keys(),
