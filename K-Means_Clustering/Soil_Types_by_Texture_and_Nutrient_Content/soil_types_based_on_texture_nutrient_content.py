@@ -10,8 +10,14 @@ import seaborn as sns
 class K_Means_Clustering:
     def __init__(self, dataset_name: str):
         self.dataset = pd.read_csv(dataset_name)
-        self.target_y = ''
-        self.features_X = self.get_features_X()
+        self.columns_for_target_y = ['Texture', 'Nitrogen_N_ppm', 'Phosphorus_P_ppm', 'Potassium_K_ppm']
+        
+        # TODO: think how to create target feature Y 
+        # from 'Nitrogen_N_ppm', 'Phosphorus_P_ppm', 'Potassium_K_ppm' features
+        # as a result target Y = ['Texture', 'N_P_K_ppm']
+        
+        self.target_y = []
+        self.features_X = pd.DataFrame()
         self.clusters_amount = self.get_n_clusters_for_dataset()
         self.K_means_model = self.get_k_means_model()
         self.n_clusters_and_inertia_values = {}
@@ -39,15 +45,11 @@ class K_Means_Clustering:
             print('Bye.')
 
     def get_features_X(self):
-        print('[INFO] Defining features X for model training...')
         features_names = self.get_features_X_columns_names()
         return self.dataset[features_names]
 
     def get_features_X_columns_names(self):
-        df_columns = list(self.dataset.columns)
-        print(df_columns)
-        print(self.dataset[['Nitrogen_N_ppm', 'Phosphorus_P_ppm', 'Potassium_K_ppm']])
-        df_columns.remove(self.target_y)
+        df_columns.remove(self.columns_for_target_y)
         features_names = df_columns
         return features_names
 
@@ -55,6 +57,9 @@ class K_Means_Clustering:
         print('[INFO] Preparing data...')
         self.dataset.dropna(inplace = True)
         self.dataset.drop_duplicates(inplace = True)
+        
+        # TODO: 1)create N_P_K_ppm feature(column), 2)delete N, P, K columns
+
         print(self.dataset.dtypes)
         # self.encode_categorical_features()
         # self.update_features_X_after_encoding()
@@ -70,47 +75,6 @@ class K_Means_Clustering:
     def update_features_X_after_encoding(self):
         updated_column_names = self.get_features_X_columns_names()
         self.features_X = self.dataset[updated_column_names]
-
-    def add_year_columns(self):
-        target_period_of_date = 'Year'
-        for column_name in self.date_columns_names:
-            new_column_name = self.get_new_column_name(
-                column_name, target_period_of_date)
-            self.dataset[new_column_name] = pd.to_datetime(
-                self.dataset[column_name]
-            ).dt.year
-
-    def add_month_columns(self):
-        target_period_of_date = 'Month'
-        for column_name in self.date_columns_names:
-            new_column_name = self.get_new_column_name(
-                column_name, target_period_of_date)
-            self.dataset[new_column_name] = pd.to_datetime(
-                self.dataset[column_name]
-            ).dt.month
-
-    def add_day_columns(self):
-        target_period_of_date = 'Day'
-        for column_name in self.date_columns_names:
-            new_column_name = self.get_new_column_name(
-                column_name, target_period_of_date)
-            self.dataset[new_column_name] = pd.to_datetime(
-                self.dataset[column_name]
-            ).dt.day
-
-    def get_new_column_name(self, column_name: str, period_of_date: str):
-        if 'Date' in column_name:
-            target_name_parts = column_name.split(' ')
-            index_of_date_word = target_name_parts.index('Date')
-            target_name_parts.remove('Date')
-            target_name_parts.insert(index_of_date_word, period_of_date)
-            new_column_name = ' '.join(target_name_parts)
-            return new_column_name
-
-    def delete_original_date_columns(self):
-        print('[INFO] Deleting original date columns...')
-        self.dataset.drop(self.date_columns_names,
-                        axis = 'columns', inplace = True)
 
     def encode_categorical_features(self):
         print('[INFO] Encoding categorical features...')
