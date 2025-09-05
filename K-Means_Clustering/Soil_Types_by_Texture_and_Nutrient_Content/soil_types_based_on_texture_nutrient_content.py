@@ -18,9 +18,9 @@ class K_Means_Clustering:
         
         self.target_y = []
         self.features_X = pd.DataFrame()
-        self.clusters_amount = self.get_n_clusters_for_dataset()
-        self.K_means_model = self.get_k_means_model()
-        self.n_clusters_and_inertia_values = {}
+        # self.clusters_amount = self.get_n_clusters_for_dataset()
+        # self.K_means_model = self.get_k_means_model()
+        # self.n_clusters_and_inertia_values = {}
 
     def main(self):
         self.prepare_data()
@@ -57,13 +57,24 @@ class K_Means_Clustering:
         print('[INFO] Preparing data...')
         self.dataset.dropna(inplace = True)
         self.dataset.drop_duplicates(inplace = True)
-        
-        # TODO: 1)create N_P_K_ppm feature(column), 2)delete N, P, K columns
-
+        self.add_N_P_K_ppm_feature_to_dataset()
+        self.remove_N_P_K_features_from_dataset()
+        print(self.dataset)
         print(self.dataset.dtypes)
         # self.encode_categorical_features()
         # self.update_features_X_after_encoding()
         # self.scale_feature_columns()
+
+    def add_N_P_K_ppm_feature_to_dataset(self):
+        self.dataset['N_P_K_ppm'] = self.dataset['Nitrogen_N_ppm']
+        self.dataset['N_P_K_ppm'] += self.dataset['Phosphorus_P_ppm']
+        self.dataset['N_P_K_ppm'] += self.dataset['Potassium_K_ppm']
+
+    def remove_N_P_K_features_from_dataset(self):
+        self.dataset.drop(
+            columns = ['Nitrogen_N_ppm', 'Phosphorus_P_ppm', 'Potassium_K_ppm'], 
+            inplace = True
+        )
 
     def scale_feature_columns(self):
         print('[INFO] Scaling feature columns...')
