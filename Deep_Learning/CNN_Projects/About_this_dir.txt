@@ -1,2 +1,3 @@
-This directory with Neural Networks using different ML-frameworks, libs
+Directory with Convolutional Neural Networks using different ML-frameworks, libs
 A main framework will be notice in a filename of program.
+
