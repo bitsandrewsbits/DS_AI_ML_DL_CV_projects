@@ -1,0 +1,49 @@
+services:
+  jupyter_notebook_server:
+    build:
+      dockerfile: dockerfiles/JupyterNotebook_Server.Dockerfile
+    env_file:
+     - .env
+    volumes:
+      - $PROJECT_DIR:/home/jovyan
+    networks:
+      mlflow-experiments:
+        ipv4_address: $JUPYTER_NOTEBOOK_IP
+    ports:
+      - "8888:8888"
+    depends_on:
+      - mlflow_server
+
+  postgresql_server:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: $POSTGRESQL_DB_USERNAME
+      POSTGRES_PASSWORD: $POSTGRESQL_DB_PASSWORD
+      POSTGRES_DB: postgres
+    networks:
+      mlflow-experiments:
+        ipv4_address: $POSTGRESQL_DB_IP
+    ports:
+      - "5432:5432"
+    volumes:
+      - $PROJECT_DIR/PostgreSQL_data:/postgresql/data
+  
+  mlflow_server:
+    build:
+      dockerfile: dockerfiles/MLFlow_Server.Dockerfile
+    volumes:
+      - $PROJECT_DIR/MLFlow:/mlflow
+    networks:
+      mlflow-experiments:
+        ipv4_address: $MLFLOW_IP
+    ports:
+      - "5000:5000"
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri $MLFLOW_TRACKING_URI
+
+networks:
+  mlflow-experiments:
+    name: "survived-mlflow-experiments"
+    ipam:
+      config:
+        - subnet: $SUBNET
+          gateway: $GATEWAY
