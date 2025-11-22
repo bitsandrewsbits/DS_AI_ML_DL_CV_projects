@@ -6,6 +6,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix, classification_report
 
+# TODO: think, how to create MLFlow-experiments for this script and write it to server.
+# Do I need change a program/model-method architecture in order to 
+# correct start/end and write experiments to mlflow?
+
 class Dataset_Analyzer:
 	def __init__(self, dataset_url: str):
 		self.CSV_dataset_URL = dataset_url
