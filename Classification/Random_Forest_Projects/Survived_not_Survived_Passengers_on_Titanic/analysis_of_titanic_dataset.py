@@ -8,7 +8,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 # TODO: think, how to create MLFlow-experiments for this script and write it to server.
 # Do I need change a program/model-method architecture in order to 
-# correct start/end and write experiments to mlflow?
+# start/end and write experiments correctly to mlflow?
 
 class Dataset_Analyzer:
 	def __init__(self, dataset_url: str):
@@ -28,8 +28,41 @@ class Dataset_Analyzer:
 		self.test_set_X = pd.DataFrame()
 		self.test_set_y = pd.DataFrame()
 
-		self.ML_model = 'object of some classifier model'
-		self.prediction_of_target_y = 'predict y values from ML model on test set X'
+		self.ML_classifiers_model = {'random_forest': RandomForestClassifier} # in the future - maybe I add new models
+		self.selected_model_for_experiment = object 
+		self.prediction_of_target_y = []
+
+	def main(self):
+		self.make_data_preparation_for_training()
+		print('Training ML model.')
+		self.init_classifier_model_for_experiment(self.ML_classifiers_model['random_forest'])
+		dataset_analyzer.train_classifier_model()
+		print('Make prediction of target y values from test set X')
+		dataset_analyzer.make_prediction_on_test_dataset()
+		print('Model Evaluation:')
+		dataset_analyzer.evaluate_quality_of_ML_model()
+
+	def make_data_preparation_for_training(self):
+		self.show_dataset()
+		self.show_dataset_columns()
+		self.remove_all_string_type_columns_from_dataset()
+		self.update_dataset_columns_names()
+		self.update_dataset_columns_types()
+		self.define_columns_with_missing_values_from_dataset()
+		self.define_int_float_dtype_missing_value_columns()
+		self.replace_columns_NaN_values_with_mean_values()
+		print('After data cleaning and replacing:')
+		self.show_dataset()
+		print('=' * 40)
+		self.define_features_set_X()
+		self.define_target_set_y()
+		self.features_max_abs_normalization()
+		print('Features set X after max abs normalization:')
+		self.show_features_set_X()
+		print('=' * 40)
+		print('Splitting dataset for train and test stages.')
+		self.split_dataset_into_train_test_parts()
+		print('=' * 40)
 
 	def show_dataset(self):
 		print(self.CSV_dataset)
@@ -99,6 +132,7 @@ class Dataset_Analyzer:
 		self.train_set_y, self.test_set_y = train_test_split(
 			self.features_set_X, self.target_set_y, test_size = 0.2, random_state = 42
 			)
+		self.train_set_y = self.train_set_y.values.reshape(-1)
 		return True
 
 	def features_max_abs_normalization(self):
@@ -108,12 +142,14 @@ class Dataset_Analyzer:
 			self.features_set_X[features_column] = self.features_set_X[features_column] / max_abs_column_value
 		return True
 
-	def train_RandomForestClassifier_model(self):
-		self.ML_model = RandomForestClassifier()
-		self.ML_model.fit(self.train_set_X, self.train_set_y)
+	def init_classifier_model_for_experiment(self, model):
+		self.selected_model_for_experiment = model()
+
+	def train_classifier_model(self):
+		self.selected_model_for_experiment.fit(self.train_set_X, self.train_set_y)
 
 	def make_prediction_on_test_dataset(self):
-		self.prediction_of_target_y = self.ML_model.predict(self.test_set_X)
+		self.prediction_of_target_y = self.selected_model_for_experiment.predict(self.test_set_X)
 
 	def evaluate_quality_of_ML_model(self):
 		print('Confusion matrix:')
@@ -121,35 +157,7 @@ class Dataset_Analyzer:
 		print('\nClassification Report:')
 		print(classification_report(self.test_set_y, self.prediction_of_target_y))
 
-
 if __name__ == '__main__':
 	dataset_analyzer = Dataset_Analyzer("https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv")
 
-	dataset_analyzer.show_dataset()
-	dataset_analyzer.show_dataset_columns()
-	dataset_analyzer.remove_all_string_type_columns_from_dataset()
-	dataset_analyzer.update_dataset_columns_names()
-	dataset_analyzer.update_dataset_columns_types()
-	dataset_analyzer.define_columns_with_missing_values_from_dataset()
-	dataset_analyzer.define_int_float_dtype_missing_value_columns()
-	dataset_analyzer.replace_columns_NaN_values_with_mean_values()
-	print('After data cleaning and replacing:')
-	dataset_analyzer.show_dataset()
-
-
-	dataset_analyzer.define_features_set_X()
-	dataset_analyzer.define_target_set_y()
-	
-	dataset_analyzer.features_max_abs_normalization()
-	print('Features set X after max abs normalization:')
-	dataset_analyzer.show_features_set_X()
-
-	print('Splitting dataset for train and test stages.')
-	dataset_analyzer.split_dataset_into_train_test_parts()
-
-	print('Training ML model.')
-	dataset_analyzer.train_RandomForestClassifier_model()
-	print('Make prediction of target y values from test set X')
-	dataset_analyzer.make_prediction_on_test_dataset()
-	print('Model Evaluation:')
-	dataset_analyzer.evaluate_quality_of_ML_model()
+	dataset_analyzer.main()
