@@ -8,7 +8,9 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 # TODO: think, how to create MLFlow-experiments for this script and write it to server.
 # Do I need change a program/model-method architecture in order to 
-# start/end and write experiments correctly to mlflow?
+# start/end and write experiments correctly to mlflow? (yes)
+
+# TODO: create new file with class - MLFlow_Experiment_Runner
 
 class Dataset_Analyzer:
 	def __init__(self, dataset_url: str):
@@ -24,18 +26,19 @@ class Dataset_Analyzer:
 		self.target_set_y = pd.DataFrame()
 
 		self.train_set_X = pd.DataFrame()
-		self.train_set_y = pd.DataFrame()
+		self.train_set_y = np.array
 		self.test_set_X = pd.DataFrame()
-		self.test_set_y = pd.DataFrame()
+		self.test_set_y = np.array
 
 		self.ML_classifiers_model = {'random_forest': RandomForestClassifier} # in the future - maybe I add new models
-		self.selected_model_for_experiment = object 
+		self.selected_model_name_for_experiment = 'random_forest'
+		self.model_for_experiment = object
 		self.prediction_of_target_y = []
 
 	def main(self):
 		self.make_data_preparation_for_training()
 		print('Training ML model.')
-		self.init_classifier_model_for_experiment(self.ML_classifiers_model['random_forest'])
+		self.init_classifier_model_for_experiment(self.selected_model_name_for_experiment)
 		dataset_analyzer.train_classifier_model()
 		print('Make prediction of target y values from test set X')
 		dataset_analyzer.make_prediction_on_test_dataset()
@@ -142,14 +145,14 @@ class Dataset_Analyzer:
 			self.features_set_X[features_column] = self.features_set_X[features_column] / max_abs_column_value
 		return True
 
-	def init_classifier_model_for_experiment(self, model):
-		self.selected_model_for_experiment = model()
+	def init_classifier_model_for_experiment(self, model_name: str):
+		self.model_for_experiment = self.ML_classifiers_model[model_name]()
 
 	def train_classifier_model(self):
-		self.selected_model_for_experiment.fit(self.train_set_X, self.train_set_y)
+		self.model_for_experiment.fit(self.train_set_X, self.train_set_y)
 
 	def make_prediction_on_test_dataset(self):
-		self.prediction_of_target_y = self.selected_model_for_experiment.predict(self.test_set_X)
+		self.prediction_of_target_y = self.model_for_experiment.predict(self.test_set_X)
 
 	def evaluate_quality_of_ML_model(self):
 		print('Confusion matrix:')
