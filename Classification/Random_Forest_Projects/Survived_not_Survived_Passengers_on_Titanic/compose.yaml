@@ -31,8 +31,6 @@ services:
   mlflow_server:
     build:
       dockerfile: dockerfiles/MLFlow_Server.Dockerfile
-    environment:
-      MLFLOW_SERVER_ALLOWED_HOSTS: $MLFLOW_IP:5000,localhost:*
     volumes:
       - $PROJECT_DIR/MLFlow:/mlflow
     networks:
@@ -40,7 +38,7 @@ services:
         ipv4_address: $MLFLOW_IP
     ports:
       - "5000:5000"
-    command: mlflow server --host $MLFLOW_IP --port 5000 --backend-store-uri $MLFLOW_TRACKING_URI
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri $MLFLOW_TRACKING_URI
 
 networks:
   mlflow-experiments:
