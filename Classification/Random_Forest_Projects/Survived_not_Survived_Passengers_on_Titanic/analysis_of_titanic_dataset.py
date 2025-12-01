@@ -10,8 +10,6 @@ from sklearn.metrics import confusion_matrix, classification_report
 # Do I need change a program/model-method architecture in order to 
 # start/end and write experiments correctly to mlflow? (yes)
 
-# TODO: create new file with class - MLFlow_Experiment_Runner
-
 class Dataset_Analyzer:
 	def __init__(self, dataset_url: str):
 		self.CSV_dataset_URL = dataset_url
