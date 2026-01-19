@@ -16,10 +16,17 @@ datasets_files_info = {
     }
 }
 
-datasets_save_path = "."
-Class_Samples_Amount = 100
+class_samples_amount = 8000  # by default - entire dataset
+root_prepared_datasets_dir = "prepared_datasets"
+datasets_save_path = f"{root_prepared_datasets_dir}/train_val_test_datasets"
 
-def main(datasets_files: dict, save_path: str, class_samples_amount = 'all'):
+def main(datasets_files: dict, save_path: str, class_samples_amount = 'all', oversample_neutral_reviews = True):
+    if root_prepared_datasets_dir in ad_fncs.get_filenames_from_dir('.'):
+        print("[INFO] Prepared Datasets dir already exist.")
+    else:
+        print("[INFO] Creating root dir for prepared datasets...")
+        ad_fncs.create_directory(root_prepared_datasets_dir)
+
     datasets = get_datasets_from_reviews_files(datasets_files, class_samples_amount)
     target_dataset_for_split = get_merged_train_test_datasets_into_one(datasets)
     dataset_with_neutral_reviews = include_neutral_reviews_to_result_dataset(
@@ -28,10 +35,21 @@ def main(datasets_files: dict, save_path: str, class_samples_amount = 'all'):
     train_val_test_datasets = get_train_validation_test_datasets(
         dataset_with_neutral_reviews
     )
-    print(train_val_test_datasets)
-    converted_train_val_test_datasets = get_converted_datasets_into_DatasetDict_Dataset(
-        train_val_test_datasets
-    )
+    if oversample_neutral_reviews:
+      neutral_reviews_distribution_in_datasets = get_neutral_reviews_distribution_in_datasets(
+          train_val_test_datasets
+      )
+      neutral_reviews_oversampling_coeffs = get_neutral_reviews_oversampling_coeffs_for_datasets(
+          train_val_test_datasets, neutral_reviews_distribution_in_datasets
+      )
+      neutral_reviews_oversampled_datasets = get_neutral_reviews_oversampled_datasets(
+          train_val_test_datasets,
+          neutral_reviews_distribution_in_datasets,
+          neutral_reviews_oversampling_coeffs
+      )
+      converted_train_val_test_datasets = get_converted_datasets_into_DatasetDict_Dataset(
+        neutral_reviews_oversampled_datasets
+      )
     save_train_val_test_datasets_to_disk(
         converted_train_val_test_datasets, save_path
     )
@@ -64,14 +82,18 @@ def get_converted_datasets_into_DatasetDict_Dataset(datasets: dict[pd.DataFrame]
     return DatasetDict(datasets)
 
 def get_datasets_from_reviews_files(
-datasets_files_info: dict, class_samples_amount: int) -> dict[pd.DataFrame]:
+datasets_files_info: dict, class_samples_amount) -> dict[pd.DataFrame]:
+    if class_samples_amount != 'all':
+        class_samples_amount_per_dataset_type = class_samples_amount // 2
+    else:
+        class_samples_amount_per_dataset_type = class_samples_amount
     result_datasets = {}
     for dataset_type in datasets_files_info:
         dataset_creation = ft_ds.DistilBERT_Fune_Tuning_Dataset_Creation(
             datasets_files_info[dataset_type]["positive_reviews_path"],
             datasets_files_info[dataset_type]["negative_reviews_path"]
         )
-        result_datasets[dataset_type] = dataset_creation.main(class_samples_amount)
+        result_datasets[dataset_type] = dataset_creation.main(class_samples_amount_per_dataset_type)
     return result_datasets
 
 def get_merged_train_test_datasets_into_one(
@@ -82,36 +104,56 @@ train_test_datasets: dict[pd.DataFrame]) -> pd.DataFrame:
     )
     return target_dataset_for_splitting
 
-def include_neutral_reviews_to_result_dataset(res_dataset: pd.DataFrame,
-oversampling = False):
+def include_neutral_reviews_to_result_dataset(res_dataset: pd.DataFrame):
     neutral_reviews_df = pd.read_json(
         "neutral_reviews.json", orient = 'records', lines = True
     )
     neutral_reviews_df['label'] = 2
-    # TODO: test without neutral reviews oversampling
-    if oversampling:
-        if neutral_reviews_df.shape[0] < res_dataset.shape[0]:
-            oversample_coefficient = get_oversampling_coefficient(
-                neutral_reviews_df.shape[0], res_dataset.shape[0]
-            )
-        neutral_reviews_df = get_oversampled_dataset(neutral_reviews_df)
-
     reviews_3_types_dataset = pd.concat(
         [res_dataset, neutral_reviews_df],
         axis = 0, ignore_index = True
     )
     return reviews_3_types_dataset
 
-# TODO: test and tune after training without oversampling
-def get_oversampling_coefficient(real_reviews_amount, target_reviews_amount):
+def get_neutral_reviews_oversampled_datasets(datasets: dict[pd.DataFrame],
+neutral_reviews_distribution: dict, neutral_reviews_oversampling_coeffs: dict) -> pd.DataFrame:
+  for dataset_type in datasets:
+    current_dataset = datasets[dataset_type]
+    for _ in range(neutral_reviews_oversampling_coeffs[dataset_type] - 1):
+      current_dataset = pd.concat(
+        [
+          current_dataset,
+          neutral_reviews_distribution[dataset_type]
+        ],
+        ignore_index = True
+      )
+    datasets[dataset_type] = current_dataset
+  return datasets
+
+def get_oversampling_coefficient(real_reviews_amount: int, target_reviews_amount: int):
     oversampling_coeff = target_reviews_amount // real_reviews_amount
-    if oversampling_coeff > 100:
-        oversampling_coeff //= 100
     return oversampling_coeff
 
-# TODO: create function
-def get_oversampled_dataset(dataset: pd.DataFrame) -> pd.DataFrame:
-    pass
+def get_neutral_reviews_oversampling_coeffs_for_datasets(datasets: dict[pd.DataFrame], neutral_reviews_distribution: dict):
+  neutral_reviews_oversampling_coeffs = {}
+  for dataset_type in datasets:
+    positive_reviews = datasets[dataset_type][datasets[dataset_type]['label'] == 1]
+    neutral_reviews_oversampling_coeffs[dataset_type] = get_oversampling_coefficient(
+        neutral_reviews_distribution[dataset_type].shape[0], positive_reviews.shape[0]
+    )
+  return neutral_reviews_oversampling_coeffs
 
-if __name__ == '__main__':
-    main(datasets_files_info, datasets_save_path, Class_Samples_Amount)
+def get_neutral_reviews_distribution_in_datasets(datasets: dict[pd.DataFrame]):
+  datasets_neutral_reviews_distrition = {}
+  for dataset_type in datasets:
+    datasets_neutral_reviews_distrition[dataset_type] = get_reviews_from_df_by_label(
+        datasets[dataset_type], 2
+    )
+  return datasets_neutral_reviews_distrition
+
+def get_reviews_from_df_by_label(dataset: pd.DataFrame, label: int) -> pd.DataFrame:
+  return dataset[dataset['label'] == label]
+
+if __name__ == "__main__":
+    print('Creating prepared train-validation-test datasets...')
+    main(datasets_files_info, datasets_save_path, class_samples_amount)
