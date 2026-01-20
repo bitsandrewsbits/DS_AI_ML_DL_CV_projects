@@ -3,16 +3,17 @@ import DistilBERT_FineTuning_dataset_creation as ft_ds
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import additional_functions_for_data_preprocessing as ad_fncs
+import download_datasets as load_ds
 from datasets import DatasetDict, Dataset
 
 datasets_files_info = {
     "train": {
-        "positive_reviews_path": 'data/train/pos',
-        "negative_reviews_path": 'data/train/neg'
+        "positive_reviews_path": f'{load_ds.downloaded_datasets_dir}/train/pos',
+        "negative_reviews_path": f'{load_ds.downloaded_datasets_dir}/train/neg'
     },
     "test": {
-        "positive_reviews_path": 'data/test/pos',
-        "negative_reviews_path": 'data/test/neg'
+        "positive_reviews_path": f'{load_ds.downloaded_datasets_dir}/test/pos',
+        "negative_reviews_path": f'{load_ds.downloaded_datasets_dir}/test/neg'
     }
 }
 
