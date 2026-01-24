@@ -6,14 +6,16 @@ import additional_functions_for_data_preprocessing as ad_fncs
 import download_datasets as load_ds
 from datasets import DatasetDict, Dataset
 
+path_to_downloaded_dataset = f"{load_ds.downloaded_datasets_root_dir}/{load_ds.dataset['dataset_name']}"
+
 datasets_files_info = {
     "train": {
-        "positive_reviews_path": f'{load_ds.downloaded_datasets_dir}/train/pos',
-        "negative_reviews_path": f'{load_ds.downloaded_datasets_dir}/train/neg'
+        "positive_reviews_path": f'{path_to_downloaded_dataset}/train/pos',
+        "negative_reviews_path": f'{path_to_downloaded_dataset}/train/neg'
     },
     "test": {
-        "positive_reviews_path": f'{load_ds.downloaded_datasets_dir}/test/pos',
-        "negative_reviews_path": f'{load_ds.downloaded_datasets_dir}/test/neg'
+        "positive_reviews_path": f'{path_to_downloaded_dataset}/test/pos',
+        "negative_reviews_path": f'{path_to_downloaded_dataset}/test/neg'
     }
 }
 
