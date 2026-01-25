@@ -1,8 +1,13 @@
 # preprocessing Films Reviews Dataset files for DistilBERT fine-tuning dataset creation.
 import additional_functions_for_data_preprocessing as ad_fncs
+import download_datasets as load_ds
 import re
 import numpy as np
 import pandas as pd
+
+path_to_datasets = f"{load_ds.downloaded_datasets_root_dir}/{load_ds.dataset['dataset_name']}"
+# TODO: think, how to change class in order to use it for separate dirs - neg, pos, unsup.
+# TODO: probably, need to rename class.
 
 class DistilBERT_Fune_Tuning_Dataset_Creation:
     def __init__(self, positive_reviews_dir_path: str, negative_reviews_dir_path: str):
@@ -82,7 +87,8 @@ class DistilBERT_Fune_Tuning_Dataset_Creation:
 
 if __name__ == '__main__':
     fine_tune_dataset_creation = DistilBERT_Fune_Tuning_Dataset_Creation(
-        'data/train/pos', 'data/train/neg'
+        f'{path_to_datasets}/train/pos',
+        f'{path_to_datasets}/train/neg'
     )
     part_of_result_dataset = fine_tune_dataset_creation.main(5)
     print(part_of_result_dataset)
