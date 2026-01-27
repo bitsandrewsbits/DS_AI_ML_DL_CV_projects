@@ -5,50 +5,30 @@ import re
 import numpy as np
 import pandas as pd
 
-path_to_datasets = f"{load_ds.downloaded_datasets_root_dir}/{load_ds.dataset['dataset_name']}"
-# TODO: think, how to change class in order to use it for separate dirs - neg, pos, unsup.
-# TODO: probably, need to rename class.
-
-class DistilBERT_Fune_Tuning_Dataset_Creation:
-    def __init__(self, positive_reviews_dir_path: str, negative_reviews_dir_path: str):
-        self.positive_reviews_dir_path = positive_reviews_dir_path
-        self.negative_reviews_dir_path = negative_reviews_dir_path
-        self.positive_reviews_filenames = ad_fncs.get_filenames_from_dir(positive_reviews_dir_path)
-        self.negative_reviews_filenames = ad_fncs.get_filenames_from_dir(negative_reviews_dir_path)
+class One_Reviews_Dir_Dataset_Creator:
+    def __init__(self, root_reviews_dirname: str, target_reviews_dirname: str):
+        self.root_reviews_dirname = root_reviews_dirname
+        self.target_reviews_dirname = target_reviews_dirname
+        self.reviews_dir_path = f"{self.root_reviews_dirname}/{self.target_reviews_dirname}"
+        self.reviews_filenames = ad_fncs.get_filenames_from_dir(self.reviews_dir_path)
 
         self.result_reviews_dataset = {"text": [], "label": []}
 
-    def main(self, class_samples_amount = 'all') -> pd.DataFrame:
-        positive_reviews_dataset = pd.DataFrame(
+    def main(self, samples_amount = 'all') -> pd.DataFrame:
+        reviews_dataset = pd.DataFrame(
             self.get_prepared_revews_info_from_filenames(
-                self.positive_reviews_dir_path, self.positive_reviews_filenames
+                self.reviews_dir_path, self.reviews_filenames
             )
         )
-        negative_reviews_dataset = pd.DataFrame(
-            self.get_prepared_revews_info_from_filenames(
-                self.negative_reviews_dir_path, self.negative_reviews_filenames
-            )
-        )
-        total_samples_amount = positive_reviews_dataset.shape[0] + negative_reviews_dataset.shape[0]
+        total_samples_amount = reviews_dataset.shape[0]
 
-        if class_samples_amount != 'all' and 2 * class_samples_amount < total_samples_amount:
-            positive_samples_amount = class_samples_amount
-            negative_samples_amount = class_samples_amount
-            result_pos_samples = positive_reviews_dataset.sample(
-                positive_samples_amount, axis = 0
-            )
-            result_neg_samples = negative_reviews_dataset.sample(
-                negative_samples_amount, axis = 0
-            )
-            result_dataset = pd.concat(
-                [result_pos_samples, result_neg_samples],
-                axis = 0, ignore_index = True
+        if samples_amount != 'all':
+            result_dataset = reviews_dataset.sample(
+                samples_amount, axis = 0
             )
         else:
-            result_dataset = pd.concat(
-                [positive_reviews_dataset, negative_reviews_dataset],
-                axis = 0, ignore_index = True
-            )
+            result_dataset = reviews_dataset
+
         result_dataset = result_dataset.sample(frac = 1).reset_index(drop = True)
         return result_dataset
 
@@ -86,9 +66,9 @@ class DistilBERT_Fune_Tuning_Dataset_Creation:
         return review_text
 
 if __name__ == '__main__':
-    fine_tune_dataset_creation = DistilBERT_Fune_Tuning_Dataset_Creation(
-        f'{path_to_datasets}/train/pos',
-        f'{path_to_datasets}/train/neg'
+    path_to_datasets = f"{load_ds.downloaded_datasets_root_dir}/{load_ds.dataset['dataset_name']}/train"
+    reviews_dir_dataset_creator = One_Reviews_Dir_Dataset_Creator(
+        f'{path_to_datasets}', 'pos'
     )
-    part_of_result_dataset = fine_tune_dataset_creation.main(5)
+    part_of_result_dataset = reviews_dir_dataset_creator.main()
     print(part_of_result_dataset)
