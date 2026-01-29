@@ -1,5 +1,5 @@
 # Train, Validation, Test datasets creation for DistilBERT fine-tuning
-import DistilBERT_FineTuning_dataset_creation as ft_ds
+import one_reviews_dir_dataset_creation as rd_ds
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import additional_functions_for_data_preprocessing as ad_fncs
@@ -10,12 +10,12 @@ path_to_downloaded_dataset = f"{load_ds.downloaded_datasets_root_dir}/{load_ds.d
 
 datasets_files_info = {
     "train": {
-        "positive_reviews_path": f'{path_to_downloaded_dataset}/train/pos',
-        "negative_reviews_path": f'{path_to_downloaded_dataset}/train/neg'
+        "positive_reviews_path": 'pos',
+        "negative_reviews_path": 'neg'
     },
     "test": {
-        "positive_reviews_path": f'{path_to_downloaded_dataset}/test/pos',
-        "negative_reviews_path": f'{path_to_downloaded_dataset}/test/neg'
+        "positive_reviews_path": 'pos',
+        "negative_reviews_path": 'neg'
     }
 }
 
@@ -53,6 +53,8 @@ def main(datasets_files: dict, save_path: str, class_samples_amount = 'all', ove
       converted_train_val_test_datasets = get_converted_datasets_into_DatasetDict_Dataset(
         neutral_reviews_oversampled_datasets
       )
+    # TODO: think, how to check and open already existed datasets from disk
+    # so as to avoid recreating dataset from scratch.
     save_train_val_test_datasets_to_disk(
         converted_train_val_test_datasets, save_path
     )
@@ -86,17 +88,25 @@ def get_converted_datasets_into_DatasetDict_Dataset(datasets: dict[pd.DataFrame]
 
 def get_datasets_from_reviews_files(
 datasets_files_info: dict, class_samples_amount) -> dict[pd.DataFrame]:
-    if class_samples_amount != 'all':
-        class_samples_amount_per_dataset_type = class_samples_amount // 2
-    else:
-        class_samples_amount_per_dataset_type = class_samples_amount
     result_datasets = {}
     for dataset_type in datasets_files_info:
-        dataset_creation = ft_ds.DistilBERT_Fune_Tuning_Dataset_Creation(
-            datasets_files_info[dataset_type]["positive_reviews_path"],
+        positive_reviews_dataset_creator = rd_ds.One_Reviews_Dir_Dataset_Creator(
+            f"{path_to_downloaded_dataset}/{dataset_type}",
+            datasets_files_info[dataset_type]["positive_reviews_path"]
+        )
+        positive_reviews_dataset = positive_reviews_dataset_creator.main(class_samples_amount)
+        negative_reviews_dataset_creator = rd_ds.One_Reviews_Dir_Dataset_Creator(
+            f"{path_to_downloaded_dataset}/{dataset_type}",
             datasets_files_info[dataset_type]["negative_reviews_path"]
         )
-        result_datasets[dataset_type] = dataset_creation.main(class_samples_amount_per_dataset_type)
+        negative_reviews_dataset = negative_reviews_dataset_creator.main(class_samples_amount)
+
+        pos_neg_reviews_dataset = pd.concat(
+            [positive_reviews_dataset, negative_reviews_dataset],
+            ignore_index = True
+        )
+        result_datasets[dataset_type] = pos_neg_reviews_dataset
+        print(result_datasets[dataset_type])
     return result_datasets
 
 def get_merged_train_test_datasets_into_one(
