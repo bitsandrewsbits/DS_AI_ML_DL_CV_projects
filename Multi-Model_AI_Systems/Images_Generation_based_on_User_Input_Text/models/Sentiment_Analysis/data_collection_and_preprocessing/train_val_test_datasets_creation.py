@@ -21,7 +21,9 @@ datasets_files_info = {
 
 class_samples_amount = 8000  # by default - entire dataset
 root_prepared_datasets_dir = "prepared_datasets"
-datasets_save_path = f"{root_prepared_datasets_dir}/train_val_test_datasets"
+default_prepared_datasets_dirname = "train_val_test_datasets"
+datasets_save_path = f"{root_prepared_datasets_dir}/{default_prepared_datasets_dirname}"
+external_neutral_reviews_from_Zembra_API_path = "neutral_reviews_via_Zembra_API/neutral_reviews.json"
 
 def main(datasets_files: dict, save_path: str, class_samples_amount = 'all', oversample_neutral_reviews = True):
     if root_prepared_datasets_dir in ad_fncs.get_filenames_from_dir('.'):
@@ -29,10 +31,14 @@ def main(datasets_files: dict, save_path: str, class_samples_amount = 'all', ove
     else:
         print("[INFO] Creating root dir for prepared datasets...")
         ad_fncs.create_directory(root_prepared_datasets_dir)
+    if default_prepared_datasets_dirname in ad_fncs.get_filenames_from_dir(root_prepared_datasets_dir):
+        print("[INFO] Prepared train-val-test datasets with default dirname already exist!")
+        return 0
 
     datasets = get_datasets_from_reviews_files(datasets_files, class_samples_amount)
     target_dataset_for_split = get_merged_train_test_datasets_into_one(datasets)
     dataset_with_neutral_reviews = include_neutral_reviews_to_result_dataset(
+        external_neutral_reviews_from_Zembra_API_path,
         target_dataset_for_split
     )
     train_val_test_datasets = get_train_validation_test_datasets(
@@ -53,8 +59,6 @@ def main(datasets_files: dict, save_path: str, class_samples_amount = 'all', ove
       converted_train_val_test_datasets = get_converted_datasets_into_DatasetDict_Dataset(
         neutral_reviews_oversampled_datasets
       )
-    # TODO: think, how to check and open already existed datasets from disk
-    # so as to avoid recreating dataset from scratch.
     save_train_val_test_datasets_to_disk(
         converted_train_val_test_datasets, save_path
     )
@@ -117,9 +121,9 @@ train_test_datasets: dict[pd.DataFrame]) -> pd.DataFrame:
     )
     return target_dataset_for_splitting
 
-def include_neutral_reviews_to_result_dataset(res_dataset: pd.DataFrame):
+def include_neutral_reviews_to_result_dataset(neutral_reviews_path: str, res_dataset: pd.DataFrame):
     neutral_reviews_df = pd.read_json(
-        "neutral_reviews.json", orient = 'records', lines = True
+        neutral_reviews_path, orient = 'records', lines = True
     )
     neutral_reviews_df['label'] = 2
     reviews_3_types_dataset = pd.concat(
