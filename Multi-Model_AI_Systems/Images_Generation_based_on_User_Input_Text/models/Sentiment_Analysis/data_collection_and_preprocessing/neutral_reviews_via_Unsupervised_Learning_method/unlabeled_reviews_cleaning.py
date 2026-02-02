@@ -1,5 +1,5 @@
-# neutral reviews extraction via Unsupervised Learning method
-# what method - I will select in future commit
+# Text cleaning for more accurate embeddings generation
+# save cleaned dataset in JSON file
 import sys
 sys.path.append("..")
 import pandas as pd
