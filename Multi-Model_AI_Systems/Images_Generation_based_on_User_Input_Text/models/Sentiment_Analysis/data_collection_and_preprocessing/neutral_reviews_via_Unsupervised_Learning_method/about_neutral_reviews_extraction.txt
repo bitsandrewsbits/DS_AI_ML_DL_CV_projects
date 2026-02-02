@@ -1,0 +1,6 @@
+# neutral reviews extraction via Unsupervised Learning method
+# method - LLM-based clastering:
+# TODOs:
+# 0) Text cleaning(nltk lib)
+# 1) select LLM(GPT or BERT) for generating embedding vectors(from hugging face)
+# 2) K-means algorithm for embeddings clastering - 3 classes
