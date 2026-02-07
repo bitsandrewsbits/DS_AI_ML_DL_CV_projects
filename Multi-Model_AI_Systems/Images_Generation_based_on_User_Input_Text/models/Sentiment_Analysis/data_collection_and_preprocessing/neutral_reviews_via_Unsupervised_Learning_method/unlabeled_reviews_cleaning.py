@@ -51,9 +51,14 @@ def remove_stop_words_in_review_column(dataset: pd.DataFrame):
     dataset['text'] = reviews_column_for_updating
     return dataset
 
-# TODO: create func for saving cleaned dataset in JSON
+def save_cleaned_dataset_to_JSONL(dataset: pd.DataFrame):
+    dataset.to_json(
+        "cleaned_unlabeled_reviews_dataset.jsonl",
+        orient = 'records',
+        lines = True
+    )
 
 if __name__ == "__main__":
     cleaned_dataset = main(unlabeled_dataset)
-    print('cleaned dataset:')
-    print(cleaned_dataset)
+    print("[INFO] Saving cleaned reviews dataset into file...")
+    save_cleaned_dataset_to_JSONL(cleaned_dataset)
