@@ -1,6 +1,11 @@
 # neutral reviews extraction via Unsupervised Learning method
-# method - LLM-based clastering:
+# method - LLM-based clustering:
 # TODOs:
 # 0) Text cleaning(nltk lib)
-# 1) select LLM(GPT or BERT) for generating embedding vectors(from hugging face)
-# 2) K-means algorithm for embeddings clastering - 3 classes
+
+# 1) LLM(GPT) for generating embedding vectors(from hugging face)
+and hosting on Ollama server:
+bash script for starting container with Ollama server in order to load
+LLM model for embedding generation for unlabeled dataset(temp container)
+
+# 2) K-means algorithm for embeddings clustering - 3 classes
