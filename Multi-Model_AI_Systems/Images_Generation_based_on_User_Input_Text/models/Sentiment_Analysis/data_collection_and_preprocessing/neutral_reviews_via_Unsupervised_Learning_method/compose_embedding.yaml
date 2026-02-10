@@ -1,0 +1,5 @@
+services:
+  ollama_embedding:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
