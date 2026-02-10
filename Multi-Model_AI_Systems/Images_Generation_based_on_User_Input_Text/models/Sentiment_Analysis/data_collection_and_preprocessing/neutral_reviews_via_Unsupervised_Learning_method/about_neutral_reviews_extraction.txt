@@ -3,9 +3,11 @@
 # TODOs:
 # 0) Text cleaning(nltk lib)
 
-# 1) LLM(GPT) for generating embedding vectors(from hugging face)
-and hosting on Ollama server:
-bash script for starting container with Ollama server in order to load
+# 1) Store LLM(embeddinggemma from Google) on Ollama server
+for generating embedding vectors:
+  a) Docker compose file - for starting container with Ollama server in order to load
 LLM model for embedding generation for unlabeled dataset(temp container)
+  b) py-script for init Ollama client and load LLM to Ollama. After that generate
+reviews texts embedding vectors and save it.
 
 # 2) K-means algorithm for embeddings clustering - 3 classes
