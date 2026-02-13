@@ -6,6 +6,8 @@ import pandas as pd
 import one_reviews_dir_dataset_creation as ordds
 import download_datasets as load_ds
 import re
+import nltk
+nltk.download('stopwords')
 from nltk.corpus import stopwords
 
 unlabeled_reviews_dir_path = f"../{load_ds.downloaded_datasets_root_dir}/{load_ds.dataset['dataset_name']}/train"
