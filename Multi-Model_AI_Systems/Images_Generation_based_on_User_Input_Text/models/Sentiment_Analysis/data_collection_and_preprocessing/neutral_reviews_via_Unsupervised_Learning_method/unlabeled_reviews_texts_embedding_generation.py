@@ -14,15 +14,15 @@ class Texts_Embedding_Dataset_Generator:
         self.ollama_port = ollama_port
         self.ollama_client = self.get_Ollama_client()
         self.dataset_JSONL_file = dataset_file
+        self.unlabeled_dataset = self.get_dataframe_from_JSONL_file()
+        self.unlabeled_embedding_dataset = self.unlabeled_dataset.copy()
 
     def main(self):
-        unlabeled_dataset = self.get_dataframe_from_JSONL_file()
-        print(unlabeled_dataset)
+        print(self.unlabeled_dataset)
         self.load_embed_model_to_Ollama()
-        print("test embed generation:")
-        print(self.get_text_embedding_vector("How are you"))
-        # TODO: think, how to generate embeddings for entire dataset(text column)
-        # and what data format it will be.
+        self.add_to_dataset_embedding_column()
+        print(self.unlabeled_embedding_dataset)
+        # TODO: create method for saving updated dataset into JSON file
 
     def get_dataframe_from_JSONL_file(self):
         return pd.read_json(self.dataset_JSONL_file, orient = "records", lines = True)
@@ -41,6 +41,12 @@ class Texts_Embedding_Dataset_Generator:
     def get_Ollama_models_names(self):
         models_names = [model_obj.model for model_obj in dict(olm.list())["models"]]
         return models_names
+
+    def add_to_dataset_embedding_column(self):
+        print("[INFO] Generating text embedding vectors and adding to dataset...")
+        self.unlabeled_embedding_dataset["embedding_vector"] = self.unlabeled_embedding_dataset["text"].apply(
+            self.get_text_embedding_vector
+        )
 
     def get_text_embedding_vector(self, text: str):
         return olm.embed(model = self.embed_model_name, input = text).embeddings[0]
