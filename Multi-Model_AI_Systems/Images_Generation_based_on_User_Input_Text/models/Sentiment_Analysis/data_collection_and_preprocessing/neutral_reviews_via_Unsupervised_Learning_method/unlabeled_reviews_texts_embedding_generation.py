@@ -22,7 +22,7 @@ class Texts_Embedding_Dataset_Generator:
         self.load_embed_model_to_Ollama()
         self.add_to_dataset_embedding_column()
         print(self.unlabeled_embedding_dataset)
-        # TODO: create method for saving updated dataset into JSON file
+        self.save_text_embedding_dataset_to_JSON()
 
     def get_dataframe_from_JSONL_file(self):
         return pd.read_json(self.dataset_JSONL_file, orient = "records", lines = True)
@@ -50,6 +50,13 @@ class Texts_Embedding_Dataset_Generator:
 
     def get_text_embedding_vector(self, text: str):
         return olm.embed(model = self.embed_model_name, input = text).embeddings[0]
+
+    def save_text_embedding_dataset_to_JSON(self):
+        print("[INFO] Saving unlabeled reviews embedding dataset...")
+        self.unlabeled_embedding_dataset.to_json(
+            "unlabeled_reviews_embedding_dataset.json",
+            orient = "records"
+        )
 
 if __name__ == "__main__":
     text_embed_generator = Texts_Embedding_Dataset_Generator(
