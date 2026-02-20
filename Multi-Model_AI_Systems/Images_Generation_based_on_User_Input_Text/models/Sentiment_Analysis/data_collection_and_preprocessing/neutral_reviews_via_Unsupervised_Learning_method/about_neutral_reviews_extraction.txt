@@ -1,5 +1,5 @@
 # neutral reviews extraction via Unsupervised Learning method
-# method - LLM-based clustering:
+# method - embedding-based clustering (via LLM):
 # TODOs:
 # 0) Text cleaning(nltk lib)
 
@@ -9,5 +9,6 @@ for generating embedding vectors:
 LLM model for embedding generation for unlabeled dataset(temp container)
   b) py-script for init Ollama client and load LLM to Ollama. After that generate
 reviews texts embedding vectors and save it.
+  c) Apply PCA for dimensionality reduction for reviews embedding vectors for more accurate clustering.
 
-# 2) K-means algorithm for embeddings clustering - 3 classes
+# 2) K-means algorithm for embeddings clustering - 3 classes(clusters)
