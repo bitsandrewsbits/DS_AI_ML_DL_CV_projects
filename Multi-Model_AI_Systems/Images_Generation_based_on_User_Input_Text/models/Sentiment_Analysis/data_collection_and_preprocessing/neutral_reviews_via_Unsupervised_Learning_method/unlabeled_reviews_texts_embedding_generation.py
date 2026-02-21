@@ -1,6 +1,7 @@
 # unlabeled reviews texts embedding generation via LLM - embeddinggemma
 import ollama as olm
 import pandas as pd
+import time
 
 embed_model_name = "embeddinggemma:latest"
 ollama_host = "localhost"
@@ -8,21 +9,28 @@ ollama_port = "11434"
 unlabeled_reviews_dataset_file = "cleaned_unlabeled_reviews_dataset.jsonl"
 
 class Texts_Embedding_Dataset_Generator:
-    def __init__(self, embed_model_name: str, ollama_host: str, ollama_port: str, dataset_file: str):
+    def __init__(self, embed_model_name: str, ollama_host: str, ollama_port: str, dataset_file: str, computing_time_estimation_mode = False):
+        self.start_execution_time = time.time()
+        self.execution_time = 0
         self.embed_model_name = embed_model_name
         self.ollama_host = ollama_host
         self.ollama_port = ollama_port
         self.ollama_client = self.get_Ollama_client()
         self.dataset_JSONL_file = dataset_file
         self.unlabeled_dataset = self.get_dataframe_from_JSONL_file()
-        self.unlabeled_embedding_dataset = self.unlabeled_dataset.copy()
+        if computing_time_estimation_mode:
+            print("[WARN] Embedding-computing-time-estimation is Enabled! Testing on 10 samples...")
+            self.unlabeled_embedding_dataset = self.unlabeled_dataset.copy().iloc[:10]
+        else:
+            self.unlabeled_embedding_dataset = self.unlabeled_dataset.copy()
 
     def main(self):
-        print(self.unlabeled_dataset)
         self.load_embed_model_to_Ollama()
         self.add_to_dataset_embedding_column()
         print(self.unlabeled_embedding_dataset)
         self.save_text_embedding_dataset_to_JSON()
+        self.define_execution_time()
+        print(f"[INFO] Execution time = {self.execution_time} seconds")
 
     def get_dataframe_from_JSONL_file(self):
         return pd.read_json(self.dataset_JSONL_file, orient = "records", lines = True)
@@ -42,6 +50,9 @@ class Texts_Embedding_Dataset_Generator:
         models_names = [model_obj.model for model_obj in dict(olm.list())["models"]]
         return models_names
 
+    # embed compute time for 50*10^3 reviews too much(approx 1 hour!)
+    # TODO: think, how to setup ollama servers into cluster and compute in parallel embed vectors.
+    # TODO: think, maybe it will be convenient to generate a compose.yaml with beforehand Ollama containers amount. 
     def add_to_dataset_embedding_column(self):
         print("[INFO] Generating text embedding vectors and adding to dataset...")
         self.unlabeled_embedding_dataset["embedding_vector"] = self.unlabeled_embedding_dataset["text"].apply(
@@ -57,9 +68,15 @@ class Texts_Embedding_Dataset_Generator:
             "unlabeled_reviews_embedding_dataset.json",
             orient = "records"
         )
+    
+    def define_execution_time(self):
+        end_execution_time = time.time()
+        self.execution_time = end_execution_time - self.start_execution_time
 
 if __name__ == "__main__":
     text_embed_generator = Texts_Embedding_Dataset_Generator(
-        embed_model_name, ollama_host, ollama_port, unlabeled_reviews_dataset_file
+        embed_model_name, ollama_host, ollama_port, 
+        unlabeled_reviews_dataset_file,
+        computing_time_estimation_mode = True
     )
     text_embed_generator.main()
