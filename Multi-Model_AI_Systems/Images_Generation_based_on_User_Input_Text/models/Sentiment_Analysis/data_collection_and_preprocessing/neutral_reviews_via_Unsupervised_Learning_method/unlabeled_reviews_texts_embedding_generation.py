@@ -33,14 +33,9 @@ class Texts_Embedding_Dataset_Generator:
         self.load_embed_model_to_Ollama()
         if self.computing_time_estimation_mode:
             self.add_to_dataset_embedding_column()
-            print(self.unlabeled_embedding_dataset)
             self.save_text_embedding_dataset_to_JSON()
             self.define_execution_time_for_10_samples()
-            print(f"[INFO] Execution time (10 samples) = {self.execution_time_10_samples} seconds")
             self.define_approx_execution_time_for_entire_dataset()
-            print("[INFO] Approximated execution time for entire dataset = ", end = '') 
-            print(f"{self.execution_time_for_entire_dataset} seconds or ", end = '')
-            print(f"{self.execution_time_for_entire_dataset / 60} minutes")
         else:
             self.add_to_dataset_embedding_column()
             self.save_text_embedding_dataset_to_JSON()
@@ -85,12 +80,16 @@ class Texts_Embedding_Dataset_Generator:
     def define_execution_time_for_10_samples(self):
         end_execution_time = time.time()
         self.execution_time_10_samples = round(end_execution_time - self.start_execution_time, 2)
+        print(f"[INFO] Execution time (10 samples) = {self.execution_time_10_samples} seconds")
 
     def define_approx_execution_time_for_entire_dataset(self):
         samples_amount = self.unlabeled_dataset.shape[0]
         self.execution_time_for_entire_dataset = round(
             (samples_amount / 10) * self.execution_time_10_samples, 2
         )
+        print("[INFO] Approximated execution time for entire dataset = ", end = '') 
+        print(f"{self.execution_time_for_entire_dataset} seconds or ", end = '')
+        print(f"{self.execution_time_for_entire_dataset / 60} minutes")
 
 if __name__ == "__main__":
     text_embed_generator = Texts_Embedding_Dataset_Generator(
