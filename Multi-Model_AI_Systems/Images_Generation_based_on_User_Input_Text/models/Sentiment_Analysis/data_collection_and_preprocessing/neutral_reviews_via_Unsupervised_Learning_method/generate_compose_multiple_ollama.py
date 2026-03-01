@@ -42,7 +42,7 @@ class Compose_YAML_File_Generator:
     
     def write_yaml_strings_to_compose_file(self):
         print("[INFO] Saving YAML strings to compose.yaml...")
-        with open("ollama_cluster_compose.yaml", "w") as cmp_f:
+        with open("compose.yaml", "w") as cmp_f:
             cmp_f.write(self.compose_yaml_strings)
 
 if __name__ == "__main__":
