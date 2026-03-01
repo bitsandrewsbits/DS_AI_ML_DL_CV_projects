@@ -11,7 +11,7 @@ unlabeled_reviews_dataset_file = "cleaned_unlabeled_reviews_dataset.jsonl"
 class Texts_Embedding_Dataset_Generator:
     def __init__(self, embed_model_name: str, ollama_host: str, ollama_port: str, dataset_file: str, computing_time_estimation_mode = False):
         self.computing_time_estimation_mode = computing_time_estimation_mode
-        self.start_execution_time = time.time()
+        self.start_execution_time = 0
         self.execution_time_10_samples = 0
         self.execution_time_for_entire_dataset = 0
         
@@ -31,6 +31,7 @@ class Texts_Embedding_Dataset_Generator:
 
     def main(self):
         self.load_embed_model_to_Ollama()
+        self.start_execution_time = time.time()
         if self.computing_time_estimation_mode:
             self.add_to_dataset_embedding_column()
             self.save_text_embedding_dataset_to_JSON()
