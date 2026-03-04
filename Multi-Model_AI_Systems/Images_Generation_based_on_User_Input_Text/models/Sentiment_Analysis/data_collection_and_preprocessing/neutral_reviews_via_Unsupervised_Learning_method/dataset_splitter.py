@@ -14,6 +14,7 @@ class Dataset_Splitter:
         self.target_datasets_amount = self.compose_generator.ollama_instances_for_parallel_computing
         self.datasets_filenames = self.get_datasets_names()
         self.datasets_dir = "datasets_for_parallel_embed_generation"
+        self.rows_amount_in_small_dataset = self.get_small_dataset_rows_amount()
     
     def main(self):
         if os.path.exists(self.datasets_dir):
@@ -21,10 +22,23 @@ class Dataset_Splitter:
         else:
             print("[INFO] Creating datasets dir for parallel embed generation...")
             os.mkdir(self.datasets_dir)
+        self.split_dataset_into_small_sets()
     
     def split_dataset_into_small_sets(self):
-        # TODO: create method
+        dataset_start_index = 0
+        dataset_end_index = self.rows_amount_in_small_dataset
+        for (i, dataset_name) in enumerate(self.datasets_filenames, 1):
+            current_dataset = self.dataset.iloc[dataset_start_index:dataset_end_index]
+            print(current_dataset)
+            dataset_start_index = dataset_end_index
+            dataset_end_index = self.rows_amount_in_small_dataset * i
+    
+    def save_dataset_in_JSONL(self, path: str):
+        # TODO: create and integrate to split-method.
         pass
+    
+    def get_small_dataset_rows_amount(self):
+        return self.dataset.shape[0] // self.target_datasets_amount
 
     def get_datasets_names(self):
         return [
