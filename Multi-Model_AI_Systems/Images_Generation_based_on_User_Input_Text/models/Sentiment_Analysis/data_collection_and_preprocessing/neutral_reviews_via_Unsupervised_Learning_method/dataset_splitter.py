@@ -5,6 +5,8 @@ import unlabeled_reviews_texts_embedding_generation as urteg
 import pandas as pd
 import os
 
+# TODO: think about, how to automate embed container starting with this script and 
+# after estimation stop and remove container.
 class Dataset_Splitter:
     def __init__(self, dataset_JSONL_file: str):
         self.dataset_file = dataset_JSONL_file
@@ -30,12 +32,13 @@ class Dataset_Splitter:
         for (i, dataset_name) in enumerate(self.datasets_filenames, 1):
             current_dataset = self.dataset.iloc[dataset_start_index:dataset_end_index]
             print(current_dataset)
+            self.save_dataset_in_JSONL(current_dataset, f"{self.datasets_dir}/{dataset_name}")
+
             dataset_start_index = dataset_end_index
             dataset_end_index = self.rows_amount_in_small_dataset * i
     
-    def save_dataset_in_JSONL(self, path: str):
-        # TODO: create and integrate to split-method.
-        pass
+    def save_dataset_in_JSONL(self, dataset: pd.DataFrame, path: str):
+        dataset.to_json(path, orient = "records", lines = True)
     
     def get_small_dataset_rows_amount(self):
         return self.dataset.shape[0] // self.target_datasets_amount
