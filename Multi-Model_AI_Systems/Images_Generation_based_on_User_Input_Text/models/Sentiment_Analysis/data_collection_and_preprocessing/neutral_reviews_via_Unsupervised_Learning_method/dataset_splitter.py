@@ -5,8 +5,6 @@ import unlabeled_reviews_texts_embedding_generation as urteg
 import pandas as pd
 import os
 
-# TODO: think about, how to automate embed container starting with this script and 
-# after estimation stop and remove container.
 class Dataset_Splitter:
     def __init__(self, dataset_JSONL_file: str):
         self.dataset_file = dataset_JSONL_file
@@ -45,7 +43,7 @@ class Dataset_Splitter:
 
     def get_datasets_names(self):
         return [
-            f"dataset_#{ds_number}" for ds_number in range(1, self.target_datasets_amount + 1)
+            f"dataset_part_{ds_number}.jsonl" for ds_number in range(1, self.target_datasets_amount + 1)
         ]
     
     def get_dataframe_from_JSONL_file(self):
