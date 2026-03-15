@@ -4,6 +4,7 @@
 import os
 import pandas as pd
 import unlabeled_reviews_texts_embedding_generation as urteg
+from concurrent.futures import ProcessPoolExecutor
 
 small_sets_dirname = "datasets_for_parallel_embed_generation"
 
@@ -15,14 +16,15 @@ class Parallel_Embedding_Generation_Manager:
         self.ollama_host = "localhost"
         self.first_ollama_service_port = 11434
         self.embed_model = urteg.embed_model_name
-        self.embed_dataset_generator_objects = []
+        self.embed_dataset_generators_params = []
+        self.embed_reviews_datasets = []
 
     def main(self):
         if os.path.exists(self.datasets_dir):
             self.define_datasets_files_pathes()
             self.define_ollama_services_amount()
-            self.create_embed_generator_objects()
-            print(self.embed_dataset_generator_objects)
+            self.create_ollama_services_params()
+            self.generate_embed_review_datasets_on_parallel_ollama()
         else:
             print("Dir doesn't exist!")
 
@@ -36,22 +38,45 @@ class Parallel_Embedding_Generation_Manager:
     def define_ollama_services_amount(self):
         self.ollama_services_amount = len(self.datasets_files_pathes)
 
-    def create_embed_generator_objects(self):
-        print("[INFO] Create embed dataset generator objects...")
-        for (i, dataset_file) in enumerate(self.datasets_files_pathes):
+    def start_embed_dataset_generation(self, embed_generator_params: dict):
+        embed_model = embed_generator_params["embed_model"]
+        ollama_host = embed_generator_params["ollama_host"]
+        ollama_port = embed_generator_params["ollama_port"]
+        dataset_path = embed_generator_params["dataset_path"]
+        embed_dataset_path = embed_generator_params["embed_dataset_path"]
+        print(f"[INFO] Start embed dataset generation on Ollama->port:{ollama_port}...")
+        embed_generator = urteg.Texts_Embedding_Dataset_Generator(
+            embed_model, ollama_host, ollama_port,
+            dataset_path, embed_dataset_path
+        )
+        try:
+            embed_generator.main()
+        except:
+            print('something wrong!')
+
+    def create_ollama_services_params(self) -> list[dict]:
+        for (i, dataset_path) in enumerate(self.datasets_files_pathes):
             current_ollama_port = self.first_ollama_service_port + i
-            self.embed_dataset_generator_objects.append(
-                self.get_review_embed_generator_obj(
-                    self.embed_model, self.ollama_host,
-                    current_ollama_port, dataset_file
-                )
+            current_ollama_service = {}
+            current_ollama_service["embed_model"] = self.embed_model
+            current_ollama_service["ollama_host"] = self.ollama_host
+            current_ollama_service["ollama_port"] = current_ollama_port
+            current_ollama_service["dataset_path"] = dataset_path
+            current_ollama_service["embed_dataset_path"] = self.get_embed_dataset_path(
+                dataset_path
+            )
+            self.embed_dataset_generators_params.append(
+                current_ollama_service
             )
     
-    def get_review_embed_generator_obj(self, embed_model, ollama_host, ollama_port, dataset_file):
-        return urteg.Texts_Embedding_Dataset_Generator(
-            embed_model, ollama_host, ollama_port,
-            dataset_file
-        )
+    def get_embed_dataset_path(self, dataset_path: str):
+        dataset_name = dataset_path.split('/')[1]
+        return f"{self.datasets_dir}/embed_{dataset_name}"
+    
+    def generate_embed_review_datasets_on_parallel_ollama(self):
+        with ProcessPoolExecutor() as executor:
+            results = executor.map(self.start_embed_dataset_generation, self.embed_dataset_generators_params)
+        print(f"Results: {list(results)}")
 
 if __name__ == "__main__":
     parallel_embed_gen_manager = Parallel_Embedding_Generation_Manager(small_sets_dirname)
