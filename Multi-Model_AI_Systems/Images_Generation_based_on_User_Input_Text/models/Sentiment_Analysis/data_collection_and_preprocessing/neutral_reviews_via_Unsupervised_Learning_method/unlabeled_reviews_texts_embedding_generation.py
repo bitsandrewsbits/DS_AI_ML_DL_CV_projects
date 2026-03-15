@@ -9,7 +9,8 @@ ollama_port = "11434"
 unlabeled_reviews_dataset_file = "cleaned_unlabeled_reviews_dataset.jsonl"
 
 class Texts_Embedding_Dataset_Generator:
-    def __init__(self, embed_model_name: str, ollama_host: str, ollama_port: str, dataset_file: str, computing_time_estimation_mode = False):
+    def __init__(self, embed_model_name: str, ollama_host: str, ollama_port: str, 
+    dataset_file: str, embed_dataset_path: str, computing_time_estimation_mode = False):
         self.computing_time_estimation_mode = computing_time_estimation_mode
         self.start_execution_time = 0
         self.execution_time_10_samples = 0
@@ -22,6 +23,7 @@ class Texts_Embedding_Dataset_Generator:
         
         self.dataset_JSONL_file = dataset_file
         self.unlabeled_dataset = self.get_dataframe_from_JSONL_file()
+        self.embed_dataset_path = embed_dataset_path
         
         if self.computing_time_estimation_mode:
             print("[WARN] Embedding-computing-time-estimation is Enabled! Testing on 10 samples...")
@@ -39,7 +41,8 @@ class Texts_Embedding_Dataset_Generator:
             self.define_approx_execution_time_for_entire_dataset()
         else:
             self.add_to_dataset_embedding_column()
-            self.save_text_embedding_dataset_to_JSON()
+            self.save_text_embedding_dataset_to_JSONL()
+        return 1
 
     def get_dataframe_from_JSONL_file(self):
         return pd.read_json(self.dataset_JSONL_file, orient = "records", lines = True)
@@ -71,11 +74,12 @@ class Texts_Embedding_Dataset_Generator:
     def get_text_embedding_vector(self, text: str):
         return olm.embed(model = self.embed_model_name, input = text).embeddings[0]
 
-    def save_text_embedding_dataset_to_JSON(self):
+    def save_text_embedding_dataset_to_JSONL(self):
         print("[INFO] Saving unlabeled reviews embedding dataset...")
         self.unlabeled_embedding_dataset.to_json(
-            "unlabeled_reviews_embedding_dataset.json",
-            orient = "records"
+            self.embed_dataset_path,
+            orient = "records",
+            lines = True
         )
     
     def define_execution_time_for_10_samples(self):
@@ -96,6 +100,7 @@ if __name__ == "__main__":
     text_embed_generator = Texts_Embedding_Dataset_Generator(
         embed_model_name, ollama_host, ollama_port, 
         unlabeled_reviews_dataset_file,
+        "test_embed_dataset_file.jsonl",
         computing_time_estimation_mode = True
     )
     text_embed_generator.main()
