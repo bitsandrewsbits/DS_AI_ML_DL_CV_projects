@@ -3,7 +3,8 @@ import ollama as olm
 import pandas as pd
 import time
 
-embed_model_name = "embeddinggemma:latest"
+# embed_model_name = "embeddinggemma:latest"
+embed_model_name = "mrutkows/granite-embedding:30m"
 ollama_host = "localhost"
 ollama_port = "11434"
 unlabeled_reviews_dataset_file = "cleaned_unlabeled_reviews_dataset.jsonl"
