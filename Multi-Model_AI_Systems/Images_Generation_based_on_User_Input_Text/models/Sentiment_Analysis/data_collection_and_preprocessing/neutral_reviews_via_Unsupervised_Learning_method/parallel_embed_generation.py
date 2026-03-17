@@ -7,10 +7,12 @@ import unlabeled_reviews_texts_embedding_generation as urteg
 from concurrent.futures import ProcessPoolExecutor
 
 small_sets_dirname = "datasets_for_parallel_embed_generation"
+embed_datasets_dirname = "review_datasets_with_embeddings"
 
 class Parallel_Embedding_Generation_Manager:
-    def __init__(self, datasets_dir: str):
+    def __init__(self, datasets_dir: str, embed_dataset_dir: str):
         self.datasets_dir = datasets_dir
+        self.embed_datasets_dir = embed_dataset_dir
         self.datasets_files_pathes = []
         self.ollama_services_amount = 0
         self.ollama_host = "localhost"
@@ -20,6 +22,12 @@ class Parallel_Embedding_Generation_Manager:
         self.embed_reviews_datasets = []
 
     def main(self):
+        if os.path.exists(self.embed_datasets_dir):
+            print("[INFO] Dir for datasets with embeddings exists!")
+        else:
+            print("[INFO] Creating dir for datasets with embeddings...")
+            os.mkdir(self.embed_datasets_dir)
+            
         if os.path.exists(self.datasets_dir):
             self.define_datasets_files_pathes()
             self.define_ollama_services_amount()
@@ -52,7 +60,7 @@ class Parallel_Embedding_Generation_Manager:
         try:
             embed_generator.main()
         except:
-            print('something wrong!')
+            print(f'[WARN] Something wrong with ollama:{ollama_port}!')
 
     def create_ollama_services_params(self) -> list[dict]:
         for (i, dataset_path) in enumerate(self.datasets_files_pathes):
@@ -71,7 +79,7 @@ class Parallel_Embedding_Generation_Manager:
     
     def get_embed_dataset_path(self, dataset_path: str):
         dataset_name = dataset_path.split('/')[1]
-        return f"{self.datasets_dir}/embed_{dataset_name}"
+        return f"{self.embed_dataset_dir}/embed_{dataset_name}"
     
     def generate_embed_review_datasets_on_parallel_ollama(self):
         with ProcessPoolExecutor() as executor:
@@ -79,5 +87,7 @@ class Parallel_Embedding_Generation_Manager:
         print(f"Results: {list(results)}")
 
 if __name__ == "__main__":
-    parallel_embed_gen_manager = Parallel_Embedding_Generation_Manager(small_sets_dirname)
+    parallel_embed_gen_manager = Parallel_Embedding_Generation_Manager(
+        small_sets_dirname, embed_datasets_dirname
+    )
     parallel_embed_gen_manager.main()
