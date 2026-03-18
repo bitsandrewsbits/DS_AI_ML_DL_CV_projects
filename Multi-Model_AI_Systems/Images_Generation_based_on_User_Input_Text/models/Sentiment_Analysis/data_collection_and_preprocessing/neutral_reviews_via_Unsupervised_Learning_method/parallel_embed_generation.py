@@ -83,8 +83,8 @@ class Parallel_Embedding_Generation_Manager:
     
     def generate_embed_review_datasets_on_parallel_ollama(self):
         with ProcessPoolExecutor() as executor:
-            results = executor.map(self.start_embed_dataset_generation, self.embed_dataset_generators_params)
-        print(f"Results: {list(results)}")
+            executor.map(self.start_embed_dataset_generation, self.embed_dataset_generators_params)
+        print("DONE!")
 
 if __name__ == "__main__":
     parallel_embed_gen_manager = Parallel_Embedding_Generation_Manager(
