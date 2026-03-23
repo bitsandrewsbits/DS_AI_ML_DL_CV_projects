@@ -19,7 +19,6 @@ class Parallel_Embedding_Generation_Manager:
         self.first_ollama_service_port = 11434
         self.embed_model = urteg.embed_model_name
         self.embed_dataset_generators_params = []
-        self.embed_reviews_datasets = []
 
     def main(self):
         if os.path.exists(self.embed_datasets_dir):
