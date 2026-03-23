@@ -43,7 +43,6 @@ class Texts_Embedding_Dataset_Generator:
         else:
             self.add_to_dataset_embedding_column()
             self.save_text_embedding_dataset_to_JSONL()
-        return 1
 
     def get_dataframe_from_JSONL_file(self):
         return pd.read_json(self.dataset_JSONL_file, orient = "records", lines = True)
