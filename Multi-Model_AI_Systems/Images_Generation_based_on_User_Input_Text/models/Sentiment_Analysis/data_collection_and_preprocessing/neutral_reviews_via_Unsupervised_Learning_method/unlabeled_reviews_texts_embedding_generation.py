@@ -1,4 +1,4 @@
-# unlabeled reviews texts embedding generation via LLM - embeddinggemma
+# unlabeled reviews texts embedding generation via LLM
 import ollama as olm
 import pandas as pd
 import time
@@ -62,9 +62,6 @@ class Texts_Embedding_Dataset_Generator:
         models_names = [model_obj.model for model_obj in dict(olm.list())["models"]]
         return models_names
 
-    # embed compute time for 50*10^3 reviews too much(approx 1 hour!)
-    # TODO: think, how to setup ollama servers into cluster and compute in parallel embed vectors.
-    # TODO: think, maybe it will be convenient to generate a compose.yaml with beforehand Ollama containers amount.
     def add_to_dataset_embedding_column(self):
         print("[INFO] Generating text embedding vectors and adding to dataset...")
         self.unlabeled_embedding_dataset["embedding_vector"] = self.unlabeled_embedding_dataset["text"].apply(
