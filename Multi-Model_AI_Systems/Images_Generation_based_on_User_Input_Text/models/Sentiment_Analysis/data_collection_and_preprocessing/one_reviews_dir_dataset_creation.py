@@ -1,22 +1,24 @@
 # preprocessing Films Reviews Dataset files for DistilBERT fine-tuning dataset creation.
-import additional_functions_for_data_preprocessing as ad_fncs
-import download_datasets as load_ds
 import re
 import numpy as np
 import pandas as pd
 
+import additional_functions_for_data_preprocessing as ad_fncs
+import download_datasets as load_ds
+import data_preprocessing_variables as dpv
+
 class One_Reviews_Dir_Dataset_Creator:
-    def __init__(self, root_reviews_dirname: str, target_reviews_dirname: str):
-        self.root_reviews_dirname = root_reviews_dirname
+    def __init__(self, root_reviews_dir_path: str, target_reviews_dirname: str):
+        self.root_reviews_dir_path = root_reviews_dir_path
         self.target_reviews_dirname = target_reviews_dirname
-        self.reviews_dir_path = f"{self.root_reviews_dirname}/{self.target_reviews_dirname}"
+        self.reviews_dir_path = f"{self.root_reviews_dir_path}/{self.target_reviews_dirname}"
         self.reviews_filenames = ad_fncs.get_filenames_from_dir(self.reviews_dir_path)
 
         self.result_reviews_dataset = {"text": [], "label": []}
 
     def main(self, samples_amount = 'all') -> pd.DataFrame:
         reviews_dataset = pd.DataFrame(
-            self.get_prepared_revews_info_from_filenames(
+            self.get_prepared_reviews_info_from_filenames(
                 self.reviews_dir_path, self.reviews_filenames
             )
         )
@@ -32,7 +34,7 @@ class One_Reviews_Dir_Dataset_Creator:
         result_dataset = result_dataset.sample(frac = 1).reset_index(drop = True)
         return result_dataset
 
-    def get_prepared_revews_info_from_filenames(self,
+    def get_prepared_reviews_info_from_filenames(self,
     reviews_dir_path: str, reviews_filenames: list) -> dict[list]:
         reviews_info = {"text": [], "label": []}
         for review_filename in reviews_filenames:
@@ -66,9 +68,21 @@ class One_Reviews_Dir_Dataset_Creator:
         return review_text
 
 if __name__ == '__main__':
-    path_to_datasets = f"{load_ds.downloaded_datasets_root_dir}/{load_ds.dataset['dataset_name']}/train"
-    reviews_dir_dataset_creator = One_Reviews_Dir_Dataset_Creator(
-        f'{path_to_datasets}', 'pos'
-    )
-    part_of_result_dataset = reviews_dir_dataset_creator.main()
-    print(part_of_result_dataset)
+    datasets_pathes = {
+        "train": f"{dpv.DOWNLOADED_DATASETS_ROOT_DIR}/{load_ds.dataset['dataset_name']}/train",
+        "test": f"{dpv.DOWNLOADED_DATASETS_ROOT_DIR}/{load_ds.dataset['dataset_name']}/test"
+    }
+    ad_fncs.create_directory(dpv.PREPROCESSED_ORIGINAL_DATASETS_DIR_PATH)
+    for dataset_type in datasets_pathes:
+        ad_fncs.create_directory(
+            f"{dpv.PREPROCESSED_ORIGINAL_DATASETS_DIR_PATH}/{dataset_type}"
+        )
+        for sentiment_type in ['pos', 'neg']:
+            dataset_creator = One_Reviews_Dir_Dataset_Creator(
+                f"{datasets_pathes[dataset_type]}", sentiment_type
+            )
+            original_dataset = dataset_creator.main()
+            ad_fncs.save_dataset_into_JSONL(
+                original_dataset,
+                f"{dpv.PREPROCESSED_ORIGINAL_DATASETS_DIR_PATH}/{dataset_type}/{sentiment_type}.jsonl"
+            )
