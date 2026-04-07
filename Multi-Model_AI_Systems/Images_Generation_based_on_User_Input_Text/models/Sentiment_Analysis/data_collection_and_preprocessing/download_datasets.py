@@ -1,6 +1,7 @@
 import os
+import data_preprocessing_variables as dpv
 
-downloaded_datasets_root_dir = "downloaded_datasets"
+downloaded_datasets_root_dir = dpv.DOWNLOADED_DATASETS_ROOT_DIR
 dataset = {
     "dataset_name": "Large_Movie_Reviews_Dataset",
     "URL": "https://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz"
