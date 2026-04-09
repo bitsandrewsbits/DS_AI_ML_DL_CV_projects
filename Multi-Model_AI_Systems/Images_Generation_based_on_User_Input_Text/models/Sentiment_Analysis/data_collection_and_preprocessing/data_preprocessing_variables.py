@@ -1,3 +1,6 @@
 # variables for data preprocessing scripts
 DOWNLOADED_DATASETS_ROOT_DIR = "downloaded_datasets"
-PREPROCESSED_ORIGINAL_DATASETS_DIR_PATH = "preprocessed_original_reviews_datasets"
+PREPROCESSED_ORIGINAL_DATASETS_DIR = "preprocessed_original_reviews_datasets"
+REVIEWS_EMBEDDING_DATASETS_DIR = "review_datasets_with_embeddings"
+BIG_REVIEWS_EMBED_DATASET = "big_reviews_embedding_dataset.jsonl"
+CLASSIFIED_REVIEWS_DATASET_VIA_CLUSTERING = "classified_reviews_dataset_via_clastering.jsonl"
