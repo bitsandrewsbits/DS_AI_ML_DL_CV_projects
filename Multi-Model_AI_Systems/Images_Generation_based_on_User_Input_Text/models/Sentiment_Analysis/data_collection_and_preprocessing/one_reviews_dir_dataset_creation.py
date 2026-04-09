@@ -72,10 +72,10 @@ if __name__ == '__main__':
         "train": f"{dpv.DOWNLOADED_DATASETS_ROOT_DIR}/{load_ds.dataset['dataset_name']}/train",
         "test": f"{dpv.DOWNLOADED_DATASETS_ROOT_DIR}/{load_ds.dataset['dataset_name']}/test"
     }
-    ad_fncs.create_directory(dpv.PREPROCESSED_ORIGINAL_DATASETS_DIR_PATH)
+    ad_fncs.create_directory(dpv.PREPROCESSED_ORIGINAL_DATASETS_DIR)
     for dataset_type in datasets_pathes:
         ad_fncs.create_directory(
-            f"{dpv.PREPROCESSED_ORIGINAL_DATASETS_DIR_PATH}/{dataset_type}"
+            f"{dpv.PREPROCESSED_ORIGINAL_DATASETS_DIR}/{dataset_type}"
         )
         for sentiment_type in ['pos', 'neg']:
             dataset_creator = One_Reviews_Dir_Dataset_Creator(
@@ -84,5 +84,5 @@ if __name__ == '__main__':
             original_dataset = dataset_creator.main()
             ad_fncs.save_dataset_into_JSONL(
                 original_dataset,
-                f"{dpv.PREPROCESSED_ORIGINAL_DATASETS_DIR_PATH}/{dataset_type}/{sentiment_type}.jsonl"
+                f"{dpv.PREPROCESSED_ORIGINAL_DATASETS_DIR}/{dataset_type}/{sentiment_type}.jsonl"
             )
