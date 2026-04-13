@@ -3,11 +3,7 @@ import ollama as olm
 import pandas as pd
 import time
 
-# embed_model_name = "embeddinggemma:latest"
-embed_model_name = "mrutkows/granite-embedding:30m"
-ollama_host = "localhost"
-ollama_port = "11434"
-unlabeled_reviews_dataset_file = "cleaned_unlabeled_reviews_dataset.jsonl"
+import data_preprocessing_variables as dpv
 
 class Texts_Embedding_Dataset_Generator:
     def __init__(self, embed_model_name: str, ollama_host: str, ollama_port: str, 
@@ -95,8 +91,8 @@ class Texts_Embedding_Dataset_Generator:
 
 if __name__ == "__main__":
     text_embed_generator = Texts_Embedding_Dataset_Generator(
-        embed_model_name, ollama_host, ollama_port, 
-        unlabeled_reviews_dataset_file,
+        dpv.MODEL_FOR_EMBEDDING_GENERATION, dpv.TEMP_CONTAINER_OLLAMA_HOST,
+        dpv.TEMP_CONTAINER_OLLAMA_PORT, dpv.CLEANED_UNLABELED_REVIEWS_DATASET,
         "test_embed_dataset_file.jsonl",
         computing_time_estimation_mode = True
     )
