@@ -12,6 +12,11 @@ def create_directory(dir_path: str):
         print(f"[INFO] Creating {dir_path} dir.")
         os.mkdir(dir_path)
 
+def get_dataframe_from_JSONL_file(dataset_file_path: str):
+    return pd.read_json(
+        dataset_file_path, orient = "records", lines = True
+    )
+
 def save_dataset_into_JSONL(df: pd.DataFrame, dataset_path: str):
     df.to_json(
         dataset_path, orient = 'records', lines = True
