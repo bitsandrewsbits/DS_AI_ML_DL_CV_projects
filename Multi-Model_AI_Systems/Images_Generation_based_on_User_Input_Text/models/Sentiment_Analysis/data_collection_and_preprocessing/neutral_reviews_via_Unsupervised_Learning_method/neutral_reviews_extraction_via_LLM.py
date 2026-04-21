@@ -37,6 +37,7 @@ class Neutral_Reviews_Extraction_Manager:
         
         self.define_Ollama_client()
         self.load_model_to_Ollama()
+        self.define_reviews_samples_by_labels()
 
         self.stop_ollama_container()
     
@@ -60,18 +61,21 @@ class Neutral_Reviews_Extraction_Manager:
             print("[INFO] Model already loaded!")
         else:
             print(f"[INFO] Loading {self.model_name} model for neutral reviews extraction...")
-            olm.pull(self.model_name)
+            self.ollama_client.pull(self.model_name)
 
     def get_Ollama_models_names(self):
-        models_names = [model_obj.model for model_obj in dict(olm.list())["models"]]
+        models_names = [model_obj.model for model_obj in dict(self.ollama_client.list())["models"]]
         return models_names
 
-    #TODO: create these methods.
     def define_reviews_samples_by_labels(self):
-        pass
+        for label in self.reviews_labels:
+            self.samples_reviews_by_labels[label] = self.get_reviews_samples_per_label(label)
+        print(self.samples_reviews_by_labels)
 
     def get_reviews_samples_per_label(self, label: int):
-        pass
+        return self.classified_reviews_dataset[
+            self.classified_reviews_dataset["sentiment_label"] == label
+        ]["text"].sample(self.samples_amount_per_label).values
     
     def stop_ollama_container(self):
         os.system(f"sudo docker stop {self.ollama_container_name}")
