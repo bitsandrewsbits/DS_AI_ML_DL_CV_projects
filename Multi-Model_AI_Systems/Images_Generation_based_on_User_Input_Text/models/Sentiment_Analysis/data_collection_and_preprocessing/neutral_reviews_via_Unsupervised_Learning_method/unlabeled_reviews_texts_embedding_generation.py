@@ -1,4 +1,6 @@
 # unlabeled reviews texts embedding generation via LLM
+import sys
+sys.path.append("..")
 import ollama as olm
 import pandas as pd
 import time
@@ -33,7 +35,7 @@ class Texts_Embedding_Dataset_Generator:
         self.start_execution_time = time.time()
         if self.computing_time_estimation_mode:
             self.add_to_dataset_embedding_column()
-            self.save_text_embedding_dataset_to_JSON()
+            self.save_text_embedding_dataset_to_JSONL()
             self.define_execution_time_for_10_samples()
             self.define_approx_execution_time_for_entire_dataset()
         else:
@@ -52,10 +54,10 @@ class Texts_Embedding_Dataset_Generator:
             print("[INFO] Embedding model already loaded!")
         else:
             print(f"[INFO] Loading {self.embed_model_name} model for generating embedding vectors...")
-            olm.pull(self.embed_model_name)
+            self.ollama_client.pull(self.embed_model_name)
 
     def get_Ollama_models_names(self):
-        models_names = [model_obj.model for model_obj in dict(olm.list())["models"]]
+        models_names = [model_obj.model for model_obj in dict(self.ollama_client.list())["models"]]
         return models_names
 
     def add_to_dataset_embedding_column(self):
@@ -65,7 +67,7 @@ class Texts_Embedding_Dataset_Generator:
         )
 
     def get_text_embedding_vector(self, text: str):
-        return olm.embed(model = self.embed_model_name, input = text).embeddings[0]
+        return self.ollama_client.embed(model = self.embed_model_name, input = text).embeddings[0]
 
     def save_text_embedding_dataset_to_JSONL(self):
         print("[INFO] Saving unlabeled reviews embedding dataset...")
@@ -87,7 +89,7 @@ class Texts_Embedding_Dataset_Generator:
         )
         print("[INFO] Approximated execution time for entire dataset = ", end = '') 
         print(f"{self.execution_time_for_entire_dataset} seconds or ", end = '')
-        print(f"{self.execution_time_for_entire_dataset / 60} minutes")
+        print(f"{round(self.execution_time_for_entire_dataset / 60, 1)} minutes")
 
 if __name__ == "__main__":
     text_embed_generator = Texts_Embedding_Dataset_Generator(
