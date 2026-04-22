@@ -30,6 +30,18 @@ class Neutral_Reviews_Extraction_Manager:
         self.reviews_labels = self.get_classified_reviews_labels()
         self.samples_amount_per_label = 3
         self.samples_reviews_by_labels = {}
+        self.review_estimation_prompt = {
+            "system": (
+                "You are an expert of sentiment analysis of users films reviews."
+                "Use one of three labels to estimate user sentiment: 0 - negative sentiment,"
+                "1 - neutral sentiment,2 - positive sentiment."
+                "For all answers you must return only one label without explanation text."
+            ),
+            "task": (
+                "Estimate a following review text and give my only sentiment label:\n"
+            )
+        }
+        self.clusters_vs_LLM_samples_estimations = {"k-means-clustering": [], "LLM": []}
         self.neutral_reviews_dataset_file = neutral_reviews_dataset_file
 
     def main(self):
@@ -38,6 +50,7 @@ class Neutral_Reviews_Extraction_Manager:
         self.define_Ollama_client()
         self.load_model_to_Ollama()
         self.define_reviews_samples_by_labels()
+        self.estimate_reviews_samples_by_LLM()
 
         self.stop_ollama_container()
     
@@ -70,12 +83,44 @@ class Neutral_Reviews_Extraction_Manager:
     def define_reviews_samples_by_labels(self):
         for label in self.reviews_labels:
             self.samples_reviews_by_labels[label] = self.get_reviews_samples_per_label(label)
-        print(self.samples_reviews_by_labels)
 
     def get_reviews_samples_per_label(self, label: int):
         return self.classified_reviews_dataset[
             self.classified_reviews_dataset["sentiment_label"] == label
         ]["text"].sample(self.samples_amount_per_label).values
+    
+    def estimate_reviews_samples_by_LLM(self):
+        for (review_label, reviews_texts_by_label) in self.samples_reviews_by_labels.items():
+            for review_text in reviews_texts_by_label:
+                self.clusters_vs_LLM_samples_estimations["k-means-clustering"].append(
+                    review_label
+                )
+                self.clusters_vs_LLM_samples_estimations["LLM"].append(
+                    self.get_estimation_response_from_LLM(review_text)[0]
+                )
+        # TODO: think, maybe need to change model for more precise estimation.
+        # (because a problem with prompt or LLM itself)
+        print(self.clusters_vs_LLM_samples_estimations)
+
+    def get_estimation_response_from_LLM(self, review_text: str):
+        messages = self.get_messages_for_LLM(review_text)
+        response = self.ollama_client.chat(
+            model = self.model_name, messages = messages
+        )
+        return response.message.content
+
+    def get_messages_for_LLM(self, review_text: str):
+        messages = [
+            {
+                "role": "system",
+                "content": self.review_estimation_prompt["system"]
+            },
+            {
+                "role": "user",
+                "content": f"{self.review_estimation_prompt['task']}{review_text}"
+            }
+        ]
+        return messages
     
     def stop_ollama_container(self):
         os.system(f"sudo docker stop {self.ollama_container_name}")
