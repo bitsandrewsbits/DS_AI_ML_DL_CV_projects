@@ -33,12 +33,13 @@ class Neutral_Reviews_Extraction_Manager:
         self.review_estimation_prompt = {
             "system": (
                 "You are an expert of sentiment analysis of users films reviews."
-                "Use one of three labels to estimate user sentiment: 0 - negative sentiment,"
-                "1 - neutral sentiment,2 - positive sentiment."
+                "Use one of three labels to estimate user review text: 0 - negative sentiment,"
+                "1 - neutral sentiment, 2 - positive sentiment."
+                "Always try to detect neutral sentiment from review text."
                 "For all answers you must return only one label without explanation text."
             ),
             "task": (
-                "Estimate a following review text and give my only sentiment label:\n"
+                "Estimate a following review text and give me only sentiment label:\n"
             )
         }
         self.clusters_vs_LLM_samples_estimations = {"k-means-clustering": [], "LLM": []}
@@ -61,7 +62,7 @@ class Neutral_Reviews_Extraction_Manager:
     def run_ollama_container(self):
         os.system(f"sudo docker start {self.ollama_container_name} 2> /dev/null")
         os.system(
-            f"sudo docker run --name {self.ollama_container_name} -p {self.ollama_port}:11434 -d ollama/ollama 2> /dev/null"
+            f"sudo docker run -d --gpus=all --name {self.ollama_container_name} -p {self.ollama_port}:11434 -d ollama/ollama 2> /dev/null"
         )
         time.sleep(self.delay_time_in_sec_to_ollama_ready)
 
