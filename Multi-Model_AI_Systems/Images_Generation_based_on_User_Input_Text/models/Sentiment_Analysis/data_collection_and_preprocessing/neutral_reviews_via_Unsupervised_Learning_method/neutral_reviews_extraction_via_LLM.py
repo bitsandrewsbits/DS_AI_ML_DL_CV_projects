@@ -14,9 +14,9 @@ import data_preprocessing_variables as dpv
 import additional_functions_for_data_preprocessing as affdp
 
 class Neutral_Reviews_Extraction_Manager:
-    def __init__(self, model_name: str, ollama_host: str, ollama_port: str, 
+    def __init__(self, models_names: list, ollama_host: str, ollama_port: str, 
     classified_reviews_file_path: str, neutral_reviews_dataset_file: str):
-        self.model_name = model_name
+        self.models_names = models_names
         self.ollama_host = ollama_host
         self.ollama_port = ollama_port
         self.ollama_container_name = "neutral_reviews_extraction"
@@ -28,21 +28,20 @@ class Neutral_Reviews_Extraction_Manager:
             self.classified_reviews_file_path
         )
         self.reviews_labels = self.get_classified_reviews_labels()
-        self.samples_amount_per_label = 3
+        self.samples_amount_per_label = 10
         self.samples_reviews_by_labels = {}
         self.review_estimation_prompt = {
             "system": (
                 "You are an expert of sentiment analysis of users films reviews."
-                "Use one of three labels to estimate user review text: 0 - negative sentiment,"
+                "Use one of three labels to estimate user review sentiment: 0 - negative sentiment,"
                 "1 - neutral sentiment, 2 - positive sentiment."
-                "Always try to detect neutral sentiment from review text."
-                "For all answers you must return only one label without explanation text."
+                "For answer you must return only one label without explanation text."
             ),
             "task": (
-                "Estimate a following review text and give me only sentiment label:\n"
+                "Estimate a following review text:\n"
             )
         }
-        self.clusters_vs_LLM_samples_estimations = {"k-means-clustering": [], "LLM": []}
+        self.clusters_vs_LLMs_samples_estimations = {"k-means-clustering": []}
         self.neutral_reviews_dataset_file = neutral_reviews_dataset_file
 
     def main(self):
@@ -51,7 +50,7 @@ class Neutral_Reviews_Extraction_Manager:
         self.define_Ollama_client()
         self.load_model_to_Ollama()
         self.define_reviews_samples_by_labels()
-        self.estimate_reviews_samples_by_LLM()
+        self.estimate_reviews_samples_by_LLMs()
 
         self.stop_ollama_container()
     
@@ -71,11 +70,12 @@ class Neutral_Reviews_Extraction_Manager:
 
     def load_model_to_Ollama(self):
         ollama_models_names = self.get_Ollama_models_names()
-        if self.model_name in ollama_models_names:
-            print("[INFO] Model already loaded!")
-        else:
-            print(f"[INFO] Loading {self.model_name} model for neutral reviews extraction...")
-            self.ollama_client.pull(self.model_name)
+        for llm_name in self.models_names:
+            if llm_name in ollama_models_names:
+                print(f"[INFO] Model {llm_name} already loaded!")
+            else:
+                print(f"[INFO] Loading {llm_name} model for neutral reviews extraction...")
+                self.ollama_client.pull(llm_name)
 
     def get_Ollama_models_names(self):
         models_names = [model_obj.model for model_obj in dict(self.ollama_client.list())["models"]]
@@ -90,23 +90,27 @@ class Neutral_Reviews_Extraction_Manager:
             self.classified_reviews_dataset["sentiment_label"] == label
         ]["text"].sample(self.samples_amount_per_label).values
     
-    def estimate_reviews_samples_by_LLM(self):
+    def estimate_reviews_samples_by_LLMs(self):
+        for llm in self.models_names:
+            self.clusters_vs_LLMs_samples_estimations[llm] = {}
+            self.estimate_reviews_samples_by_LLM(llm)
+        print(self.clusters_vs_LLMs_samples_estimations)
+
+    def estimate_reviews_samples_by_LLM(self, llm_name: str):
         for (review_label, reviews_texts_by_label) in self.samples_reviews_by_labels.items():
+            self.clusters_vs_LLMs_samples_estimations[llm_name][review_label] = []
             for review_text in reviews_texts_by_label:
-                self.clusters_vs_LLM_samples_estimations["k-means-clustering"].append(
+                self.clusters_vs_LLMs_samples_estimations["k-means-clustering"].append(
                     review_label
                 )
-                self.clusters_vs_LLM_samples_estimations["LLM"].append(
-                    self.get_estimation_response_from_LLM(review_text)[0]
+                self.clusters_vs_LLMs_samples_estimations[llm_name][review_label].append(
+                    self.get_estimation_response_from_LLM(llm_name, review_text)[0]
                 )
-        # TODO: think, maybe need to change model for more precise estimation.
-        # (because a problem with prompt or LLM itself)
-        print(self.clusters_vs_LLM_samples_estimations)
 
-    def get_estimation_response_from_LLM(self, review_text: str):
+    def get_estimation_response_from_LLM(self, llm_name: str, review_text: str):
         messages = self.get_messages_for_LLM(review_text)
         response = self.ollama_client.chat(
-            model = self.model_name, messages = messages
+            model = llm_name, messages = messages
         )
         return response.message.content
 
@@ -128,7 +132,7 @@ class Neutral_Reviews_Extraction_Manager:
 
 if __name__ == "__main__":
     neutral_reviews_extraction_manager = Neutral_Reviews_Extraction_Manager(
-        dpv.MODEL_FOR_NEUTRAL_REVIEWS_EXTRACTION,
+        dpv.MODELS_FOR_NEUTRAL_REVIEWS_EXTRACTION,
         dpv.TEMP_CONTAINER_OLLAMA_HOST, dpv.NEUTRAL_REVIEWS_CONTAINER_OLLAMA_PORT,
         dpv.CLASSIFIED_REVIEWS_DATASET_PATH, dpv.NEUTRAL_REVIEWS_DATASET
     )
