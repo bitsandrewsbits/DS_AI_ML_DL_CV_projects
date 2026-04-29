@@ -13,6 +13,6 @@ BIG_REVIEWS_EMBED_DATASET = "big_reviews_embedding_dataset.jsonl"
 CLASSIFIED_REVIEWS_DATASET_VIA_CLUSTERING = "classified_reviews_dataset_via_clastering.jsonl"
 CLASSIFIED_REVIEWS_DATASET_PATH = f"{REVIEWS_EMBEDDING_DATASETS_DIR}/{CLASSIFIED_REVIEWS_DATASET_VIA_CLUSTERING}"
 
-MODEL_FOR_NEUTRAL_REVIEWS_EXTRACTION = "pilardi/sentiment-analysis:llama3"
+MODELS_FOR_NEUTRAL_REVIEWS_EXTRACTION = ["pilardi/sentiment-analysis:llama3", "ministral-3:3b", "granite3.3:8b"]
 NEUTRAL_REVIEWS_CONTAINER_OLLAMA_PORT = "11435"
 NEUTRAL_REVIEWS_DATASET = "extracted_neutral_reviews.jsonl"
