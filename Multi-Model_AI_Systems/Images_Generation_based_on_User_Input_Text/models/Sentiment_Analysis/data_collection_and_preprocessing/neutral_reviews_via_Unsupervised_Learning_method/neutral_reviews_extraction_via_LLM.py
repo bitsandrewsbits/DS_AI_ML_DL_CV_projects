@@ -41,7 +41,7 @@ class Neutral_Reviews_Extraction_Manager:
                 "Estimate a following review text:\n"
             )
         }
-        self.clusters_vs_LLMs_samples_estimations = {"k-means-clustering": []}
+        self.clusters_vs_LLMs_samples_estimations = {}
         self.neutral_reviews_dataset_file = neutral_reviews_dataset_file
 
     def main(self):
@@ -89,23 +89,17 @@ class Neutral_Reviews_Extraction_Manager:
         return self.classified_reviews_dataset[
             self.classified_reviews_dataset["sentiment_label"] == label
         ]["text"].sample(self.samples_amount_per_label).values
-    
-    def estimate_reviews_samples_by_LLMs(self):
-        for llm in self.models_names:
-            self.clusters_vs_LLMs_samples_estimations[llm] = {}
-            self.estimate_reviews_samples_by_LLM(llm)
-        print(self.clusters_vs_LLMs_samples_estimations)
 
-    def estimate_reviews_samples_by_LLM(self, llm_name: str):
+    def estimate_reviews_samples_by_LLMs(self):
         for (review_label, reviews_texts_by_label) in self.samples_reviews_by_labels.items():
-            self.clusters_vs_LLMs_samples_estimations[llm_name][review_label] = []
-            for review_text in reviews_texts_by_label:
-                self.clusters_vs_LLMs_samples_estimations["k-means-clustering"].append(
-                    review_label
-                )
-                self.clusters_vs_LLMs_samples_estimations[llm_name][review_label].append(
-                    self.get_estimation_response_from_LLM(llm_name, review_text)[0]
-                )
+            self.clusters_vs_LLMs_samples_estimations[review_label] = []
+            for (i, review_text) in enumerate(reviews_texts_by_label):
+                self.clusters_vs_LLMs_samples_estimations[review_label].append([])
+                for llm_name in self.models_names:
+                    self.clusters_vs_LLMs_samples_estimations[review_label][i].append(
+                        self.get_estimation_response_from_LLM(llm_name, review_text)[0]
+                    )
+        print(self.clusters_vs_LLMs_samples_estimations)
 
     def get_estimation_response_from_LLM(self, llm_name: str, review_text: str):
         messages = self.get_messages_for_LLM(review_text)
