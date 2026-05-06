@@ -19,22 +19,25 @@ def main():
 def train_model(model, train_set_X, train_set_y, batch_size = 16):
     model.fit(
         x = train_set_X, y = train_set_y,
-        batch_size = batch_size, epochs = 10,
+        batch_size = batch_size, epochs = 30,
         validation_split = 0.1
     )        
 
 def get_CNN_model(input_shape: tuple, classes_amount: int):
     input_layer = Input(shape = input_shape)
-    print("Input shape:", input_layer.shape)
+
     conv_layer = Conv2D(filters = 32, kernel_size = (3, 3), padding = 'same')(input_layer)
-    print("Conv2D shape:", conv_layer.shape)
-    mp2d_layer = MaxPool2D(pool_size = (2, 2))(conv_layer)
-    print("Global max pool shape:", mp2d_layer.shape)
-    conv_layer = Conv2D(filters = 32, kernel_size = (2, 2), padding = 'same')(mp2d_layer)
-    mp2d_layer = MaxPool2D(pool_size = (2, 2))(conv_layer)
+    mp2d_layer = MaxPool2D(pool_size = (3, 3))(conv_layer)
+    
+    conv_layer = Conv2D(filters = 64, kernel_size = (3, 3), padding = 'same')(mp2d_layer)
+    mp2d_layer = MaxPool2D(pool_size = (3, 3))(conv_layer)
+
+    conv_layer = Conv2D(filters = 256, kernel_size = (3, 3), padding = 'same')(mp2d_layer)
+    mp2d_layer = MaxPool2D(pool_size = (3, 3))(conv_layer)
+
     flatten_layer = Flatten()(mp2d_layer)
-    dense_layer = Dense(256)(flatten_layer)
-    output_layer = Dense(classes_amount, activation = 'softmax')(dense_layer)
+    dense_layer_1 = Dense(256)(flatten_layer)
+    output_layer = Dense(classes_amount, activation = 'softmax')(dense_layer_1)
 
     model = Model(input_layer, output_layer)
     model.compile(
