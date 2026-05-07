@@ -1,8 +1,11 @@
 import tensorflow as tf
 from tensorflow.keras.datasets import cifar10
-from tensorflow.keras.layers import Flatten, Input, Dense, Conv2D, MaxPool2D
+from tensorflow.keras.layers import Flatten, Input, Dense, Conv2D, MaxPool2D, Dropout
 from tensorflow.keras.models import Model
 import numpy as np
+import matplotlib
+matplotlib.use('qt5agg')
+import matplotlib.pyplot as plt
 
 def main():
     (train_X, train_y), (test_X, test_y) = cifar10.load_data()
@@ -11,33 +14,46 @@ def main():
     images_classes_amount = get_images_classes_amount(train_y)
     train_y = train_y.flatten()
     test_y = test_y.flatten()
-    batch_size = 32
+    batch_size = 64
     input_shape = (train_X.shape[1], train_X.shape[2], train_X.shape[3])
     cnn_model = get_CNN_model(input_shape, images_classes_amount)
-    train_model(cnn_model, train_X, train_y, batch_size)
+    model_train_logs = train_model_and_get_train_logs(
+        cnn_model, train_X, train_y, batch_size
+    )
+    plot_accuracy_and_loss_per_epoch(model_train_logs)
 
-def train_model(model, train_set_X, train_set_y, batch_size = 16):
-    model.fit(
+def train_model_and_get_train_logs(model, train_set_X, train_set_y, batch_size = 16):
+    return model.fit(
         x = train_set_X, y = train_set_y,
-        batch_size = batch_size, epochs = 30,
-        validation_split = 0.1
+        batch_size = batch_size, epochs = 70,
+        validation_split = 0.2
     )        
 
 def get_CNN_model(input_shape: tuple, classes_amount: int):
     input_layer = Input(shape = input_shape)
 
-    conv_layer = Conv2D(filters = 32, kernel_size = (3, 3), padding = 'same')(input_layer)
+    conv_layer = Conv2D(
+        filters = 32, kernel_size = (3, 3),
+        padding = 'same', activation = 'relu'
+    )(input_layer)
     mp2d_layer = MaxPool2D(pool_size = (3, 3))(conv_layer)
+    dropout_layer = Dropout(0.3)(mp2d_layer)
     
-    conv_layer = Conv2D(filters = 64, kernel_size = (3, 3), padding = 'same')(mp2d_layer)
+    conv_layer = Conv2D(
+        filters = 64, kernel_size = (3, 3),
+        padding = 'same', activation = 'relu'
+    )(dropout_layer)
     mp2d_layer = MaxPool2D(pool_size = (3, 3))(conv_layer)
+    dropout_layer = Dropout(0.2)(mp2d_layer)
 
-    conv_layer = Conv2D(filters = 256, kernel_size = (3, 3), padding = 'same')(mp2d_layer)
-    mp2d_layer = MaxPool2D(pool_size = (3, 3))(conv_layer)
+    conv_layer = Conv2D(
+        filters = 128, kernel_size = (3, 3), activation = 'relu'
+    )(dropout_layer)
 
-    flatten_layer = Flatten()(mp2d_layer)
-    dense_layer_1 = Dense(256)(flatten_layer)
-    output_layer = Dense(classes_amount, activation = 'softmax')(dense_layer_1)
+    flatten_layer = Flatten()(conv_layer)
+    dense_layer = Dense(512)(flatten_layer)
+    dense_layer = Dense(32)(dense_layer)
+    output_layer = Dense(classes_amount, activation = 'softmax')(dense_layer)
 
     model = Model(input_layer, output_layer)
     model.compile(
@@ -45,6 +61,25 @@ def get_CNN_model(input_shape: tuple, classes_amount: int):
         loss = 'sparse_categorical_crossentropy'
     )
     return model
+
+def plot_accuracy_and_loss_per_epoch(train_logs):
+    fig, ax = plt.subplots(2, 1)
+    plt.subplot(2, 1, 1)
+    plt.plot(train_logs.history['accuracy'], label = 'train_accuracy')
+    plt.plot(train_logs.history['val_accuracy'], label = 'val_accuracy')
+    plt.xlabel('epoch')
+    plt.ylabel('accuracy')
+    plt.legend()
+    plt.grid()
+
+    plt.subplot(2, 1, 2)
+    plt.plot(train_logs.history['loss'], label = 'train_loss')
+    plt.plot(train_logs.history['val_loss'], label = 'val_loss')
+    plt.xlabel('epoch')
+    plt.ylabel('loss')
+    plt.legend()
+    plt.grid()
+    plt.show()
 
 def normalize_images_px_values(dataset_X: np.array):
     return dataset_X / 255
