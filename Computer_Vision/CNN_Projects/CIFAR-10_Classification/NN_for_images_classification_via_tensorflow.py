@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.datasets import cifar10
-from tensorflow.keras.layers import Flatten, Input, Dense, Conv2D, MaxPool2D, Dropout
+from tensorflow.keras.layers import Flatten, Input, Dense, Conv2D, MaxPool2D, Dropout, BatchNormalization
 from tensorflow.keras.models import Model
 import numpy as np
 import matplotlib
@@ -14,7 +14,7 @@ def main():
     images_classes_amount = get_images_classes_amount(train_y)
     train_y = train_y.flatten()
     test_y = test_y.flatten()
-    batch_size = 64
+    batch_size = 128
     input_shape = (train_X.shape[1], train_X.shape[2], train_X.shape[3])
     cnn_model = get_CNN_model(input_shape, images_classes_amount)
     model_train_logs = train_model_and_get_train_logs(
@@ -25,7 +25,7 @@ def main():
 def train_model_and_get_train_logs(model, train_set_X, train_set_y, batch_size = 16):
     return model.fit(
         x = train_set_X, y = train_set_y,
-        batch_size = batch_size, epochs = 70,
+        batch_size = batch_size, epochs = 100,
         validation_split = 0.2
     )        
 
@@ -36,23 +36,28 @@ def get_CNN_model(input_shape: tuple, classes_amount: int):
         filters = 32, kernel_size = (3, 3),
         padding = 'same', activation = 'relu'
     )(input_layer)
-    mp2d_layer = MaxPool2D(pool_size = (3, 3))(conv_layer)
+    normalization_layer = BatchNormalization()(conv_layer)
+    mp2d_layer = MaxPool2D(pool_size = (3, 3))(normalization_layer)
     dropout_layer = Dropout(0.3)(mp2d_layer)
     
     conv_layer = Conv2D(
         filters = 64, kernel_size = (3, 3),
         padding = 'same', activation = 'relu'
     )(dropout_layer)
-    mp2d_layer = MaxPool2D(pool_size = (3, 3))(conv_layer)
+    normalization_layer = BatchNormalization()(conv_layer)
+    mp2d_layer = MaxPool2D(pool_size = (3, 3))(normalization_layer)
     dropout_layer = Dropout(0.2)(mp2d_layer)
 
     conv_layer = Conv2D(
         filters = 128, kernel_size = (3, 3), activation = 'relu'
     )(dropout_layer)
+    normalization_layer = BatchNormalization()(conv_layer)
 
-    flatten_layer = Flatten()(conv_layer)
-    dense_layer = Dense(512)(flatten_layer)
-    dense_layer = Dense(32)(dense_layer)
+    flatten_layer = Flatten()(normalization_layer)
+    dropout_layer = Dropout(0.2)(flatten_layer)
+    dense_layer = Dense(1024)(dropout_layer)
+    dropout_layer = Dropout(0.1)(dense_layer)
+    dense_layer = Dense(32)(dropout_layer)
     output_layer = Dense(classes_amount, activation = 'softmax')(dense_layer)
 
     model = Model(input_layer, output_layer)
