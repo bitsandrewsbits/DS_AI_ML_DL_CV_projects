@@ -39,7 +39,14 @@ def get_CNN_model(input_shape: tuple, classes_amount: int):
     normalization_layer = BatchNormalization()(conv_layer)
     mp2d_layer = MaxPool2D(pool_size = (3, 3))(normalization_layer)
     dropout_layer = Dropout(0.3)(mp2d_layer)
-    
+
+    conv_layer = Conv2D(
+        filters = 32, kernel_size = (3, 3),
+        padding = 'same', activation = 'relu'
+    )(dropout_layer)
+    normalization_layer = BatchNormalization()(conv_layer)
+    dropout_layer = Dropout(0.3)(normalization_layer)
+
     conv_layer = Conv2D(
         filters = 64, kernel_size = (3, 3),
         padding = 'same', activation = 'relu'
@@ -48,6 +55,20 @@ def get_CNN_model(input_shape: tuple, classes_amount: int):
     mp2d_layer = MaxPool2D(pool_size = (3, 3))(normalization_layer)
     dropout_layer = Dropout(0.2)(mp2d_layer)
 
+    conv_layer = Conv2D(
+        filters = 64, kernel_size = (3, 3),
+        padding = 'same', activation = 'relu'
+    )(dropout_layer)
+    normalization_layer = BatchNormalization()(conv_layer)
+    dropout_layer = Dropout(0.3)(normalization_layer)
+
+    conv_layer = Conv2D(
+        filters = 128, kernel_size = (3, 3),
+        activation = 'relu', padding = 'same'
+    )(dropout_layer)
+    normalization_layer = BatchNormalization()(conv_layer)
+    dropout_layer = Dropout(0.2)(normalization_layer)
+    
     conv_layer = Conv2D(
         filters = 128, kernel_size = (3, 3), activation = 'relu'
     )(dropout_layer)
