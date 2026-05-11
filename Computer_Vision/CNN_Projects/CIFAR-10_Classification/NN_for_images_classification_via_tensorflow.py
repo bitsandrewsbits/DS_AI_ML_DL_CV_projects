@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib
 matplotlib.use('qt5agg')
 import matplotlib.pyplot as plt
+import os
+import json
 
 def main():
     (train_X, train_y), (test_X, test_y) = cifar10.load_data()
@@ -14,6 +16,7 @@ def main():
     images_classes_amount = get_images_classes_amount(train_y)
     train_y = train_y.flatten()
     test_y = test_y.flatten()
+    
     batch_size = 128
     input_shape = (train_X.shape[1], train_X.shape[2], train_X.shape[3])
     cnn_model = get_CNN_model(input_shape, images_classes_amount)
@@ -21,6 +24,21 @@ def main():
         cnn_model, train_X, train_y, batch_size
     )
     plot_accuracy_and_loss_per_epoch(model_train_logs)
+    evaluated_model_metrics = get_evaluated_model_metrics(cnn_model, test_X, test_y)
+    print(evaluated_model_metrics)
+
+    trained_models_dir = "trained_CNN_models"
+    trained_model_name = "cifar10_CNN_model.keras"
+    trained_model_config_file = "cnn_model_config.json"
+    create_saved_trained_models_dir(trained_models_dir)
+    save_model(cnn_model, f"{trained_models_dir}/{trained_model_name}")
+    save_model_configuration(cnn_model, f"{trained_models_dir}/{trained_model_config_file}")
+
+def normalize_images_px_values(dataset_X: np.array):
+    return dataset_X / 255
+
+def get_images_classes_amount(dataset_Y: np.array):
+    return len(np.unique(dataset_Y))
 
 def train_model_and_get_train_logs(model, train_set_X, train_set_y, batch_size = 16):
     return model.fit(
@@ -107,11 +125,26 @@ def plot_accuracy_and_loss_per_epoch(train_logs):
     plt.grid()
     plt.show()
 
-def normalize_images_px_values(dataset_X: np.array):
-    return dataset_X / 255
+def get_evaluated_model_metrics(model, test_X, test_y) -> dict:
+    print("[INFO] Evaluating model on test dataset...")
+    return model.evaluate(test_X, test_y, return_dict = True)
 
-def get_images_classes_amount(dataset_Y: np.array):
-    return len(np.unique(dataset_Y))
+def save_model(model, model_path: str):
+    print("[INFO] Save model...")
+    model.save(model_path)
+
+def save_model_configuration(model, config_path: str):
+    model_config = model.to_json()
+    print("[INFO] Saving model configuration...")
+    with open(config_path, "w") as cf:
+        json.dump(model_config, cf, indent = 4)
+
+def create_saved_trained_models_dir(dirname: str):
+    if dirname in os.listdir("."):
+        print("[INFO] Models dir already exists!")
+    else:
+        print(f"[INFO] Creating dir {dirname} for trained models...")
+        os.mkdir(dirname)
 
 if __name__ == '__main__':
     main()
