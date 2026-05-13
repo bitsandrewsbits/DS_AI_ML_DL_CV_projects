@@ -1,20 +1,20 @@
 import os
 import data_preprocessing_variables as dpv
 
-downloaded_datasets_root_dir = dpv.DOWNLOADED_DATASETS_ROOT_DIR
-dataset = {
-    "dataset_name": "Large_Movie_Reviews_Dataset",
-    "URL": "https://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz"
-}
 
 def download_large_movie_reviews_dataset(dataset_info: dict):
-    if downloaded_datasets_root_dir in os.listdir('.'):
+    downloaded_datasets_root_dir = dpv.DOWNLOADED_DATASETS_ROOT_DIR
+    dataset_info = dpv.USERS_SENTIMENTS_DATASET_INFO
+
+    if downloaded_datasets_root_dir in os.listdir('.') or\
+    downloaded_datasets_root_dir in os.listdir('../'):
         print('[INFO] Root datasets dir already exist.')
     else:
         print("[INFO] Root datasets dir doesn't exist on disk. Creating...")
         os.system(f"mkdir {downloaded_datasets_root_dir}")
 
-    if dataset["dataset_name"] in os.listdir(f'{downloaded_datasets_root_dir}'):
+    if dataset_info["dataset_name"] in os.listdir(f'../{downloaded_datasets_root_dir}') or\
+    dataset_info["dataset_name"] in os.listdir(f'{downloaded_datasets_root_dir}'):
         print(f"[INFO] Dataset '{dataset_info["dataset_name"]}' already downloaded.")
     else:
         print(f"[INFO] Dataset dir '{dataset_info["dataset_name"]}' doesn't exist on disk.")
@@ -33,4 +33,4 @@ def download_large_movie_reviews_dataset(dataset_info: dict):
         os.system(f"rm -r aclImdb")
 
 if __name__ == "__main__":
-    download_large_movie_reviews_dataset(dataset)
+    download_large_movie_reviews_dataset(dpv.USERS_SENTIMENTS_DATASET_INFO)
