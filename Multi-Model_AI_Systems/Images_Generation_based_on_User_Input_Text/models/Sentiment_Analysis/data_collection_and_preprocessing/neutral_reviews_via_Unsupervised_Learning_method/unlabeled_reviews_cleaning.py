@@ -4,20 +4,19 @@ import sys
 sys.path.append("..")
 import pandas as pd
 import one_reviews_dir_dataset_creation as ordds
-import download_datasets as load_ds
+import data_preprocessing_variables as dpv
 import re
 import nltk
 nltk.download('stopwords')
 from nltk.corpus import stopwords
 
-unlabeled_reviews_dir_path = f"../{load_ds.downloaded_datasets_root_dir}/{load_ds.dataset['dataset_name']}/train"
-unlabeled_dataset_creator = ordds.One_Reviews_Dir_Dataset_Creator(unlabeled_reviews_dir_path, 'unsup')
-unlabeled_dataset = unlabeled_dataset_creator.main()
 
 def main(dataset: pd.DataFrame) -> pd.DataFrame:
     dataset = convert_review_column_to_lowercase(dataset)
     dataset = remove_any_spec_chars_in_review_column(dataset)
     cleaned_dataset = remove_stop_words_in_review_column(dataset)
+    print("[INFO] Saving cleaned reviews dataset into file...")
+    save_cleaned_dataset_to_JSONL(cleaned_dataset)
     return cleaned_dataset
 
 def convert_review_column_to_lowercase(dataset: pd.DataFrame):
@@ -61,6 +60,9 @@ def save_cleaned_dataset_to_JSONL(dataset: pd.DataFrame):
     )
 
 if __name__ == "__main__":
+    unlabeled_reviews_dir_path = f"../{dpv.DOWNLOADED_DATASETS_ROOT_DIR}/{dpv.USERS_SENTIMENTS_DATASET_INFO['dataset_name']}/train"
+    unlabeled_dataset_creator = ordds.One_Reviews_Dir_Dataset_Creator(
+        unlabeled_reviews_dir_path, 'unsup'
+    )
+    unlabeled_dataset = unlabeled_dataset_creator.main()
     cleaned_dataset = main(unlabeled_dataset)
-    print("[INFO] Saving cleaned reviews dataset into file...")
-    save_cleaned_dataset_to_JSONL(cleaned_dataset)
