@@ -1,6 +1,7 @@
 # unlabeled reviews texts embedding generation via LLM
 import sys
 sys.path.append("..")
+import os
 import ollama as olm
 import pandas as pd
 import time
@@ -18,6 +19,8 @@ class Texts_Embedding_Dataset_Generator:
         self.embed_model_name = embed_model_name
         self.ollama_host = ollama_host
         self.ollama_port = ollama_port
+        self.ollama_container_name = "ollama_embed_gen_speed_estimation"
+        self.delay_time_in_sec_to_ollama_ready = 3
         self.ollama_client = self.get_Ollama_client()
         
         self.dataset_JSONL_file = dataset_file
@@ -31,16 +34,27 @@ class Texts_Embedding_Dataset_Generator:
             self.unlabeled_embedding_dataset = self.unlabeled_dataset.copy()
 
     def main(self):
-        self.load_embed_model_to_Ollama()
-        self.start_execution_time = time.time()
         if self.computing_time_estimation_mode:
+            self.run_ollama_container_for_estimation()
+            
+            self.load_embed_model_to_Ollama()
+            self.start_execution_time = time.time()
             self.add_to_dataset_embedding_column()
             self.save_text_embedding_dataset_to_JSONL()
             self.define_execution_time_for_10_samples()
             self.define_approx_execution_time_for_entire_dataset()
+            
+            self.stop_ollama_container_for_estimation()
         else:
             self.add_to_dataset_embedding_column()
             self.save_text_embedding_dataset_to_JSONL()
+
+    def run_ollama_container_for_estimation(self):
+        os.system(f"sudo docker start {self.ollama_container_name} 2> /dev/null")
+        os.system(
+            f"sudo docker run -d --gpus=all --name {self.ollama_container_name} -p {self.ollama_port}:11434 -d ollama/ollama 2> /dev/null"
+        )
+        time.sleep(self.delay_time_in_sec_to_ollama_ready)
 
     def get_dataframe_from_JSONL_file(self):
         return pd.read_json(self.dataset_JSONL_file, orient = "records", lines = True)
@@ -90,12 +104,15 @@ class Texts_Embedding_Dataset_Generator:
         print("[INFO] Approximated execution time for entire dataset = ", end = '') 
         print(f"{self.execution_time_for_entire_dataset} seconds or ", end = '')
         print(f"{round(self.execution_time_for_entire_dataset / 60, 1)} minutes")
+    
+    def stop_ollama_container_for_estimation(self):
+        os.system(f"sudo docker stop {self.ollama_container_name}")
 
 if __name__ == "__main__":
     text_embed_generator = Texts_Embedding_Dataset_Generator(
         dpv.MODEL_FOR_EMBEDDING_GENERATION, dpv.TEMP_CONTAINER_OLLAMA_HOST,
         dpv.TEMP_CONTAINER_OLLAMA_PORT, dpv.CLEANED_UNLABELED_REVIEWS_DATASET,
-        "test_embed_dataset_file.jsonl",
+        dpv.EMBED_COMPUTE_TIME_ESTIMATION_SET_NAME,
         computing_time_estimation_mode = True
     )
     text_embed_generator.main()
