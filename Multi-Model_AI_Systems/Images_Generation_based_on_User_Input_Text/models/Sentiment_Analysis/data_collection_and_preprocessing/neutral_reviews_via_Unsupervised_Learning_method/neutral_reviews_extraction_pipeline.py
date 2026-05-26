@@ -46,7 +46,7 @@ class Neutral_Reviews_Extraction_Pipeline:
         ds_splitter = ds.Dataset_Splitter(dpv.CLEANED_UNLABELED_REVIEWS_DATASET)
         ds_splitter.small_datasets_amount = compose_generator.ollama_instances_for_parallel_computing
         ds_splitter.main()
-        peg.Parallel_Embedding_Generation_Manager(
+        parallel_embed_gen_manager = peg.Parallel_Embedding_Generation_Manager(
             dpv.SMALL_SETS_FOR_EMBED_GENERATION_DIR,
             dpv.REVIEWS_EMBEDDING_DATASETS_DIR
         )
