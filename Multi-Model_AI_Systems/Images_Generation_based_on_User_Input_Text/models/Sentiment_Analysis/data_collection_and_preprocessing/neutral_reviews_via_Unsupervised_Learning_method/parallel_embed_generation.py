@@ -4,6 +4,7 @@
 import os
 import pandas as pd
 import unlabeled_reviews_texts_embedding_generation as urteg
+import data_preprocessing_variables as dpv
 from concurrent.futures import ProcessPoolExecutor
 
 small_sets_dirname = "datasets_for_parallel_embed_generation"
@@ -17,7 +18,7 @@ class Parallel_Embedding_Generation_Manager:
         self.ollama_services_amount = 0
         self.ollama_host = "localhost"
         self.first_ollama_service_port = 11434
-        self.embed_model = urteg.embed_model_name
+        self.embed_model = dpv.MODEL_FOR_EMBEDDING_GENERATION
         self.embed_dataset_generators_params = []
 
     def main(self):
