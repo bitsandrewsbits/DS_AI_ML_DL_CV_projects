@@ -46,6 +46,7 @@ class Texts_Embedding_Dataset_Generator:
             
             self.stop_ollama_container_for_estimation()
         else:
+            self.load_embed_model_to_Ollama()
             self.add_to_dataset_embedding_column()
             self.save_text_embedding_dataset_to_JSONL()
 
