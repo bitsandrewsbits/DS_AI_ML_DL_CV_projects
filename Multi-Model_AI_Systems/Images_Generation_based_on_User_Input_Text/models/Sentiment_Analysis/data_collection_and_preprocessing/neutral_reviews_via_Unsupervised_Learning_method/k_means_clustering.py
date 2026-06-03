@@ -63,6 +63,8 @@ class K_Means_Clustering_Manager:
             current_set = self.get_dataset_from_file(
                 f"{self.datasets_dir_path}/{small_set_file}"
             )
+            # TODO: think, how to integrate into this method an
+            # embeddings dimensionality reduction via PCA
             self.reviews_embed_big_dataset = pd.concat(
                 [self.reviews_embed_big_dataset, current_set], ignore_index = True
             )
