@@ -4,6 +4,8 @@ import sys
 sys.path.append("..")
 import os
 from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import normalize
 import pandas as pd
 import numpy as np
 
@@ -18,6 +20,7 @@ class K_Means_Clustering_Manager:
         self.reviews_embed_big_dataset = pd.DataFrame()
         self.clusters_amount = clusters_amount
         self.k_means = KMeans(n_clusters = self.clusters_amount)
+        self.pca_decompositor = object
         self.embeddings_ndarray = []
         self.clusters_labels = []
         self.classified_reviews_big_dataset = pd.DataFrame()
@@ -42,9 +45,9 @@ class K_Means_Clustering_Manager:
         self.create_classified_reviews_big_dataset()
         print("[INFO] Saving classified reviews dataset to JSONL...")
         adfdp.save_dataset_into_JSONL(
-                self.classified_reviews_big_dataset,
-                f"{self.datasets_dir_path}/{self.classified_reviews_big_dataset_file}"
-            )
+            self.classified_reviews_big_dataset,
+            f"{self.datasets_dir_path}/{self.classified_reviews_big_dataset_file}"
+        )
         
     def create_classified_reviews_big_dataset(self):
         self.reviews_embed_big_dataset["sentiment_label"] = self.clusters_labels
@@ -60,14 +63,28 @@ class K_Means_Clustering_Manager:
 
     def create_one_big_embed_dataset(self):
         for small_set_file in self.datasets_filenames:
+            if small_set_file == self.classified_reviews_big_dataset_file:
+                continue
             current_set = self.get_dataset_from_file(
                 f"{self.datasets_dir_path}/{small_set_file}"
             )
-            # TODO: think, how to integrate into this method an
-            # embeddings dimensionality reduction via PCA
+            normalized_reduced_embeds = self.get_reduced_embed_set_via_PCA(
+                current_set["embedding_vector"]
+            )
+            current_set["embedding_vector"] = self.get_series_from_ndarray(normalized_reduced_embeds)
             self.reviews_embed_big_dataset = pd.concat(
                 [self.reviews_embed_big_dataset, current_set], ignore_index = True
             )
+    
+    def get_reduced_embed_set_via_PCA(self, embed_column: pd.Series):
+        reviews_embeddings = self.get_embeddings_ndarray(
+            embed_column.values
+        )
+        embedding_size = reviews_embeddings[0].shape[0]
+        self.pca_decompositor = PCA(n_components = int(embedding_size * 0.6))
+        reduced_reviews_embeddings = self.pca_decompositor.fit_transform(reviews_embeddings)
+        normalized_reduced_embeddings = normalize(reduced_reviews_embeddings, norm = "l2")
+        return normalized_reduced_embeddings
     
     def get_embeddings_ndarray(self, embed_column_values):
         embeds_ndarray = []
@@ -75,6 +92,10 @@ class K_Means_Clustering_Manager:
             embed_vector_arr = np.array(embed_vector_list)
             embeds_ndarray.append(embed_vector_arr)
         return np.array(embeds_ndarray)
+    
+    def get_series_from_ndarray(self, embed_ndarrays):
+        embed_df = {"embedding_vector": list(embed_ndarrays)}
+        return pd.DataFrame(embed_df)["embedding_vector"]
     
     def get_dataset_from_file(self, jsonl_path):
         return pd.read_json(
