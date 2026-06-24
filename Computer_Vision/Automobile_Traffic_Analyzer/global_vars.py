@@ -1,0 +1,2 @@
+AUTOMOBILE_DETECTION_MODEL_NAME = "yolov8s-world.pt"
+DETECTION_CLASSES = ["car"]
