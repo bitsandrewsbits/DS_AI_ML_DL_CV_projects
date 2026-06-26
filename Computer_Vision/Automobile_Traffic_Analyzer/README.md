@@ -29,6 +29,8 @@
 ### 2. Fine-tuned version of YOLOv11 for License Plate Detection - model for license plate recognition.
 ### Program downloads it from HuggingFace via URL in global variables file.
 
+### Also program reduces output window width(see global_vars.py) for different devices or more convinient view.
+
 ## **Program Architecture**
         RTSP Stream
             │
