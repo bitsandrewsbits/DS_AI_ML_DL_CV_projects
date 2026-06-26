@@ -33,7 +33,7 @@ def main():
     while video_stream.isOpened():
         success, frame = video_stream.read()
         if success:
-            cars_results = car_detection_model.track(frame, persist = True)
+            cars_results = car_detection_model.track(frame, persist = True, verbose = False)
             if cars_results[0].boxes.id != None:
                 update_detect_automobiles_cache_with_frame_cars(
                     license_plate_detection_model,
@@ -143,7 +143,7 @@ def get_car_RGB_color(frame, box_xy_coordinates: torch.Tensor):
 def get_car_license_plate_text(model, frame, car_box_xy_coordinates: torch.Tensor, ocr_reader):
     x1, y1, x2, y2 = map(int, car_box_xy_coordinates)
     car_area = frame[y1:y2, x1:x2]
-    license_plates_results = model.track(car_area)
+    license_plates_results = model.track(car_area, verbose = False)
     frame_license_plates_boxes_obj = get_boxes_object_from_frame(license_plates_results[0])
     frame_license_plates_IDs = get_IDs_from_frame_boxes_obj(frame_license_plates_boxes_obj)
     frame_license_plates_xy_coordinates = get_boxes_xy_coordinates(frame_license_plates_boxes_obj)
