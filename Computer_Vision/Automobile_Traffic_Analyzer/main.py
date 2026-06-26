@@ -3,11 +3,19 @@ import cv2
 import easyocr
 import torch
 import os
+import argparse
 import global_vars as gv
 
-# TODO: add requirements file, check code, add README.md
-def main(rtsp_URL: str):
-    video_stream = cv2.VideoCapture(rtsp_URL)
+def main():
+    args_parser = argparse.ArgumentParser()
+    args_parser.add_argument(
+        "-url", "--video_stream_url",
+        help = "URL address of video stream via RTSP."
+    )
+    received_args = args_parser.parse_args()
+    if received_args.video_stream_url:
+        video_stream = cv2.VideoCapture(received_args.video_stream_url)
+
     if not video_stream.isOpened():
         raise Exception("Error! Video stream was not found! Check your RTSP URL or camera device.")
     
@@ -40,6 +48,7 @@ def main(rtsp_URL: str):
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
         else:
+            print("Video-stream was terminated or finished!")
             break
     video_stream.release()
     cv2.destroyAllWindows()
@@ -51,9 +60,14 @@ def get_initialized_car_detection_model():
 
 def get_initialized_license_plate_detection_model():
     if gv.LICENSE_PLATE_DETECTION_MODEL_NAME not in os.listdir():
-        os.system(
-            f"wget -O {gv.LICENSE_PLATE_DETECTION_MODEL_NAME} {gv.LICENSE_PLATE_DETECTION_MODEL_URL}"
-        )
+        if os.name == 'posix':
+            os.system(
+                f"wget -O {gv.LICENSE_PLATE_DETECTION_MODEL_NAME} {gv.LICENSE_PLATE_DETECTION_MODEL_URL}"
+            )
+        else:
+            os.system(
+                f"curl -o {gv.LICENSE_PLATE_DETECTION_MODEL_NAME} -L {gv.LICENSE_PLATE_DETECTION_MODEL_URL}"
+            )
     model_obj = YOLO(gv.LICENSE_PLATE_DETECTION_MODEL_NAME)
     return model_obj
 
@@ -164,10 +178,4 @@ def get_annotated_frame_with_bounding_boxes(frame, cache: dict):
     return annotated_frame
 
 if __name__ == "__main__":
-    username = ""
-    password = ""
-    camera_ip = ""
-    rtsp_port = 554
-    stream_path = ""
-    video_stream_URL = f"rtsp://{username}:{password}@{camera_ip}:{rtsp_port}/{stream_path}"
-    main(video_stream_URL)
+    main()
