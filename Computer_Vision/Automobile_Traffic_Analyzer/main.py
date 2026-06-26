@@ -5,10 +5,11 @@ import torch
 import os
 import global_vars as gv
 
+# TODO: add requirements file, check code, add README.md
 def main(rtsp_URL: str):
     video_stream = cv2.VideoCapture(rtsp_URL)
     if not video_stream.isOpened():
-        raise Exception("Error! Video stream was not found!")
+        raise Exception("Error! Video stream was not found! Check your RTSP URL or camera device.")
     
     compute_device = "cuda" if torch.cuda.is_available() else "cpu"
     car_detection_model = get_initialized_car_detection_model().to(compute_device)
@@ -17,8 +18,8 @@ def main(rtsp_URL: str):
     )
     ocr_reader = easyocr.Reader(['en'])
 
-    window_name = "Cars Tracking"
-    window_width = 1280
+    window_name = gv.WINDOW_NAME
+    window_width = gv.WINDOW_WIDTH_IN_PIXELS
     detect_automobiles_cache = {}
     
     while video_stream.isOpened():
