@@ -34,7 +34,6 @@
 ## **Program Architecture**
         RTSP Stream
             │
-            |
           Frame
             |
         YOLOv8-World (Vehicles Detection + Tracking)
@@ -42,16 +41,16 @@
             |─> Vehicles IDs Cache updating
             |─> Vehicle Color Detection for new cars
             |─> Vehicle Detection Area for new cars
-                        │
                         |
               License Plate Detection
                via HuggingFace model
-                        │
                         |
                        OCR
                         │
+            Vehicles IDs Cache updating
                         |
-                  Visualization
+          Visualization of vehicles from
+               Vehicles IDs Cache
 
 ## **Program Limitations**
 ### 1. Vehicle color estimation accomplish by average of all RGB pixels values of vechile area tensor.
