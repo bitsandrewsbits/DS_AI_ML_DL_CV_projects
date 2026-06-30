@@ -24,34 +24,42 @@
 
 ## **Some details about program**
 ### This project uses two trained YOLO models:
-### 1. YOLOv8-World - model for cars recognition. Since the task was to detect only vehicles,
+### 1. YOLOv8-World - model for cars recognition. Since the task was to detect only cars,
 ### this model can be configured for certain class of detection, ignoring other objects on video frames.
 ### 2. Fine-tuned version of YOLOv11 for License Plate Detection - model for license plate recognition.
 ### Program downloads it from HuggingFace via URL in global variables file.
 
-### Also program reduces output window width(see global_vars.py) for different devices or more convinient view.
+### Also program can reduce output window width(see global_vars.py) for different devices or more convinient view.
 
 ## **Program Architecture**
         RTSP Stream
             │
           Frame
             |
-        YOLOv8-World (Vehicles Detection + Tracking)
+        YOLOv8-World (Cars Detection + Tracking)
             │
-            |─> Vehicles IDs Cache updating
-            |─> Vehicle Color Detection for new cars
-            |─> Vehicle Detection Area for new cars
+            |-> Frame Cars IDs Cache updating
+            |-> Car Color Detection for new car
+            |-> Car Detection Area for new car
                         |
               License Plate Detection
                via HuggingFace model
                         |
                        OCR
                         │
-            Vehicles IDs Cache updating
+            Cars IDs Cache updating
                         |
-          Visualization of vehicles from
-               Vehicles IDs Cache
+    Session Detected Cars updating with new car
+                        |
+      Visualization from Frame Cars IDs Cache
+                        |
+                        |
+            -------------
+            |
+    Show Session Detected Cars
+            |            
+    Saving Session Detected Cars into JSONL
 
 ## **Program Limitations**
-### 1. Vehicle color estimation accomplish by average of all RGB pixels values of vechile area tensor.
+### 1. Car color estimation accomplish by average of all RGB pixels values of car area tensor.
 ### 2. License plate recognition depends on license plate area size, quality, viewing angle and lighting conditions.
