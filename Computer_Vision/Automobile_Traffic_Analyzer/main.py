@@ -4,6 +4,7 @@ import easyocr
 import torch
 import os
 import argparse
+import json
 import global_vars as gv
 
 def main():
@@ -28,6 +29,7 @@ def main():
 
     window_name = gv.WINDOW_NAME
     window_width = gv.WINDOW_WIDTH_IN_PIXELS
+    all_detected_cars = []
     detect_automobiles_cache = {}
     
     while video_stream.isOpened():
@@ -35,9 +37,11 @@ def main():
         if success:
             cars_results = car_detection_model.track(frame, persist = True, verbose = False)
             if cars_results[0].boxes.id != None:
-                update_detect_automobiles_cache_with_frame_cars(
+                update_automobiles_cache_all_detected_cars_with_frame_cars(
                     license_plate_detection_model,
-                    frame, detect_automobiles_cache,
+                    frame,
+                    detect_automobiles_cache,
+                    all_detected_cars,
                     cars_results,
                     ocr_reader
                 )
@@ -50,6 +54,8 @@ def main():
         else:
             print("Video-stream was terminated or finished!")
             break
+    show_session_detected_cars(all_detected_cars)
+    save_session_detected_cars_in_JSONL(all_detected_cars)
     video_stream.release()
     cv2.destroyAllWindows()
 
@@ -71,9 +77,12 @@ def get_initialized_license_plate_detection_model():
     model_obj = YOLO(gv.LICENSE_PLATE_DETECTION_MODEL_NAME)
     return model_obj
 
-def show_frame_in_custom_window(frame, name: str, width: int):
-    resized_frame = get_resized_image(frame, width)
-    cv2.imshow(name, resized_frame)
+def show_frame_in_custom_window(frame, name: str, width: int, resize_image = False):
+    if resize_image:
+        resized_frame = get_resized_image(frame, width)
+        cv2.imshow(name, resized_frame)
+    else:   
+        cv2.imshow(name, frame)
 
 def get_resized_image(image, new_width: int):
     original_image_width = image.shape[1]
@@ -86,8 +95,8 @@ def get_resized_image(image, new_width: int):
     )
     return resized_image
 
-def update_detect_automobiles_cache_with_frame_cars(
-license_plate_detection_model, frame, cache: dict, cars_results, ocr_reader):
+def update_automobiles_cache_all_detected_cars_with_frame_cars(
+license_plate_detection_model, frame, cache: dict, detected_session_cars: dict, cars_results, ocr_reader):
     cache_cars_IDs = cache.keys()
     
     frame_cars_boxes_obj = get_boxes_object_from_frame(cars_results[0])
@@ -95,8 +104,8 @@ license_plate_detection_model, frame, cache: dict, cars_results, ocr_reader):
     frame_cars_boxes_xy_coordinates = get_boxes_xy_coordinates(frame_cars_boxes_obj)
 
     for (frame_car_ID, box_xy_coordinates) in zip(frame_cars_IDs, frame_cars_boxes_xy_coordinates):
+        frame_car_ID = int(frame_car_ID.item())
         if frame_car_ID not in cache_cars_IDs:
-            frame_car_ID = int(frame_car_ID.item())
             car_color = get_car_RGB_color(frame, box_xy_coordinates)
             car_license_plate_text = get_car_license_plate_text(
                 license_plate_detection_model, frame,
@@ -108,15 +117,44 @@ license_plate_detection_model, frame, cache: dict, cars_results, ocr_reader):
                 "bounding_box_RGB_color": car_color,
                 "license_plate": car_license_plate_text
             }
-    car_ID_for_deleting = get_car_ID_already_not_on_screen(cache, frame_cars_IDs)
-    if car_ID_for_deleting != 'ok':
-        del cache[car_ID_for_deleting]
+            update_all_detected_cars_storage_with_new_frame_car(
+                detected_session_cars, frame_car_ID, car_color, car_license_plate_text
+            )
+        else:
+            cache[frame_car_ID]["box_xy_coordinates"] = box_xy_coordinates
+            if cache[frame_car_ID]["license_plate"] == "":
+                cache[frame_car_ID]["license_plate"] = get_car_license_plate_text(
+                    license_plate_detection_model,
+                    frame,
+                    box_xy_coordinates,
+                    ocr_reader
+                )
 
-def get_car_ID_already_not_on_screen(cache: dict, frame_cars_IDs):
+    cars_IDs_for_deleting = get_absent_cars_IDs_on_screen(cache, frame_cars_IDs)
+    delete_absent_in_current_frame_cars_from_cache(cache, cars_IDs_for_deleting)
+
+def update_all_detected_cars_storage_with_new_frame_car(
+session_detected_cars: list, frame_car_ID: int, car_rgb_color: tuple, license_plate_text: str):
+    last_detected_car_ID = len(session_detected_cars)
+    current_detected_car_ID = last_detected_car_ID + 1
+    
+    session_detected_car = {
+        "car_ID": current_detected_car_ID,
+        "car_rgb_color": car_rgb_color,
+        "license_plate": license_plate_text
+    }
+    session_detected_cars.append(session_detected_car)
+
+def get_absent_cars_IDs_on_screen(cache: dict, frame_cars_IDs) -> list:
+    cars_IDs_for_deleting = []
     for cache_car_ID in cache.keys():
         if cache_car_ID not in frame_cars_IDs:
-            return cache_car_ID
-    return "ok"
+            cars_IDs_for_deleting.append(cache_car_ID)
+    return cars_IDs_for_deleting
+
+def delete_absent_in_current_frame_cars_from_cache(cache: dict, cars_IDs: list):
+    for car_ID in cars_IDs:
+        del cache[car_ID]
 
 def get_boxes_object_from_frame(yolo_results):
     return yolo_results.boxes
@@ -176,6 +214,25 @@ def get_annotated_frame_with_bounding_boxes(frame, cache: dict):
             cache[car_ID]["bounding_box_RGB_color"], 3
         )
     return annotated_frame
+
+def show_session_detected_cars(detected_session_cars: list):
+    print("Session Detected Cars:")
+    print("=" * 30)
+    for session_car in detected_session_cars:
+        session_car_ID = session_car["car_ID"]
+        car_rgb_color = session_car["car_rgb_color"]
+        car_license_plate = session_car["license_plate"]
+        print(f"Car ID: {session_car_ID}, RGB-Color: {car_rgb_color}, License Plate: {car_license_plate}")
+
+def save_session_detected_cars_in_JSONL(session_detected_cars: list):
+    print("[INFO] Saving session detected cars into JSONL...")
+    with open(gv.SESSION_DETECTED_CARS_FILENAME, 'w') as sdcf:
+        for session_detected_car in session_detected_cars:
+            sdcf.write(
+                json.dumps(
+                    session_detected_car, ensure_ascii = False
+                ) + '\n'
+            )
 
 if __name__ == "__main__":
     main()
