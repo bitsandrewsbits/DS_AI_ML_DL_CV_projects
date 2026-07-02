@@ -11,5 +11,6 @@ openapi_client
 *.mp4
 *.jsonl
 *.pt
+*.keras
 *.tar
 \.*/
