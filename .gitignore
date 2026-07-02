@@ -1,5 +1,4 @@
-*.csv
-/**/*env/
+**/*env/
 __pycache__
 pycocotools
 diffusers
@@ -9,3 +8,8 @@ diffusers
 /**/validation
 /**/test
 openapi_client
+*.mp4
+*.jsonl
+*.pt
+*.tar
+\.*/
