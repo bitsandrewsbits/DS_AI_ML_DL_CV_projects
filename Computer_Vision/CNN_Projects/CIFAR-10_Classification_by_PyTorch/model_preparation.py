@@ -4,6 +4,7 @@ from torchvision.datasets import CIFAR10
 from torchvision.transforms import ToTensor
 from torch.utils.data import DataLoader
 from torch.optim import SGD
+from torchmetrics import Accuracy
 
 import CNN_model_architecture as cnnma
 
@@ -39,25 +40,81 @@ class CNN_Model_Preparation:
 		self.classification_classes = self.train_set.classes
 		self.classes_amount = len(self.classification_classes)
 		self.image_shape = self.train_set[0][0].shape
+		self.batch_shape = self.get_batch_size()
 
+		self.compute_device = "cuda" if torch.cuda.is_available() else "cpu"
 		self.CNN_model = cnnma.TinyVGG_Architecture_CNN(
 			self.color_channels, self.hidden_units,
-			self.classes_amount, self.image_shape
-		)
+			self.classes_amount, self.batch_shape
+		).to(self.compute_device)
+
 		self.loss_func = torch.nn.CrossEntropyLoss()
 		self.optimizer = SGD(
 			params = self.CNN_model.parameters(), lr = 0.1
 		)
+		self.accuracy_func = Accuracy(
+			task = "multiclass",
+			num_classes = self.classes_amount
+		).to(self.compute_device)
+		self.epochs = 3
 
 	def main(self):
-		pass
+		trained_model = self.get_trained_model()
 
 	def get_trained_model(self):
-		pass
+		for epoch in range(1, self.epochs + 1):
+			print(f"Epoch #{epoch}:", end = '')
+			self.train_step()
 
 	def train_step(self):
-		# TODO: create method.
-		pass
+		epoch_sum_loss = 0
+		epoch_sum_accuracy = 0
+		self.CNN_model.train()
+		for (images_batch, labels_batch) in self.train_dataloader:
+			images_batch = images_batch.to(self.compute_device)
+			labels_batch = labels_batch.to(self.compute_device)
+			logits = self.CNN_model(images_batch)
+			pred_probs = torch.softmax(logits, dim = 1)
+			pred_labels = torch.argmax(pred_probs, dim = 1)
+
+			batch_loss = self.loss_func(logits, labels_batch)
+			batch_accuracy = self.accuracy_func(pred_labels, labels_batch)
+
+			self.optimizer.zero_grad()
+			batch_loss.backward()
+			self.optimizer.step()
+			
+			epoch_sum_loss += batch_loss
+			epoch_sum_accuracy += batch_accuracy
+
+		epoch_loss = round(epoch_sum_loss.item() / len(self.train_dataloader), 3)
+		epoch_accuracy = round(epoch_sum_accuracy.item() / len(self.train_dataloader), 3)
+		print(f"train loss: {epoch_loss}, train accuracy: {epoch_accuracy}", end = '')
+		self.evaluate_model()
+
+	def evaluate_model(self):
+		eval_sum_loss = 0
+		eval_sum_accuracy = 0
+		self.CNN_model.eval()
+		with torch.inference_mode():
+			for (images_batch, labels_batch) in self.test_dataloader:
+				images_batch = images_batch.to(self.compute_device)
+				labels_batch = labels_batch.to(self.compute_device)
+				logits = self.CNN_model(images_batch)
+				pred_probs = torch.softmax(logits, dim = 1)
+				pred_labels = torch.argmax(pred_probs, dim = 1)
+
+				batch_eval_loss = self.loss_func(logits, labels_batch)
+				batch_eval_accuracy = self.accuracy_func(pred_labels, labels_batch)
+				eval_sum_loss += batch_eval_loss
+				eval_sum_accuracy += batch_eval_accuracy
+			eval_loss = round(eval_sum_loss.item() / len(self.test_dataloader), 3)
+			eval_accuracy = round(eval_sum_accuracy.item() / len(self.test_dataloader), 3)
+		print(f", eval loss: {eval_loss}, eval accuracy: {eval_accuracy}")
+
+	def get_batch_size(self):
+		for batch in self.train_dataloader:
+			return batch[0].shape
 
 if __name__ == "__main__":
 	model_preparation = CNN_Model_Preparation()
