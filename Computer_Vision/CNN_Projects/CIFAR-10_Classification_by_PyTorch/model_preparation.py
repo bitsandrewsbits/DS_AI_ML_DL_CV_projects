@@ -5,6 +5,9 @@ from torchvision.transforms import ToTensor
 from torch.utils.data import DataLoader
 from torch.optim import SGD
 from torchmetrics import Accuracy
+import matplotlib
+matplotlib.use("qt5agg")
+import matplotlib.pyplot as plt
 
 import CNN_model_architecture as cnnma
 
@@ -50,16 +53,22 @@ class CNN_Model_Preparation:
 
 		self.loss_func = torch.nn.CrossEntropyLoss()
 		self.optimizer = SGD(
-			params = self.CNN_model.parameters(), lr = 0.1
+			params = self.CNN_model.parameters(), lr = 0.01
 		)
 		self.accuracy_func = Accuracy(
 			task = "multiclass",
 			num_classes = self.classes_amount
 		).to(self.compute_device)
-		self.epochs = 3
+		self.epochs = 70
+
+		self.train_loss = []
+		self.train_accuracy = []
+		self.valid_loss = []
+		self.valid_accuracy = []
 
 	def main(self):
 		trained_model = self.get_trained_model()
+		self.show_loss_accuracy_curves()
 
 	def get_trained_model(self):
 		for epoch in range(1, self.epochs + 1):
@@ -92,6 +101,9 @@ class CNN_Model_Preparation:
 		print(f"train loss: {epoch_loss}, train accuracy: {epoch_accuracy}", end = '')
 		self.evaluate_model()
 
+		self.train_loss.append(epoch_loss)
+		self.train_accuracy.append(epoch_accuracy)
+
 	def evaluate_model(self):
 		eval_sum_loss = 0
 		eval_sum_accuracy = 0
@@ -111,10 +123,35 @@ class CNN_Model_Preparation:
 			eval_loss = round(eval_sum_loss.item() / len(self.test_dataloader), 3)
 			eval_accuracy = round(eval_sum_accuracy.item() / len(self.test_dataloader), 3)
 		print(f", eval loss: {eval_loss}, eval accuracy: {eval_accuracy}")
+		
+		self.valid_loss.append(eval_loss)
+		self.valid_accuracy.append(eval_accuracy)
 
 	def get_batch_size(self):
 		for batch in self.train_dataloader:
 			return batch[0].shape
+
+	def show_loss_accuracy_curves(self):
+		fig, ax = plt.subplots(2, 1)
+		epochs = [i for i in range(1, len(self.train_loss) + 1)]
+
+		plt.subplot(2, 1, 1)
+		plt.title("Train/Valid Loss")
+		plt.plot(epochs, self.train_loss, label = 'train-loss')
+		plt.plot(epochs, self.valid_loss, label = 'valid-loss')
+		plt.xlabel("epoch")
+		plt.ylabel("loss")
+		plt.legend()
+
+		plt.subplot(2, 1, 2)
+		plt.title("Train/Valid Accuracy")
+		plt.plot(epochs, self.train_accuracy, label = 'train-accuracy')
+		plt.plot(epochs, self.valid_accuracy, label = 'valid-accuracy')
+		plt.xlabel("epoch")
+		plt.ylabel("accuracy")
+		plt.legend()
+		
+		plt.show()
 
 if __name__ == "__main__":
 	model_preparation = CNN_Model_Preparation()
