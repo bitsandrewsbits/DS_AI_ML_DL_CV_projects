@@ -1,3 +1,5 @@
 torch
 torchmetrics
 numpy
+matplotlib
+PyQt5
