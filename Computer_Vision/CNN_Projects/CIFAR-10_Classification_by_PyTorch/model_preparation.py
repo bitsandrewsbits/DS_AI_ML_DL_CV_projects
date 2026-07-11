@@ -8,6 +8,7 @@ from torchmetrics import Accuracy
 import matplotlib
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 import CNN_model_architecture as cnnma
 
@@ -66,9 +67,12 @@ class CNN_Model_Preparation:
 		self.valid_loss = []
 		self.valid_accuracy = []
 
+		self.trained_models_dir = "trained_models"
+
 	def main(self):
 		trained_model = self.get_trained_model()
 		self.show_loss_accuracy_curves()
+		self.save_trained_model("cnn_model.pth")
 
 	def get_trained_model(self):
 		for epoch in range(1, self.epochs + 1):
@@ -152,6 +156,16 @@ class CNN_Model_Preparation:
 		plt.legend()
 		
 		plt.show()
+
+	def save_trained_model(self, model_name: str):
+		trained_models_dir_path = Path(self.trained_models_dir)
+		trained_models_dir_path.mkdir(parents = True, exist_ok = True)
+		trained_model_save_path = trained_models_dir_path / model_name
+		print(f"Saving trained model to {trained_model_save_path}...")
+		torch.save(
+			obj = self.CNN_model.state_dict(),
+			f = trained_model_save_path
+		)
 
 if __name__ == "__main__":
 	model_preparation = CNN_Model_Preparation()
