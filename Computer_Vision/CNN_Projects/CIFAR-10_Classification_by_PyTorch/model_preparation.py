@@ -11,10 +11,11 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 import CNN_model_architecture as cnnma
+import global_variables as gv
 
 class CNN_Model_Preparation:
-	def __init__(self):
-		self.datasets_dir = "datasets"
+	def __init__(self, trained_model_name: str):
+		self.datasets_dir = gv.DATASETS_DIR
 		self.train_set = CIFAR10(
 			root = self.datasets_dir,
 			train = True,
@@ -67,12 +68,13 @@ class CNN_Model_Preparation:
 		self.valid_loss = []
 		self.valid_accuracy = []
 
-		self.trained_models_dir = "trained_models"
+		self.trained_models_dir = gv.TRAINED_MODELS_DIR
+		self.trained_model_name = trained_model_name
 
 	def main(self):
 		trained_model = self.get_trained_model()
 		self.show_loss_accuracy_curves()
-		self.save_trained_model("cnn_model.pth")
+		self.save_trained_model()
 
 	def get_trained_model(self):
 		for epoch in range(1, self.epochs + 1):
@@ -157,10 +159,10 @@ class CNN_Model_Preparation:
 		
 		plt.show()
 
-	def save_trained_model(self, model_name: str):
+	def save_trained_model(self):
 		trained_models_dir_path = Path(self.trained_models_dir)
 		trained_models_dir_path.mkdir(parents = True, exist_ok = True)
-		trained_model_save_path = trained_models_dir_path / model_name
+		trained_model_save_path = trained_models_dir_path / self.trained_model_name
 		print(f"Saving trained model to {trained_model_save_path}...")
 		torch.save(
 			obj = self.CNN_model.state_dict(),
@@ -168,5 +170,5 @@ class CNN_Model_Preparation:
 		)
 
 if __name__ == "__main__":
-	model_preparation = CNN_Model_Preparation()
+	model_preparation = CNN_Model_Preparation("cnn_model.pth")
 	model_preparation.main()
