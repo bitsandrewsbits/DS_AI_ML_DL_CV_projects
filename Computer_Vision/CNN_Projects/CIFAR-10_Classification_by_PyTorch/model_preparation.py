@@ -40,8 +40,8 @@ class CNN_Model_Preparation:
 			dataset = self.test_set,
 			batch_size = self.batch_size
 		)
-		self.color_channels = 3
-		self.hidden_units = 32
+		self.color_channels = gv.MODEL_HYPERPARAMETERS["color_channels"]
+		self.hidden_units = gv.MODEL_HYPERPARAMETERS["hidden_units"]
 		self.classification_classes = self.train_set.classes
 		self.classes_amount = len(self.classification_classes)
 		self.image_shape = self.train_set[0][0].shape
