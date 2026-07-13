@@ -3,12 +3,12 @@ import torch
 from torch import nn
 
 class TinyVGG_Architecture_CNN(nn.Module):
-	def __init__(self, input_shape: int, hidden_units: int, output_shape: int, data_point_shape: torch.Tensor):
+	def __init__(self, input_shape: int, hidden_units: int, output_shape: int, batch_shape: torch.Tensor):
 		super().__init__()
 		self.input_shape = input_shape
 		self.hidden_units = hidden_units
 		self.output_shape = output_shape
-		self.data_point_shape = data_point_shape
+		self.batch_shape = batch_shape
 
 		self.input_conv_pool_block = nn.Sequential(
 			nn.Conv2d(
@@ -61,7 +61,7 @@ class TinyVGG_Architecture_CNN(nn.Module):
 
 	def get_flatten_size(self):
 		test_tensor = torch.zeros(
-			size = self.data_point_shape
+			size = self.batch_shape
 		)
 		for features_ext_block in self.features_extraction_blocks:
 			test_tensor = features_ext_block(test_tensor)
