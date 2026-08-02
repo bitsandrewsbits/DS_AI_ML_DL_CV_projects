@@ -7,10 +7,14 @@ from pathlib import Path
 def main(datasets_info: dict):
 	datasets_path = create_datasets_dirs()
 	for dataset_type, url in datasets_info.items():
-		if f"WIDER_{dataset_type}" in os.listdir(datasets_path):
-			print(f"Dataset WIDER_{dataset_type} already downloaded! skipping.")
+		if f"WIDER_{dataset_type}.zip" in os.listdir(datasets_path):
+			print(f"Dataset WIDER_{dataset_type}.zip already downloaded! skipping.")
 		else:
 			download_dataset_zip(datasets_path, dataset_type, url)
+
+		if f"WIDER_{dataset_type}" in os.listdir(datasets_path):
+			print(f"Dataset WIDER_{dataset_type} already extracted! skipping.")
+		else:
 			unzip_dataset(datasets_path, dataset_type)
 
 def create_datasets_dirs() -> Path:
@@ -37,7 +41,7 @@ def unzip_dataset(datasets_path: Path, dataset_type: str):
 if __name__ == "__main__":
 	datasets_URLs = {
 		"train": "https://huggingface.co/datasets/CUHK-CSE/wider_face/resolve/main/data/WIDER_train.zip",
-		"validation": "https://huggingface.co/datasets/CUHK-CSE/wider_face/resolve/main/data/WIDER_val.zip",
+		"val": "https://huggingface.co/datasets/CUHK-CSE/wider_face/resolve/main/data/WIDER_val.zip",
 		"test": "https://huggingface.co/datasets/CUHK-CSE/wider_face/resolve/main/data/WIDER_test.zip"
 	}
 	main(datasets_URLs)
