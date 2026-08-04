@@ -42,6 +42,7 @@ if __name__ == "__main__":
 	datasets_URLs = {
 		"train": "https://huggingface.co/datasets/CUHK-CSE/wider_face/resolve/main/data/WIDER_train.zip",
 		"val": "https://huggingface.co/datasets/CUHK-CSE/wider_face/resolve/main/data/WIDER_val.zip",
-		"test": "https://huggingface.co/datasets/CUHK-CSE/wider_face/resolve/main/data/WIDER_test.zip"
+		"test": "https://huggingface.co/datasets/CUHK-CSE/wider_face/resolve/main/data/WIDER_test.zip",
+		"annotation": "http://shuoyang1213.me/WIDERFACE/support/bbx_annotation/wider_face_split.zip"
 	}
 	main(datasets_URLs)
