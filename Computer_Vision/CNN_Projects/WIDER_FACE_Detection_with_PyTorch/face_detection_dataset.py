@@ -1,5 +1,5 @@
 # dataset class for face detection task
-# target - tuple of bounding boxes(bbx) tuples 
+# target - list of bounding boxes(bbxs) lists 
 # targets - in wider face annotation file
 import torch
 from torch.utils.data import Dataset
@@ -11,8 +11,9 @@ class Wider_Face_Detection_Dataset(Dataset):
 	def __init__(self, target_path: Path, dataset_annotation_path: Path, transform = None):
 		self.paths = list(target_path.glob("*/*.jpg"))
 		self.dataset_annotation_path = dataset_annotation_path
-		self.dataset_annotation_text = self.get_annotation_file_text()
-		print(type(self.dataset_annotation_text))
+		if self.dataset_annotation_path:
+			self.dataset_annotation_text = self.get_annotation_file_text()
+		self.transform = transform
 		self.path_to_bbx_info = {}
 
 	def load_image(self, index: int):
@@ -22,14 +23,15 @@ class Wider_Face_Detection_Dataset(Dataset):
 	def __len__(self) -> int:
 		return len(self.paths)
 
-	def __getitem__(self, index: int) -> tuple[torch.Tensor, tuple[tuple]]:
-		# TODO: create method - add transform obj
-		# return image tensor, [bbx1[x1, y1, w, h], ..., bbxn[x1, y1, w, h]] as target
-		pass
-
-	def define_path_to_bbx_dataset_info(self):
-		self.path_to_bbx_info["path"] = path
-		self.path_to_bbx_info["bbx"] = self.get_image_bbxs(path)
+	def __getitem__(self, index: int) -> tuple[torch.Tensor, list[list]]:
+		image = self.load_image(index)
+		if self.transform:
+			image = self.transform(image)
+		if self.dataset_annotation_path:
+			image_bbxs = self.get_image_bbxs(self.paths[index])
+			return image, image_bbxs
+		else:
+			return image
 
 	def get_annotation_file_text(self):
 		with open(self.dataset_annotation_path, "rt") as ant_f:
@@ -61,4 +63,3 @@ if __name__ == "__main__":
 		Path("data/WIDER_sets/WIDER_val/images"),
 		Path("data/WIDER_sets/wider_face_split/wider_face_val_bbx_gt.txt")
 	)
-	face_detection_dataset.define_path_to_bbx_dataset_info()
