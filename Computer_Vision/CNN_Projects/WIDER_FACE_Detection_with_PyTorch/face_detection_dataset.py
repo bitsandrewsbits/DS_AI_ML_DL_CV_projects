@@ -3,6 +3,7 @@
 # targets - in wider face annotation file
 import torch
 from torch.utils.data import Dataset
+from torchvision.tv_tensors import BoundingBoxes
 from pathlib import Path
 from PIL import Image
 import re
@@ -23,12 +24,13 @@ class Wider_Face_Detection_Dataset(Dataset):
 	def __len__(self) -> int:
 		return len(self.paths)
 
-	def __getitem__(self, index: int) -> tuple[torch.Tensor, list[list]]:
+	def __getitem__(self, index: int) -> tuple[torch.Tensor, list]:
 		image = self.load_image(index)
 		if self.transform:
 			image = self.transform(image)
 		if self.dataset_annotation_path:
 			image_bbxs = self.get_image_bbxs(self.paths[index])
+			# TODO: use BoundingBox obj for bbx, return list of these objects.
 			return image, image_bbxs
 		else:
 			return image
@@ -55,7 +57,6 @@ class Wider_Face_Detection_Dataset(Dataset):
 
 	def get_image_filename_without_extension(self, path: Path):
 		image_filename = str(path).split('/')[-1]
-		print("Target file:", image_filename)
 		return image_filename.split('.')[0]
 
 if __name__ == "__main__":
