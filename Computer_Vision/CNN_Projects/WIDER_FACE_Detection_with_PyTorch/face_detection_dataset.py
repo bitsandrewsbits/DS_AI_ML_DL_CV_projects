@@ -30,8 +30,11 @@ class Wider_Face_Detection_Dataset(Dataset):
 			image = self.transform(image)
 		if self.dataset_annotation_path:
 			image_bbxs = self.get_image_bbxs(self.paths[index])
-			# TODO: use BoundingBox obj for bbx, return list of these objects.
-			return image, image_bbxs
+			bbxs_obj = BoundingBoxes(
+				data = image_bbxs, format = "XYWH",
+				canvas_size = (image.shape[1], image.shape[2])
+			)
+			return image, bbxs_obj
 		else:
 			return image
 
@@ -39,7 +42,7 @@ class Wider_Face_Detection_Dataset(Dataset):
 		with open(self.dataset_annotation_path, "rt") as ant_f:
 			return ant_f.read()
 
-	def get_image_bbxs(self, path: Path):
+	def get_image_bbxs(self, path: Path) -> list[list]:
 		image_bbxs_text = self.get_image_bbx_text(path)
 		splitted_bbxs_text_by_lines = image_bbxs_text.split('\n')[:-1]
 		bbxs_x1_y1_w_h = []
