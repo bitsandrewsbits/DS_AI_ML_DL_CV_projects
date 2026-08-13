@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from face_detection_dataset import Wider_Face_Detection_Dataset
 
 class Datasets_Praparation:
-	def __init__(self, image_size = (64, 64), batch_size = 32):
+	def __init__(self, image_size = (64, 64), batch_size = 32, task = "one_face"):
 		self.data_root_path = Path("data/WIDER_sets")
 		self.data_pathes = {
 			"train": self.data_root_path / "WIDER_train" / "images",
@@ -38,6 +38,7 @@ class Datasets_Praparation:
 			"val": '',
 			"test": ''
 		}
+		self.detection_task = task
 
 	def main(self):
 		for dataset_type, data_path in self.data_pathes.items():
@@ -77,7 +78,8 @@ class Datasets_Praparation:
 if __name__ == "__main__":
 	datasets_prep = Datasets_Praparation(
 		image_size = (224, 224),
-		batch_size = 2
+		batch_size = 2,
+		task = "one_face"
 	)
 	datasets_prep.main()
-	datasets_prep.inspect_train_dataloader_struct()
+	# datasets_prep.inspect_train_dataloader_struct()
