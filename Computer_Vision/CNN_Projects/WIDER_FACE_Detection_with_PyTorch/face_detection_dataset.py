@@ -9,13 +9,13 @@ from PIL import Image
 import re
 
 class Wider_Face_Detection_Dataset(Dataset):
-	def __init__(self, target_path: Path, dataset_annotation_path: Path, transform = None):
+	def __init__(self, target_path: Path, dataset_annotation_path: Path, transform = None, task = "one_face"):
 		self.paths = list(target_path.glob("*/*.jpg"))
 		self.dataset_annotation_path = dataset_annotation_path
 		if self.dataset_annotation_path:
 			self.dataset_annotation_text = self.get_annotation_file_text()
 		self.transform = transform
-		self.path_to_bbx_info = {}
+		self.detection_task = task
 
 	def load_image(self, index: int):
 		image_path = self.paths[index]
@@ -50,7 +50,10 @@ class Wider_Face_Detection_Dataset(Dataset):
 			bbx_parameters = bbx_line.split(' ')
 			bbx_x1_y1_w_h = [int(param) for param in bbx_parameters[:4]]
 			bbxs_x1_y1_w_h.append(bbx_x1_y1_w_h)
-		return bbxs_x1_y1_w_h
+		if self.detection_task == "one_face":
+			return [bbxs_x1_y1_w_h[0]]
+		elif self.detection_task == "all_image_faces":
+			return bbxs_x1_y1_w_h
 
 	def get_image_bbx_text(self, path: Path):
 		image_filename = self.get_image_filename_without_extension(path)
