@@ -1,5 +1,7 @@
 # dataset class for face detection task
-# target - list of bounding boxes(bbxs) lists 
+# target-options: 
+#	1) one face bbx - x, y, w, h
+# 	2) all faces from image
 # targets - in wider face annotation file
 import torch
 from torch.utils.data import Dataset
