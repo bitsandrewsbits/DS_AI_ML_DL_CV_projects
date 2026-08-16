@@ -67,7 +67,7 @@ class Datasets_Praparation:
 		for image, bbxs_obj in batch:
 			image_batch.append(image)
 			label_batch.append(bbxs_obj)
-		return image_batch, label_batch
+		return torch.stack(image_batch), torch.stack(label_batch)
 
 	def inspect_train_dataloader_struct(self):
 		sample_train_batch = next(iter(self.dataloaders["train"]))
@@ -82,4 +82,4 @@ if __name__ == "__main__":
 		task = "one_face"
 	)
 	datasets_prep.main()
-	# datasets_prep.inspect_train_dataloader_struct()
+	datasets_prep.inspect_train_dataloader_struct()
