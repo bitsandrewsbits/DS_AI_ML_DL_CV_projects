@@ -65,9 +65,34 @@ class Face_Detection_CNN(nn.Module):
 		conv_block_1_out = self.conv_block_1(test_set)
 		conv_block_2_out = self.conv_block_2(conv_block_1_out)
 		result_flatten_shape = 1
-		for one_dim_size in conv_block_2_out.shape:
+		conv_block_2_out_shape = conv_block_2_out.shape[1:]
+		for one_dim_size in conv_block_2_out_shape:
 			result_flatten_shape *= one_dim_size
 		return result_flatten_shape
 
+	def forward(self, set_x):
+		conv_block_1_out = self.conv_block_1(set_x)
+		conv_block_2_out = self.conv_block_2(conv_block_1_out)
+		face_bbx_result = self.face_detection_block(conv_block_2_out)
+		return face_bbx_result
+
 if __name__ == "__main__":
-	cnn_face_detect = Face_Detection_CNN(3, 10, 4, 32, (224, 224))
+	INPUT_SHAPE = 3
+	HIDDEN_UNITS = 10
+	OUTPUT_SHAPE = 4
+	BATCH_SIZE = 10
+	IMAGE_W_H = (224, 224)
+	cnn_face_detect = Face_Detection_CNN(
+		INPUT_SHAPE, HIDDEN_UNITS,
+		OUTPUT_SHAPE, BATCH_SIZE,
+		IMAGE_W_H
+	)
+	test_set = torch.zeros(
+		size = (
+			BATCH_SIZE, INPUT_SHAPE,
+			IMAGE_W_H[0],
+			IMAGE_W_H[1]
+		)
+	)
+	test_result = cnn_face_detect(test_set)
+	print("Test pred results:", test_result)
