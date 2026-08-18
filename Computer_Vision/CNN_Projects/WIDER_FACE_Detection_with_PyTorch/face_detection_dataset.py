@@ -59,9 +59,9 @@ class Wider_Face_Detection_Dataset(Dataset):
 
 	def get_image_bbx_text(self, path: Path):
 		image_filename = self.get_image_filename_without_extension(path)
-		image_bbxs_lines_start_end_regex = rf"({image_filename}\.jpg\n.*?\n)([0-9 \n]*?)([0-9]{1,}?--.*?\.jpg\n)"
+		image_bbxs_lines_start_end_regex = rf"({image_filename}\.jpg\n.*?\n)([0-9 \n]*)"
 		find_result = re.findall(image_bbxs_lines_start_end_regex, self.dataset_annotation_text)
-		return find_result[0][1:-1][0]
+		return find_result[0][1:][0]
 
 	def get_image_filename_without_extension(self, path: Path):
 		image_filename = str(path).split('/')[-1]
