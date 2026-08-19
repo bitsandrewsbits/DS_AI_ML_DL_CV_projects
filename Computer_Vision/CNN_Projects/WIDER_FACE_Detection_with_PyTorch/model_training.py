@@ -54,11 +54,12 @@ class Model_Training:
 		return valid_loss
 
 if __name__ == "__main__":
-	BATCH_SIZE = 10
+	BATCH_SIZE = 32
 	datasets_prep = pdc.Datasets_Praparation(
 		image_size = (224, 224),
 		batch_size = BATCH_SIZE,
-		task = "one_face"
+		task = "one_face",
+		datasets_sizes = {"train": 1000, "val": 50, "test": 100}
 	)
 	datasets_prep.main()
 	face_detect_dataloaders = datasets_prep.dataloaders
