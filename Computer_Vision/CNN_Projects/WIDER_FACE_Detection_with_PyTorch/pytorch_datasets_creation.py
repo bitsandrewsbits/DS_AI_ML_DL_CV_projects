@@ -9,7 +9,9 @@ from torch.utils.data import DataLoader
 from face_detection_dataset import Wider_Face_Detection_Dataset
 
 class Datasets_Praparation:
-	def __init__(self, image_size = (64, 64), batch_size = 32, task = "one_face"):
+	def __init__(
+	self, image_size = (64, 64), batch_size = 32,
+	task = "one_face", datasets_sizes: dict[int] = {"train": "all", "val": "all", "test": "all"}):
 		self.data_root_path = Path("data/WIDER_sets")
 		self.data_pathes = {
 			"train": self.data_root_path / "WIDER_train" / "images",
@@ -39,14 +41,16 @@ class Datasets_Praparation:
 			"test": ''
 		}
 		self.detection_task = task
+		self.datasets_sizes = datasets_sizes
 
 	def main(self):
 		for dataset_type, data_path in self.data_pathes.items():
 			self.pytorch_datasets[dataset_type] = Wider_Face_Detection_Dataset(
 				data_path, self.data_annotation_paths[dataset_type],
-				self.image_transforms
+				self.image_transforms,
+				self.detection_task,
+				self.datasets_sizes[dataset_type]
 			)
-		train_sample = self.pytorch_datasets["train"][0]
 		for dataset_type in self.dataloaders.keys():
 			if dataset_type != "test":
 				self.dataloaders[dataset_type] = DataLoader(
