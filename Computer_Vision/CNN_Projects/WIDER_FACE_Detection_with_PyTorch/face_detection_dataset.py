@@ -9,10 +9,17 @@ from torchvision.tv_tensors import BoundingBoxes
 from pathlib import Path
 from PIL import Image
 import re
+import random
 
 class Wider_Face_Detection_Dataset(Dataset):
-	def __init__(self, target_path: Path, dataset_annotation_path: Path, transform = None, task = "one_face"):
-		self.paths = list(target_path.glob("*/*.jpg"))
+	def __init__(self, target_path: Path, dataset_annotation_path: Path, transform = None, task = "one_face", dataset_size: int = "all"):
+		self.dataset_size = dataset_size
+		self.all_paths = list(target_path.glob("*/*.jpg"))
+		if dataset_size == "all":
+			self.paths = self.all_paths
+		else:
+			self.paths = random.sample(self.all_paths, self.dataset_size)
+			print(len(self.paths))
 		self.dataset_annotation_path = dataset_annotation_path
 		if self.dataset_annotation_path:
 			self.dataset_annotation_text = self.get_annotation_file_text()
