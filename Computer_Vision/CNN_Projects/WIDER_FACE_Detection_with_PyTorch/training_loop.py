@@ -1,4 +1,4 @@
-# model training
+# model training loop
 import torch
 from torch.optim import Adam
 from torch.nn import CrossEntropyLoss
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
 	face_detect_model = cofdm.Face_Detection_CNN(
 		input_shape = 3,
-		hidden_units = 10,
+		hidden_units = 32,
 		output_shape = 4,
 		batch_size = BATCH_SIZE,
 		image_wh = (224, 224)
