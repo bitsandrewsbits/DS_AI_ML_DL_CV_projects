@@ -2,7 +2,7 @@
 import torch
 from torch import nn
 
-class Face_Detection_CNN(nn.Module):
+class One_Face_Detection_CNN(nn.Module):
 	def __init__(self, input_shape, hidden_units, output_shape = 4, batch_size = 32, image_wh = (64, 64)):
 		super().__init__()
 		self.input_size = input_shape
@@ -82,7 +82,7 @@ if __name__ == "__main__":
 	OUTPUT_SHAPE = 4
 	BATCH_SIZE = 10
 	IMAGE_W_H = (224, 224)
-	cnn_face_detect = Face_Detection_CNN(
+	cnn_face_detect = One_Face_Detection_CNN(
 		INPUT_SHAPE, HIDDEN_UNITS,
 		OUTPUT_SHAPE, BATCH_SIZE,
 		IMAGE_W_H
