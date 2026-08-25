@@ -7,15 +7,18 @@ import pytorch_datasets_creation as pdc
 import CNN_one_face_detection_model as cofdm
 
 class Model_Training:
-	def __init__(self, model_obj, dataloaders: dict[torch.utils.data.DataLoader]):
+	def __init__(self, model_obj, dataloaders: dict[torch.utils.data.DataLoader],
+	learning_rate = 0.01, epochs = 3):
 		self.compute_device = "cuda" if torch.cuda.is_available() else "cpu"
 		self.face_detect_model = model_obj.to(self.compute_device)
 		self.dataloaders = dataloaders
 		self.loss_func = CrossEntropyLoss()
+		self.learning_rate = learning_rate
 		self.optimizer = Adam(
-			params = self.face_detect_model.parameters(), lr = 0.001
+			params = self.face_detect_model.parameters(),
+			lr = self.learning_rate
 		)
-		self.epochs = 3
+		self.epochs = epochs
 
 	def train_model(self):
 		for epoch in range(1, self.epochs + 1):
@@ -64,7 +67,7 @@ if __name__ == "__main__":
 	datasets_prep.main()
 	face_detect_dataloaders = datasets_prep.dataloaders
 
-	face_detect_model = cofdm.Face_Detection_CNN(
+	face_detect_model = cofdm.One_Face_Detection_CNN(
 		input_shape = 3,
 		hidden_units = 32,
 		output_shape = 4,
@@ -74,6 +77,8 @@ if __name__ == "__main__":
 
 	model_train = Model_Training(
 		model_obj = face_detect_model,
-		dataloaders = face_detect_dataloaders
+		dataloaders = face_detect_dataloaders,
+		learning_rate = 0.1,
+		epochs = 20
 	)
 	model_train.train_model()
