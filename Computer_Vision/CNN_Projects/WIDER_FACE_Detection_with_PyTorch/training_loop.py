@@ -1,7 +1,7 @@
 # model training loop
 import torch
 from torch.optim import Adam
-from torch.nn import CrossEntropyLoss
+from torch.nn import SmoothL1Loss
 
 import pytorch_datasets_creation as pdc
 import CNN_one_face_detection_model as cofdm
@@ -12,7 +12,7 @@ class Model_Training:
 		self.compute_device = "cuda" if torch.cuda.is_available() else "cpu"
 		self.face_detect_model = model_obj.to(self.compute_device)
 		self.dataloaders = dataloaders
-		self.loss_func = CrossEntropyLoss()
+		self.loss_func = SmoothL1Loss()
 		self.learning_rate = learning_rate
 		self.optimizer = Adam(
 			params = self.face_detect_model.parameters(),
