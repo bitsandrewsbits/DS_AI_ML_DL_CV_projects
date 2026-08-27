@@ -28,18 +28,15 @@ def main():
 	)
 	input_args.add_argument(
 		"-tss", "--train_set_size",
-		help = "Enter a size of train set.",
-		required = True
+		help = "Enter a size of train set."
 	)
 	input_args.add_argument(
 		"-vss", "--validation_set_size",
-		help = "Enter a size of validation set.",
-		required = True
+		help = "Enter a size of validation set."
 	)
 	input_args.add_argument(
 		"-ttss", "--test_set_size",
-		help = "Enter a size of test set.",
-		required = True
+		help = "Enter a size of test set."
 	)
 	input_args.add_argument(
 		"-bsz", "--batch_size",
@@ -68,10 +65,20 @@ def main():
 	batch_size = int(received_args.batch_size)
 	image_width = int(received_args.image_width)
 	image_height = int(received_args.image_height)
-	train_size = int(received_args.train_set_size)
-	valid_size = int(received_args.validation_set_size)
-	test_size = int(received_args.test_set_size)
-	
+
+	if received_args.train_set_size:
+		train_size = int(received_args.train_set_size)
+	else:
+		train_size = "all"
+	if received_args.validation_set_size:
+		valid_size = int(received_args.validation_set_size)
+	else:
+		valid_size = "all"
+	if received_args.test_set_size:
+		test_size = int(received_args.test_set_size)
+	else:
+		test_size = "all"
+
 	learning_rate = float(received_args.learning_rate)
 	hidden_units = int(received_args.hidden_units)
 	
