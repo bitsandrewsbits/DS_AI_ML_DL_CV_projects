@@ -1,3 +1,5 @@
 requests
 torch
 torchvision
+matplotlib
+PyQt5
