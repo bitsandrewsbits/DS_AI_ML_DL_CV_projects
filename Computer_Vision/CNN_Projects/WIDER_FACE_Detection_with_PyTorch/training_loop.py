@@ -2,10 +2,14 @@
 import torch
 from torch.optim import Adam
 from torch.nn import SmoothL1Loss
+import matplotlib
+matplotlib.use('qt5agg')
+import matplotlib.pyplot as plt
 
 import pytorch_datasets_creation as pdc
 import CNN_one_face_detection_model as cofdm
 
+# TODO: save train/val loss and plot/save loss curves
 class Model_Training:
 	def __init__(self, model_obj, dataloaders: dict[torch.utils.data.DataLoader],
 	learning_rate = 0.01, epochs = 3):
@@ -19,6 +23,9 @@ class Model_Training:
 			lr = self.learning_rate
 		)
 		self.epochs = epochs
+		self.train_losses = []
+		self.eval_losses = []
+		self.epochs_nums = [i for i in range(1, epochs + 1)]
 
 	def train_model(self):
 		for epoch in range(1, self.epochs + 1):
@@ -27,6 +34,12 @@ class Model_Training:
 			print(
 				f"[INFO] Epoch #{epoch}: train_loss = {epoch_loss}, valid_loss = {epoch_val_loss}"
 			)
+			self.train_losses.append(epoch_loss)
+			self.eval_losses.append(epoch_val_loss)
+
+		self.show_train_loss_curve_plot()
+		self.show_eval_loss_curve_plot()
+		plt.show()
 
 	def train_step(self):
 		self.face_detect_model.train()
@@ -55,6 +68,20 @@ class Model_Training:
 				valid_loss += val_batch_loss
 		valid_loss = round(valid_loss.item() / len(self.dataloaders["val"]), 3)
 		return valid_loss
+
+	def show_train_loss_curve_plot(self):
+		plt.plot(self.epochs_nums, self.train_losses, label = 'train-loss')
+		plt.xlabel('epoch')
+		plt.ylabel('loss')
+		plt.legend()
+		plt.grid(True)
+
+	def show_eval_loss_curve_plot(self):
+		plt.plot(self.epochs_nums, self.eval_losses, label = 'eval-loss')
+		plt.xlabel('epoch')
+		plt.ylabel('loss')
+		plt.legend()
+		plt.grid(True)
 
 if __name__ == "__main__":
 	BATCH_SIZE = 32
