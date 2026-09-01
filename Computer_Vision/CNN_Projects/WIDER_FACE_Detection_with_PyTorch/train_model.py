@@ -2,11 +2,14 @@
 import torch
 from torch.optim import Adam
 from torch.nn import CrossEntropyLoss
+import matplotlib.pyplot as plt
 import argparse
+from pathlib import Path
 
 import pytorch_datasets_creation as pdc
 import CNN_one_face_detection_model as cofdm
 import training_loop as tl
+import utils
 
 def main():
 	input_args = argparse.ArgumentParser()
@@ -114,5 +117,29 @@ def main():
 		)
 	
 	model_train.train_model()
+
+	root_trained_models_dir_path = Path("trained_models")
+
+	fig = plt.figure(figsize = (16.5, 8.5))
+	utils.show_loss_curve_plot(
+		epochs = model_train.epochs_nums,
+		losses = model_train.train_losses,
+		loss_type = "train"
+	)
+	utils.show_loss_curve_plot(
+		epochs = model_train.epochs_nums,
+		losses = model_train.eval_losses,
+		loss_type = "eval"
+	)
+	plt.show()
+	
+	trained_model_dir_path = utils.get_trained_model_dir(
+		trained_models_root_path = root_trained_models_dir_path,
+		cv_task = cv_task
+	)
+	utils.save_loss_curves_plot(
+		figure = fig,
+		trained_model_dir_path = trained_model_dir_path,
+	)
 
 main()
