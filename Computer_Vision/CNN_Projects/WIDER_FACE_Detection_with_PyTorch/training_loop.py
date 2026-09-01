@@ -36,10 +36,6 @@ class Model_Training:
 			self.train_losses.append(epoch_loss)
 			self.eval_losses.append(epoch_val_loss)
 
-		self.show_train_loss_curve_plot()
-		self.show_eval_loss_curve_plot()
-		plt.show()
-
 	def train_step(self):
 		self.face_detect_model.train()
 		epoch_loss = 0
