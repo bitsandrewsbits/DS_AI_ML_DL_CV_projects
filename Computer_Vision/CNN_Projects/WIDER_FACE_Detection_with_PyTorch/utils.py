@@ -1,4 +1,5 @@
 # additional functions after training models
+import torch
 import matplotlib.pyplot as plt
 from pathlib import Path
 import os
@@ -31,6 +32,8 @@ def save_loss_curves_plot(figure: plt.Figure, trained_model_dir_path: Path):
 	plot_path = trained_model_dir_path / "losses.png"
 	figure.savefig(plot_path)
 
-# TODO: create and test
-def save_model_weights(model: torch.nn.Module, model_name: str):
-	pass
+def save_model_weights(trained_model_dir_path: Path, model: torch.nn.Module):
+	model_name = "trained_model.pth"
+	saved_model_path = trained_model_dir_path / model_name
+	print(f"[INFO] Saving model to {saved_model_path}.")
+	torch.save(obj = model.state_dict(), f = saved_model_path)
