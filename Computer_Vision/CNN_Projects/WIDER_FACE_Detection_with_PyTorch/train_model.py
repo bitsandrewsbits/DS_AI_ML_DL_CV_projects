@@ -141,5 +141,10 @@ def main():
 		figure = fig,
 		trained_model_dir_path = trained_model_dir_path,
 	)
+	
+	utils.save_model_weights(
+		trained_model_dir_path = trained_model_dir_path,
+		model = model_train.face_detect_model
+	)
 
 main()
