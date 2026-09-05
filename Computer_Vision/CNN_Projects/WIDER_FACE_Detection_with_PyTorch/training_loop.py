@@ -2,6 +2,7 @@
 import torch
 from torch.optim import Adam
 from torch.nn import SmoothL1Loss
+from torchmetrics import MeanAbsoluteError
 import matplotlib
 matplotlib.use('qt5agg')
 import matplotlib.pyplot as plt
@@ -21,6 +22,7 @@ class Model_Training:
 			params = self.face_detect_model.parameters(),
 			lr = self.learning_rate
 		)
+		self.MAE_func = MeanAbsoluteError().to(self.compute_device)
 		self.epochs = epochs
 		self.train_losses = []
 		self.eval_losses = []
@@ -28,10 +30,11 @@ class Model_Training:
 
 	def train_model(self):
 		for epoch in range(1, self.epochs + 1):
-			epoch_loss = self.train_step()
-			epoch_val_loss = self.validation_step()
+			epoch_loss, epoch_MAE = self.train_step()
+			epoch_val_loss, epoch_val_MAE = self.validation_step()
 			print(
-				f"[INFO] Epoch #{epoch}: train_loss = {epoch_loss}, valid_loss = {epoch_val_loss}"
+				f"[INFO] Epoch #{epoch}: train_loss = {epoch_loss}, train_MAE = {epoch_MAE} |"
+				f" valid_loss = {epoch_val_loss}, valid_MAE = {epoch_val_MAE}"
 			)
 			self.train_losses.append(epoch_loss)
 			self.eval_losses.append(epoch_val_loss)
@@ -39,30 +42,38 @@ class Model_Training:
 	def train_step(self):
 		self.face_detect_model.train()
 		epoch_loss = 0
+		epoch_MAE = 0
 		for image_batch, label_batch in self.dataloaders["train"]:
 			image_batch = image_batch.to(self.compute_device)
 			label_batch = label_batch.to(self.compute_device).squeeze().to(torch.float16)
 			pred_bbx_x_y_w_h = self.face_detect_model(image_batch)
 			batch_loss = self.loss_func(pred_bbx_x_y_w_h, label_batch)
+			batch_MAE = self.MAE_func(pred_bbx_x_y_w_h, label_batch)
 			self.optimizer.zero_grad()
 			batch_loss.backward()
 			self.optimizer.step()
 			epoch_loss += batch_loss
+			epoch_MAE += batch_MAE
 		epoch_loss = round(epoch_loss.item() / len(self.dataloaders["train"]), 3)
-		return epoch_loss
+		epoch_MAE = round(epoch_MAE.item() / len(self.dataloaders["train"]), 3)
+		return epoch_loss, epoch_MAE
 
 	def validation_step(self):
 		self.face_detect_model.eval()
 		valid_loss = 0
+		valid_MAE = 0
 		with torch.inference_mode():
 			for image_batch, label_batch in self.dataloaders["val"]:
 				image_batch = image_batch.to(self.compute_device)
 				label_batch = label_batch.to(self.compute_device).squeeze().to(torch.float16)
 				pred_bbx_x_y_w_h = self.face_detect_model(image_batch)
 				val_batch_loss = self.loss_func(pred_bbx_x_y_w_h, label_batch)
+				val_batch_MAE = self.MAE_func(pred_bbx_x_y_w_h, label_batch)
 				valid_loss += val_batch_loss
+				valid_MAE += val_batch_MAE
 		valid_loss = round(valid_loss.item() / len(self.dataloaders["val"]), 3)
-		return valid_loss
+		valid_MAE = round(valid_MAE.item() / len(self.dataloaders["val"]), 3)
+		return valid_loss, valid_MAE
 
 if __name__ == "__main__":
 	BATCH_SIZE = 32
