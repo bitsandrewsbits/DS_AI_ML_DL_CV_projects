@@ -4,10 +4,29 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import os
 
-def show_loss_curve_plot(epochs: list, losses: list, loss_type: str):
-	plt.plot(epochs, losses, label = f'{loss_type}-loss')
+def get_loss_curves_figure(epochs: list, losses: dict[list]):
+	fig = plt.figure(figsize = (16.5, 8.5))
+	for loss_type in losses:
+		show_loss_curve_plot(epochs, losses[loss_type], loss_type)
+	return fig
+
+def get_MAE_curves_figure(epochs: list, MAEs: dict[list]):
+	fig = plt.figure(figsize = (16.5, 8.5))
+	for MAE_type in MAEs:
+		show_MAE_curve_plot(epochs, MAEs[MAE_type], MAE_type)
+	return fig
+
+def show_loss_curve_plot(epochs: list, loss: list, loss_type: str):
+	plt.plot(epochs, loss, label = f'{loss_type}-loss')
 	plt.xlabel('epoch')
 	plt.ylabel('loss')
+	plt.legend()
+	plt.grid(True)
+
+def show_MAE_curve_plot(epochs: list, MAE: list, MAE_type: str):
+	plt.plot(epochs, MAE, label = f'{MAE_type}-MAE')
+	plt.xlabel('epoch')
+	plt.ylabel('MAE')
 	plt.legend()
 	plt.grid(True)
 
