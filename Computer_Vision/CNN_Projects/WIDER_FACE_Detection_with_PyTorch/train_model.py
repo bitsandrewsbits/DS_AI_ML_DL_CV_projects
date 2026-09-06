@@ -120,16 +120,21 @@ def main():
 
 	root_trained_models_dir_path = Path("trained_models")
 
-	fig = plt.figure(figsize = (16.5, 8.5))
-	utils.show_loss_curve_plot(
-		epochs = model_train.epochs_nums,
-		losses = model_train.train_losses,
-		loss_type = "train"
+	loss_fig = utils.get_loss_curves_figure(
+		model_train.epochs_nums,
+		{
+			"train": model_train.train_losses,
+			"eval": model_train.eval_losses
+		}
 	)
-	utils.show_loss_curve_plot(
-		epochs = model_train.epochs_nums,
-		losses = model_train.eval_losses,
-		loss_type = "eval"
+	plt.show()
+
+	MAE_fig = utils.get_MAE_curves_figure(
+		model_train.epochs_nums,
+		{
+			"train": model_train.train_MAEs,
+			"eval": model_train.eval_MAEs
+		}
 	)
 	plt.show()
 	
@@ -138,7 +143,7 @@ def main():
 		cv_task = cv_task
 	)
 	utils.save_loss_curves_plot(
-		figure = fig,
+		figure = loss_fig,
 		trained_model_dir_path = trained_model_dir_path,
 	)
 	
