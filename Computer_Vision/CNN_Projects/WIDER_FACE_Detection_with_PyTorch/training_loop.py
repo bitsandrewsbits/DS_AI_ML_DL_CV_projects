@@ -26,6 +26,8 @@ class Model_Training:
 		self.epochs = epochs
 		self.train_losses = []
 		self.eval_losses = []
+		self.train_MAEs = []
+		self.eval_MAEs = []
 		self.epochs_nums = [i for i in range(1, epochs + 1)]
 
 	def train_model(self):
@@ -38,6 +40,8 @@ class Model_Training:
 			)
 			self.train_losses.append(epoch_loss)
 			self.eval_losses.append(epoch_val_loss)
+			self.train_MAEs.append(epoch_MAE)
+			self.eval_MAEs.append(epoch_val_MAE)
 
 	def train_step(self):
 		self.face_detect_model.train()
