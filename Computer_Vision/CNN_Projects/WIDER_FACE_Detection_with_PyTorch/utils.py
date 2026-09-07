@@ -51,6 +51,10 @@ def save_loss_curves_plot(figure: plt.Figure, trained_model_dir_path: Path):
 	plot_path = trained_model_dir_path / "losses.png"
 	figure.savefig(plot_path)
 
+def save_MAE_curves_plot(figure: plt.Figure, trained_model_dir_path: Path):
+	plot_path = trained_model_dir_path / "MAE_curves.png"
+	figure.savefig(plot_path)
+
 def save_model_weights(trained_model_dir_path: Path, model: torch.nn.Module):
 	model_name = "trained_model.pth"
 	saved_model_path = trained_model_dir_path / model_name
