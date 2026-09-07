@@ -146,6 +146,10 @@ def main():
 		figure = loss_fig,
 		trained_model_dir_path = trained_model_dir_path,
 	)
+	utils.save_MAE_curves_plot(
+		figure = MAE_fig,
+		trained_model_dir_path = trained_model_dir_path
+	)
 	
 	utils.save_model_weights(
 		trained_model_dir_path = trained_model_dir_path,
