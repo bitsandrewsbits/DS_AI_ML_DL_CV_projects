@@ -23,12 +23,14 @@ class Model_Training:
 			lr = self.learning_rate
 		)
 		self.MAE_func = MeanAbsoluteError().to(self.compute_device)
+		
 		self.epochs = epochs
+		self.epochs_nums = [i for i in range(1, epochs + 1)]
+		
 		self.train_losses = []
 		self.eval_losses = []
 		self.train_MAEs = []
 		self.eval_MAEs = []
-		self.epochs_nums = [i for i in range(1, epochs + 1)]
 
 	def train_model(self):
 		for epoch in range(1, self.epochs + 1):
@@ -78,6 +80,16 @@ class Model_Training:
 		valid_loss = round(valid_loss.item() / len(self.dataloaders["val"]), 3)
 		valid_MAE = round(valid_MAE.item() / len(self.dataloaders["val"]), 3)
 		return valid_loss, valid_MAE
+
+	def make_inference_on_image(self, image: torch.Tensor):
+		self.face_detect_model.eval()
+		with torch.inference_mode():
+			image_batch = image.unsqueeze(dim = 0)
+			inference_result = self.face_detect_model(image_batch)
+			x, y, w, h = inference_result[0]
+		return int(x.item()), int(y.item()), int(w.item()), int(h.item())
+
+	# TODO: save inference results as image with bounding box PNG-file.
 
 if __name__ == "__main__":
 	BATCH_SIZE = 32
