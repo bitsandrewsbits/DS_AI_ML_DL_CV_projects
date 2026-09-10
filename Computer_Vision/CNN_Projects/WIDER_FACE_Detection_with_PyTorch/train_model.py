@@ -117,6 +117,10 @@ def main():
 		)
 	
 	model_train.train_model()
+	test_image = next(iter(face_detect_dataloaders["test"]))
+	test_image = test_image.to(model_train.compute_device)
+	test_bbx_x_y_w_h = model_train.make_inference_on_image(test_image[0])
+	print("Test bounding box x, y, w, h:", test_bbx_x_y_w_h)
 
 	root_trained_models_dir_path = Path("trained_models")
 
