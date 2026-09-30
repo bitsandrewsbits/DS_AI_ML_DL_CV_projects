@@ -64,7 +64,6 @@ def main():
 	
 	received_args = input_args.parse_args()
 	cv_task = received_args.cv_task
-	
 	batch_size = int(received_args.batch_size)
 	image_width = int(received_args.image_width)
 	image_height = int(received_args.image_height)
@@ -84,7 +83,6 @@ def main():
 
 	learning_rate = float(received_args.learning_rate)
 	hidden_units = int(received_args.hidden_units)
-	
 	epochs = int(received_args.epochs)
 
 	datasets_prep = pdc.Datasets_Praparation(
@@ -101,10 +99,12 @@ def main():
 	face_detect_dataloaders = datasets_prep.dataloaders
 
 	if cv_task == "one_face":
+		INPUT_SHAPE = 3
+		OUTPUT_SHAPE = 4
 		face_detect_model = cofdm.One_Face_Detection_CNN(
-			input_shape = 3,
+			input_shape = INPUT_SHAPE,
 			hidden_units = hidden_units,
-			output_shape = 4,
+			output_shape = OUTPUT_SHAPE,
 			batch_size = batch_size,
 			image_wh = (image_width, image_height)
 		)
@@ -147,6 +147,21 @@ def main():
 		trained_models_root_path = root_trained_models_dir_path,
 		cv_task = cv_task
 	)
+
+	train_params = {
+		"cv_task": cv_task, "batch_size": batch_size,
+		"image_width": image_width, "image_height": image_height,
+		"train_size": train_size, "valid_size": valid_size,
+		"test_size": test_size, "learning_rate": learning_rate,
+		"input_shape": INPUT_SHAPE, "output_shape": OUTPUT_SHAPE,
+		"hidden_units": hidden_units, "epochs": epochs
+	}
+
+	utils.save_train_parameters(
+		parameters = train_params,
+		train_config_path = trained_model_dir_path
+	)
+
 	utils.save_loss_curves_plot(
 		figure = loss_fig,
 		trained_model_dir_path = trained_model_dir_path,
