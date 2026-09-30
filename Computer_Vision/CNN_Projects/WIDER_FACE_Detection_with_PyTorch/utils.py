@@ -3,6 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 from pathlib import Path
 import os
+import json
 
 def get_loss_curves_figure(epochs: list, losses: dict[list]):
 	fig = plt.figure(figsize = (16.5, 8.5))
@@ -60,3 +61,8 @@ def save_model_weights(trained_model_dir_path: Path, model: torch.nn.Module):
 	saved_model_path = trained_model_dir_path / model_name
 	print(f"[INFO] Saving model to {saved_model_path}.")
 	torch.save(obj = model.state_dict(), f = saved_model_path)
+
+def save_train_parameters(parameters: dict, train_config_path: Path):
+	train_config_name = "train_config.json"
+	with open(train_config_path / train_config_name, "w") as cf:
+		json.dump(parameters, cf)
