@@ -4,14 +4,18 @@ import torch
 from pathlib import Path
 
 class Face_Detector:
-	def __init__(self, trained_models_path: Path = None,
-	model_version: int, test_images_dir: str, cv_task: str):
+	def __init__(self, model_version: int, test_images_path: Path,
+		cv_task: str, trained_models_path: Path = None):
 		self.compute_device = "cuda" if torch.cuda.is_available() else "cpu"
 		self.trained_models_path = trained_models_path
 		self.trained_model_version = model_version
-		self.test_images_dir = test_images_dir
+		self.test_images_path = test_images_path
+		self.test_images_pathes = list(self.test_images_path.glob("*/*.jpg"))
 		self.cv_task = cv_task
 		self.trained_model = object
+
+	def load_model(self):
+		pass
 
 	def make_inference_on_image(self, image: torch.Tensor):
 		pred_bbx_params = self.get_pred_bounding_box_params(image)
@@ -42,3 +46,13 @@ class Face_Detector:
 		plt.title("Image with pred face bounding box")
 		plt.imshow(image_with_bbx)
 		plt.show()
+
+if __name__ == "__main__":
+	test_images_path = Path("data/WIDER_sets/WIDER_test/images")
+	trained_models_root_path = Path("trained_models")
+	face_detector = Face_Detector(
+		model_version = 2,
+		test_images_path = test_images_path,
+		cv_task = "one_face",
+		trained_models_path = trained_models_root_path
+	)
