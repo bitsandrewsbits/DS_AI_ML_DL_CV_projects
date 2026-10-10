@@ -66,3 +66,7 @@ def save_train_parameters(parameters: dict, train_config_path: Path):
 	train_config_name = "train_config.json"
 	with open(train_config_path / train_config_name, "w") as cf:
 		json.dump(parameters, cf)
+
+def get_train_config_params(train_config_path: Path) -> dict:
+	with open(train_config_path, "r") as cf:
+		return json.load(cf)
