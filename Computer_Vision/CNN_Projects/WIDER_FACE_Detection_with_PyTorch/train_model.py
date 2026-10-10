@@ -115,11 +115,6 @@ def main():
 			learning_rate = learning_rate,
 			epochs = epochs
 		)
-	# TODO: think, how and what input parameters write to JSONL?
-	# I save trained model, curves plots and 
-	# I need a configs: 
-	# 	first - for train-process(cv_task, epochs, batch_size, datasets_sizes, ...),
-	#	second - model NN architecture params(input size, hidden units, output size).
 	
 	model_train.train_model()
 
