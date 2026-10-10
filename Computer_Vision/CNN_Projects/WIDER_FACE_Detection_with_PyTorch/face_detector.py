@@ -5,6 +5,7 @@ from pathlib import Path
 import os
 
 import CNN_one_face_detection_model as ofdm
+import utils as u
 
 class Face_Detector:
 	def __init__(self, model_version: int, test_images_path: Path,
@@ -17,11 +18,12 @@ class Face_Detector:
 		self.test_images_path = test_images_path
 		self.test_images_pathes = list(self.test_images_path.glob("*/*.jpg"))
 		self.trained_model_weights_file = "trained_model.pth"
+		self.train_config_file = "train_config.json"
 		self.trained_model = object
 
 	def main(self):
 		if self.trained_model_path:
-			self.load_model()
+			self.load_custom_trained_model()
 
 	def get_trained_model_path(self) -> Path:
 		if self.trained_models_path:
@@ -34,11 +36,22 @@ class Face_Detector:
 			print("[WARN] Path to manually created-trained CNN was not defined.")
 			return None
 
-	def load_model(self):
+	def load_custom_trained_model(self):
 		if self.trained_model_weights_file in os.listdir(self.trained_model_path):
-			# TODO: think, how to init CNN object via training-config JSON file.
-			# TODO: think, how to load trained model weights and load to init CNN object.
-			pass
+			train_config_path = self.trained_model_path / self.train_config_file
+			train_config_params = u.get_train_config_params(train_config_path)
+			
+			self.trained_model = ofdm.One_Face_Detection_CNN(
+				train_config_params["input_shape"], train_config_params["hidden_units"],
+				train_config_params["output_shape"], train_config_params["batch_size"],
+				(train_config_params["image_width"], train_config_params["image_height"])
+			)
+			self.trained_model.load_state_dict(
+				state_dict = torch.load(
+					f = self.trained_model_path / self.trained_model_weights_file
+				)
+			)
+			print(self.trained_model)
 
 	def make_inference_on_image(self, image: torch.Tensor):
 		pred_bbx_params = self.get_pred_bounding_box_params(image)
