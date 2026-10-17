@@ -41,12 +41,29 @@ def get_trained_model_dir(trained_models_root_path: Path, cv_task: str) -> Path:
 	if trained_models_cv_task != 0:
 		current_training_num = len(trained_models_cv_task) + 1
 		trained_model_dirname = f"{trained_model_dirname_pattern}{current_training_num}"
+		if trained_model_dir_exists(trained_models_for_cv_task_root_path, trained_model_dirname):
+			print(f"[WARN] Trained model dirname - {trained_model_dirname} already exist!")
+			last_train_dir_number = get_last_training_dir_number(trained_models_cv_task)
+			trained_model_dirname = f"{trained_model_dirname_pattern}{last_train_dir_number + 1}"
+			print(f"Setup new trained dirname to - {trained_model_dirname}.")
 	else:
 		trained_model_dirname = f"{trained_model_dirname_pattern}0";
 	
 	trained_model_dir_path = trained_models_for_cv_task_root_path / trained_model_dirname
 	trained_model_dir_path.mkdir(parents = True, exist_ok = True)
 	return trained_model_dir_path
+
+def trained_model_dir_exists(trained_models_root_path: Path ,trained_model_dirname: str) -> bool:
+	if trained_model_dirname in os.listdir(trained_models_root_path):
+		return True
+	return False
+
+# TODO: think, how to do trains-dirs rotations for space saving
+
+def get_last_training_dir_number(dirs: list) -> int:
+	last_train_dirname = dirs[-1]
+	dir_number = int(last_train_dirname.split('_')[-1])
+	return dir_number
 
 def save_loss_curves_plot(figure: plt.Figure, trained_model_dir_path: Path):
 	plot_path = trained_model_dir_path / "losses.png"
