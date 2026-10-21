@@ -171,4 +171,5 @@ def main():
 		model = model_train.face_detect_model
 	)
 
-main()
+if __name__ == "__main__":
+	main()
