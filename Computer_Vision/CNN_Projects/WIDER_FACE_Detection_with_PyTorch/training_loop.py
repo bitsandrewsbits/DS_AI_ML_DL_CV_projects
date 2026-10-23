@@ -54,7 +54,7 @@ class Model_Training:
 		for image_batch, label_batch in self.dataloaders["train"]:
 			image_batch = image_batch.to(self.compute_device)
 			label_batch = label_batch.to(self.compute_device).squeeze().to(torch.float16)
-			pred_bbx_x_y_w_h = self.face_detect_model(image_batch)
+			pred_bbx_x_y_w_h = self.face_detect_model(image_batch).squeeze()
 			batch_loss = self.loss_func(pred_bbx_x_y_w_h, label_batch)
 			batch_MAE = self.MAE_func(pred_bbx_x_y_w_h, label_batch)
 			self.optimizer.zero_grad()
@@ -74,7 +74,7 @@ class Model_Training:
 			for image_batch, label_batch in self.dataloaders["val"]:
 				image_batch = image_batch.to(self.compute_device)
 				label_batch = label_batch.to(self.compute_device).squeeze().to(torch.float16)
-				pred_bbx_x_y_w_h = self.face_detect_model(image_batch)
+				pred_bbx_x_y_w_h = self.face_detect_model(image_batch).squeeze()
 				val_batch_loss = self.loss_func(pred_bbx_x_y_w_h, label_batch)
 				val_batch_MAE = self.MAE_func(pred_bbx_x_y_w_h, label_batch)
 				valid_loss += val_batch_loss
