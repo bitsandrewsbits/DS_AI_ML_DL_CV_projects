@@ -2,22 +2,30 @@
 import torch
 from torch.optim import Adam
 from torch.nn import SmoothL1Loss
+from torch.utils.tensorboard import SummaryWriter
 from torchmetrics import MeanAbsoluteError
 import matplotlib
 matplotlib.use('qtagg')
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
+from pathlib import Path
 
 import pytorch_datasets_creation as pdc
 import CNN_one_face_detection_model as cofdm
 
 class Model_Training:
-	def __init__(self, model_obj, dataloaders: dict[torch.utils.data.DataLoader],
+	def __init__(self, save_trained_model_path: Path, model_obj,
+	dataloaders: dict[torch.utils.data.DataLoader],
 	learning_rate = 0.01, epochs = 3):
+		self.save_trained_model_path = save_trained_model_path
+		self.training_model_logs_path = self.get_train_model_logs_path()
+		self.training_logs_writer = self.get_summary_writer()
+
 		self.compute_device = "cuda" if torch.cuda.is_available() else "cpu"
 		self.face_detect_model = model_obj.to(self.compute_device)
 		self.dataloaders = dataloaders
+		
 		self.loss_func = SmoothL1Loss()
 		self.learning_rate = learning_rate
 		self.optimizer = Adam(
@@ -35,6 +43,7 @@ class Model_Training:
 		self.eval_MAEs = []
 
 	def train_model(self):
+		# TODO: integrate logs writer to train pipeline.
 		for epoch in range(1, self.epochs + 1):
 			epoch_loss, epoch_MAE = self.train_step()
 			epoch_val_loss, epoch_val_MAE = self.validation_step()
@@ -82,6 +91,12 @@ class Model_Training:
 		valid_loss = round(valid_loss.item() / len(self.dataloaders["val"]), 3)
 		valid_MAE = round(valid_MAE.item() / len(self.dataloaders["val"]), 3)
 		return valid_loss, valid_MAE
+
+	def get_train_model_logs_path(self):
+		return self.save_trained_model_path / "training_logs"
+
+	def get_summary_writer(self):
+		return SummaryWriter(log_dir = self.training_model_logs_path)
 
 if __name__ == "__main__":
 	BATCH_SIZE = 32
