@@ -2,6 +2,7 @@ requests
 torch
 torchvision
 torchmetrics
+tensorboard
 matplotlib
 PyQt6
 opencv-python
