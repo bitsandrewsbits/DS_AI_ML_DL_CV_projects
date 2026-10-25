@@ -98,6 +98,13 @@ def main():
 	datasets_prep.main()
 	face_detect_dataloaders = datasets_prep.dataloaders
 
+	ROOT_TRAINED_MODELS_DIRNAME = "trained_models"
+	root_trained_models_dir_path = Path(ROOT_TRAINED_MODELS_DIRNAME)
+	save_trained_model_path = utils.get_trained_model_dir(
+		trained_models_root_path = root_trained_models_dir_path,
+		cv_task = cv_task
+	)
+	
 	if cv_task == "one_face":
 		INPUT_SHAPE = 3
 		OUTPUT_SHAPE = 4
@@ -110,15 +117,14 @@ def main():
 		)
 
 		model_train = tl.Model_Training(
+			save_trained_model_path = save_trained_model_path,
 			model_obj = face_detect_model,
 			dataloaders = face_detect_dataloaders,
 			learning_rate = learning_rate,
 			epochs = epochs
 		)
-	
-	model_train.train_model()
 
-	root_trained_models_dir_path = Path("trained_models")
+	model_train.train_model()
 
 	loss_fig = utils.get_loss_curves_figure(
 		model_train.epochs_nums,
@@ -138,11 +144,6 @@ def main():
 	)
 	plt.show()
 	
-	trained_model_dir_path = utils.get_trained_model_dir(
-		trained_models_root_path = root_trained_models_dir_path,
-		cv_task = cv_task
-	)
-
 	train_params = {
 		"cv_task": cv_task, "batch_size": batch_size,
 		"image_width": image_width, "image_height": image_height,
@@ -154,20 +155,20 @@ def main():
 
 	utils.save_train_parameters(
 		parameters = train_params,
-		train_config_path = trained_model_dir_path
+		train_config_path = save_trained_model_path
 	)
 
 	utils.save_loss_curves_plot(
 		figure = loss_fig,
-		trained_model_dir_path = trained_model_dir_path,
+		trained_model_dir_path = save_trained_model_path,
 	)
 	utils.save_MAE_curves_plot(
 		figure = MAE_fig,
-		trained_model_dir_path = trained_model_dir_path
+		trained_model_dir_path = save_trained_model_path
 	)
 	
 	utils.save_model_weights(
-		trained_model_dir_path = trained_model_dir_path,
+		trained_model_dir_path = save_trained_model_path,
 		model = model_train.face_detect_model
 	)
 
