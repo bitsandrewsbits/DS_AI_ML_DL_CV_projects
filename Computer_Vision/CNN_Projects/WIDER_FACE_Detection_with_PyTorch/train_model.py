@@ -133,7 +133,6 @@ def main():
 			"eval": model_train.eval_losses
 		}
 	)
-	plt.show()
 
 	MAE_fig = utils.get_MAE_curves_figure(
 		model_train.epochs_nums,
@@ -142,7 +141,6 @@ def main():
 			"eval": model_train.eval_MAEs
 		}
 	)
-	plt.show()
 	
 	train_params = {
 		"cv_task": cv_task, "batch_size": batch_size,
@@ -157,15 +155,16 @@ def main():
 		parameters = train_params,
 		train_config_path = save_trained_model_path
 	)
-
-	utils.save_loss_curves_plot(
-		figure = loss_fig,
-		trained_model_dir_path = save_trained_model_path,
-	)
-	utils.save_MAE_curves_plot(
-		figure = MAE_fig,
-		trained_model_dir_path = save_trained_model_path
-	)
+	# TODO: save custom plots to separate dir
+	
+	# utils.save_loss_curves_plot(
+	# 	figure = loss_fig,
+	# 	trained_model_dir_path = save_trained_model_path,
+	# )
+	# utils.save_MAE_curves_plot(
+	# 	figure = MAE_fig,
+	# 	trained_model_dir_path = save_trained_model_path
+	# )
 	
 	utils.save_model_weights(
 		trained_model_dir_path = save_trained_model_path,
