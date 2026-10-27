@@ -20,7 +20,7 @@ class Model_Training:
 	learning_rate = 0.01, epochs = 3):
 		self.save_trained_model_path = save_trained_model_path
 		self.training_model_logs_path = self.get_train_model_logs_path()
-		self.training_logs_writer = self.get_summary_writer()
+		self.training_logs_writer = ''
 
 		self.compute_device = "cuda" if torch.cuda.is_available() else "cpu"
 		self.face_detect_model = model_obj.to(self.compute_device)
@@ -44,6 +44,7 @@ class Model_Training:
 
 	def train_model(self):
 		# TODO: integrate logs writer to train pipeline.
+		self.training_logs_writer = self.get_summary_writer()
 		for epoch in range(1, self.epochs + 1):
 			epoch_loss, epoch_MAE = self.train_step()
 			epoch_val_loss, epoch_val_MAE = self.validation_step()
@@ -55,6 +56,24 @@ class Model_Training:
 			self.eval_losses.append(epoch_val_loss)
 			self.train_MAEs.append(epoch_MAE)
 			self.eval_MAEs.append(epoch_val_MAE)
+
+			self.training_logs_writer.add_scalars(
+				main_tag = "Loss",
+				tag_scalar_dict = {
+					"train": epoch_loss,
+					"valid": epoch_val_loss
+				},
+				global_step = epoch
+			)
+			self.training_logs_writer.add_scalars(
+				main_tag = "MAE",
+				tag_scalar_dict = {
+					"train": epoch_MAE,
+					"valid": epoch_val_MAE
+				},
+				global_step = epoch
+			)
+		self.training_logs_writer.close()
 
 	def train_step(self):
 		self.face_detect_model.train()
