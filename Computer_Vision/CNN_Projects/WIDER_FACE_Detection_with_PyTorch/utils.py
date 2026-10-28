@@ -54,15 +54,15 @@ def trained_model_dir_exists(trained_models_root_path: Path ,trained_model_dirna
 
 # TODO: think, how to do trains-dirs rotations for space saving
 
-# TODO: change save path for custom plots to separate dir
-def save_loss_curves_plot(figure: plt.Figure, trained_model_dir_path: Path):
-	plot_path = trained_model_dir_path / "losses.png"
-	figure.savefig(plot_path)
+def save_loss_curves_plot(figure: plt.Figure, trained_model_dir_path: Path, custom_plots_dirname: str):
+	plot_path = trained_model_dir_path / custom_plots_dirname
+	plot_path.mkdir(parents = True, exist_ok = True)
+	figure.savefig(plot_path / "losses.png")
 
-# TODO: change save path for custom plots to separate dir
-def save_MAE_curves_plot(figure: plt.Figure, trained_model_dir_path: Path):
-	plot_path = trained_model_dir_path / "MAE_curves.png"
-	figure.savefig(plot_path)
+def save_MAE_curves_plot(figure: plt.Figure, trained_model_dir_path: Path, custom_plots_dirname: str):
+	plot_path = trained_model_dir_path / custom_plots_dirname
+	plot_path.mkdir(parents = True, exist_ok = True)
+	figure.savefig(plot_path / "MAE_curves.png")
 
 def save_model_weights(trained_model_dir_path: Path, model: torch.nn.Module):
 	model_name = "trained_model.pth"
