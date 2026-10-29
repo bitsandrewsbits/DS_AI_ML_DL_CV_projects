@@ -173,5 +173,14 @@ def main():
 		model = model_train.face_detect_model
 	)
 
+	ROTATION_DIRS_AMOUNT = 5
+	STORED_TRAINED_MODELS_AMOUNT = 10
+	utils.remove_old_trained_models(
+		trained_models_root_path = root_trained_models_dir_path,
+		cv_task = cv_task,
+		latest_trained_models_amount = STORED_TRAINED_MODELS_AMOUNT,
+		rotation_dirs_amount = ROTATION_DIRS_AMOUNT
+	)
+
 if __name__ == "__main__":
 	main()
