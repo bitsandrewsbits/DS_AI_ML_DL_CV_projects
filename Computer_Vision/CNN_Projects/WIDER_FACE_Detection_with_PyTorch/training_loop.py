@@ -43,7 +43,6 @@ class Model_Training:
 		self.eval_MAEs = []
 
 	def train_model(self):
-		# TODO: integrate logs writer to train pipeline.
 		self.training_logs_writer = self.get_summary_writer()
 		for epoch in range(1, self.epochs + 1):
 			epoch_loss, epoch_MAE = self.train_step()
