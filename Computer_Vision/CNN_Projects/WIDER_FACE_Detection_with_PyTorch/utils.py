@@ -3,6 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 from pathlib import Path
 import os
+from shutil import rmtree
 from datetime import datetime
 import json
 
@@ -47,12 +48,29 @@ def get_trained_model_dir(trained_models_root_path: Path, cv_task: str) -> Path:
 def get_current_datetime():
 	return datetime.now().strftime("%d-%m-%Y(%H:%M:%S)")
 
-def trained_model_dir_exists(trained_models_root_path: Path ,trained_model_dirname: str) -> bool:
+def trained_model_dir_exists(trained_models_root_path: Path, trained_model_dirname: str) -> bool:
 	if trained_model_dirname in os.listdir(trained_models_root_path):
 		return True
 	return False
 
-# TODO: think, how to do trains-dirs rotations for space saving
+def remove_old_trained_models(trained_models_root_path: Path, cv_task: str,
+latest_trained_models_amount: int, rotation_dirs_amount: int):
+	saved_trained_models_path = trained_models_root_path / cv_task
+	sorted_trained_models_dirnames_by_date = get_sorted_trained_models_dirnames_by_date(
+		saved_trained_models_path
+	)
+	if len(sorted_trained_models_dirnames_by_date) < rotation_dirs_amount + latest_trained_models_amount:
+		print("[WARN] Small amount of trained models! Nothing will be removed.")
+	else:
+		target_dirnames_to_remove = sorted_trained_models_dirnames_by_date[:rotation_dirs_amount]
+		print(target_dirnames_to_remove)
+		print("[INFO] Removing old trained models...")
+		for target_dirname in target_dirnames_to_remove:
+			rmtree(saved_trained_models_path / target_dirname)
+
+def get_sorted_trained_models_dirnames_by_date(saved_models_path: Path) -> list:
+	trained_models_dirnames = os.listdir(saved_models_path)
+	return sorted(trained_models_dirnames)
 
 def save_loss_curves_plot(figure: plt.Figure, trained_model_dir_path: Path, custom_plots_dirname: str):
 	plot_path = trained_model_dir_path / custom_plots_dirname
@@ -78,3 +96,7 @@ def save_train_parameters(parameters: dict, train_config_path: Path):
 def get_train_config_params(train_config_path: Path) -> dict:
 	with open(train_config_path, "r") as cf:
 		return json.load(cf)
+
+if __name__ == "__main__":
+	saved_models_path = "trained_models/one_face"
+	get_sorted_trained_models_dirnames_by_date(saved_models_path)
