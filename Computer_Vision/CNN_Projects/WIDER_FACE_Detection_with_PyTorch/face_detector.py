@@ -15,12 +15,12 @@ import CNN_one_face_detection_model as ofdm
 import utils as u
 
 class Face_Detector:
-	def __init__(self, model_version: int, test_images_path: Path = None,
+	def __init__(self, training_datetime: str, test_images_path: Path = None,
 		cv_task: str = "one_face", trained_models_path: Path = None,
 		load_pretrained_model: bool = False, test_image_from_file: bool = True):
 		self.compute_device = "cuda" if torch.cuda.is_available() else "cpu"
 		self.cv_task = cv_task
-		self.trained_model_version = model_version
+		self.model_training_datetime = training_datetime
 		self.trained_models_path = trained_models_path
 		self.load_pretrained_model = load_pretrained_model
 		self.test_image_from_file = test_image_from_file
@@ -56,7 +56,7 @@ class Face_Detector:
 		if self.trained_models_path:
 			model_path = (
 				self.trained_models_path / self.cv_task / 
-				f"training_#_{self.trained_model_version}"
+				f"training_in_{self.model_training_datetime}"
 			)
 			return model_path
 		else:
@@ -134,7 +134,7 @@ if __name__ == "__main__":
 	test_images_path = Path("data/WIDER_sets/WIDER_test/images")
 	trained_models_root_path = Path("trained_models")
 	face_detector = Face_Detector(
-		model_version = 2,
+		training_datetime = "31-10-2026(17:05:24)",
 		test_images_path = test_images_path,
 		cv_task = "one_face",
 		trained_models_path = trained_models_root_path,
