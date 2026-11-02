@@ -68,6 +68,7 @@ latest_trained_models_amount: int, rotation_dirs_amount: int):
 		for target_dirname in target_dirnames_to_remove:
 			rmtree(saved_trained_models_path / target_dirname)
 
+# TODO: fix error with sorting by date(it's not working)
 def get_sorted_trained_models_dirnames_by_date(saved_models_path: Path) -> list:
 	trained_models_dirnames = os.listdir(saved_models_path)
 	return sorted(trained_models_dirnames)
