@@ -7,45 +7,17 @@ class One_Face_Detection_CNN(nn.Module):
 		super().__init__()
 		self.input_size = input_shape
 		self.image_width_height = image_wh
-		self.conv_block_1 = nn.Sequential(
-			nn.Conv2d(
-				in_channels = input_shape,
-				out_channels = hidden_units,
-				kernel_size = (3, 3),
-				padding = 1
-			),
-			nn.ReLU(),
-			nn.Conv2d(
-				in_channels = hidden_units,
-				out_channels = hidden_units,
-				kernel_size = (3, 3),
-				padding = 1
-			),
-			nn.ReLU(),
-			nn.MaxPool2d(
-				kernel_size = (2, 2),
-				stride = 1
-			)
+		self.conv_block_1 = self.get_Conv_MaxPool_block(
+			conv_layers = 5, input_shape = input_shape,
+			hidden_units = hidden_units, conv_kernel_size = 4,
+			max_pool_kernel_size = 2, conv_padding = 1,
+			max_pool_stride = 1, first_block = True
 		)
-		self.conv_block_2 = nn.Sequential(
-			nn.Conv2d(
-				in_channels = hidden_units,
-				out_channels = hidden_units,
-				kernel_size = (3, 3),
-				padding = 1
-			),
-			nn.ReLU(),
-			nn.Conv2d(
-				in_channels = hidden_units,
-				out_channels = hidden_units,
-				kernel_size = (3, 3),
-				padding = 1
-			),
-			nn.ReLU(),
-			nn.MaxPool2d(
-				kernel_size = (3, 3),
-				stride = 1
-			)
+		self.conv_block_2 = self.get_Conv_MaxPool_block(
+			conv_layers = 3, input_shape = input_shape,
+			hidden_units = hidden_units, conv_kernel_size = 5,
+			max_pool_kernel_size = 2, conv_padding = 1,
+			max_pool_stride = 1, first_block = False
 		)
 		self.batch_size = batch_size
 		self.flatter_size = self.get_input_features_size_for_linear_block()
@@ -69,6 +41,47 @@ class One_Face_Detection_CNN(nn.Module):
 		for one_dim_size in conv_block_2_out_shape:
 			result_flatten_shape *= one_dim_size
 		return result_flatten_shape
+
+	def get_Conv_MaxPool_block(self, conv_layers: int, input_shape: int,
+	hidden_units: int, conv_kernel_size: int, max_pool_kernel_size: int,
+	conv_padding: int, max_pool_stride: int, first_block = False) -> nn.Sequential:
+		layers_sequence = self.get_layers_sequence_in_block(conv_layers)
+		conv_pool_block = nn.Sequential()
+		first_conv_layer = True
+		for layer in layers_sequence:
+			if layer == "conv":
+				if first_block and first_conv_layer:
+					block_layer = nn.Conv2d(
+						in_channels = input_shape,
+						out_channels = hidden_units,
+						kernel_size = (conv_kernel_size, conv_kernel_size),
+						padding = conv_padding
+					)
+					first_conv_layer = False
+				else:
+					block_layer = nn.Conv2d(
+						in_channels = hidden_units,
+						out_channels = hidden_units,
+						kernel_size = (conv_kernel_size, conv_kernel_size),
+						padding = conv_padding
+					)
+			elif layer == "activation-f":
+				block_layer = nn.ReLU()
+			elif layer == "max_pool":
+				block_layer = nn.MaxPool2d(
+					kernel_size = (max_pool_kernel_size, max_pool_kernel_size),
+					stride = max_pool_stride
+				)
+			conv_pool_block.append(block_layer)
+		return conv_pool_block
+
+	def get_layers_sequence_in_block(self, conv_layers: int) -> list[str]:
+		layers_sequence = []
+		for _ in range(conv_layers):
+			layers_sequence.append("conv")
+			layers_sequence.append("activation-f")
+		layers_sequence.append("max_pool")
+		return layers_sequence
 
 	def forward(self, set_x):
 		conv_block_1_out = self.conv_block_1(set_x)
