@@ -8,13 +8,13 @@ class One_Face_Detection_CNN(nn.Module):
 		self.input_size = input_shape
 		self.image_width_height = image_wh
 		self.conv_block_1 = self.get_Conv_MaxPool_block(
-			conv_layers = 5, input_shape = input_shape,
+			conv_layers = 3, input_shape = input_shape,
 			hidden_units = hidden_units, conv_kernel_size = 4,
 			max_pool_kernel_size = 2, conv_padding = 1,
 			max_pool_stride = 1, first_block = True
 		)
 		self.conv_block_2 = self.get_Conv_MaxPool_block(
-			conv_layers = 3, input_shape = input_shape,
+			conv_layers = 2, input_shape = input_shape,
 			hidden_units = hidden_units, conv_kernel_size = 5,
 			max_pool_kernel_size = 2, conv_padding = 1,
 			max_pool_stride = 1, first_block = False
@@ -23,7 +23,10 @@ class One_Face_Detection_CNN(nn.Module):
 		self.flatter_size = self.get_input_features_size_for_linear_block()
 		self.face_detection_block = nn.Sequential(
 			nn.Flatten(),
-			nn.Linear(in_features = self.flatter_size, out_features = output_shape)
+			nn.Linear(in_features = self.flatter_size, out_features = 256),
+			nn.Linear(in_features = 256, out_features = 128),
+			nn.Dropout(0.3),
+			nn.Linear(in_features = 128, out_features = output_shape)
 		)
 
 	def get_input_features_size_for_linear_block(self):
@@ -40,6 +43,7 @@ class One_Face_Detection_CNN(nn.Module):
 		conv_block_2_out_shape = conv_block_2_out.shape[1:]
 		for one_dim_size in conv_block_2_out_shape:
 			result_flatten_shape *= one_dim_size
+		
 		return result_flatten_shape
 
 	def get_Conv_MaxPool_block(self, conv_layers: int, input_shape: int,
