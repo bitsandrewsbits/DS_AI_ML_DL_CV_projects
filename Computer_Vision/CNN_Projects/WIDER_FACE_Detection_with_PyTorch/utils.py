@@ -46,7 +46,7 @@ def get_trained_model_dir(trained_models_root_path: Path, cv_task: str) -> Path:
 	return trained_model_dir_path
 
 def get_current_datetime():
-	return datetime.now().strftime("%d-%m-%Y(%H:%M:%S)")
+	return datetime.now().strftime("%m-%d-%Y(%H:%M:%S)")
 
 def trained_model_dir_exists(trained_models_root_path: Path, trained_model_dirname: str) -> bool:
 	if trained_model_dirname in os.listdir(trained_models_root_path):
@@ -68,7 +68,6 @@ latest_trained_models_amount: int, rotation_dirs_amount: int):
 		for target_dirname in target_dirnames_to_remove:
 			rmtree(saved_trained_models_path / target_dirname)
 
-# TODO: fix error with sorting by date(it's not working)
 def get_sorted_trained_models_dirnames_by_date(saved_models_path: Path) -> list:
 	trained_models_dirnames = os.listdir(saved_models_path)
 	return sorted(trained_models_dirnames)
