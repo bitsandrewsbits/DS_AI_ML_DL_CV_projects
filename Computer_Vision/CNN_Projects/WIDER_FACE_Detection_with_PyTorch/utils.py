@@ -88,6 +88,16 @@ def save_model_weights(trained_model_dir_path: Path, model: torch.nn.Module):
 	print(f"[INFO] Saving model to {saved_model_path}.")
 	torch.save(obj = model.state_dict(), f = saved_model_path)
 
+def get_model_weights_size_in_GiB(model: torch.nn.Module) -> float:
+	model_weights_size_in_GiB = 0
+	for weights_tensor in model.state_dict().values():
+		weights_tensor_elems = weights_tensor.numel()
+		weigths_tensor_size_in_bytes = weights_tensor_elems * weights_tensor.element_size()
+		weigths_tensor_size_in_GiB = weigths_tensor_size_in_bytes / (2 ** 30)
+		model_weights_size_in_GiB += weigths_tensor_size_in_GiB
+	print("Trained model weights size(GiB):", round(model_weights_size_in_GiB, 3))
+	return round(model_weights_size_in_GiB, 3)
+
 def save_train_parameters(parameters: dict, train_config_path: Path):
 	train_config_name = "train_config.json"
 	with open(train_config_path / train_config_name, "w") as cf:
@@ -96,6 +106,25 @@ def save_train_parameters(parameters: dict, train_config_path: Path):
 def get_train_config_params(train_config_path: Path) -> dict:
 	with open(train_config_path, "r") as cf:
 		return json.load(cf)
+
+def get_gpu_memory_state() -> dict:
+    free, total = torch.cuda.mem_get_info()
+    gigabyte_coefficient = 2 ** 30
+    gpu_state = {
+		"GPU_device": torch.cuda.get_device_name(),
+		"Allocated_GPU(GB)": torch.cuda.memory_allocated() / gigabyte_coefficient,
+		"Reserved_GPU(GB)": torch.cuda.memory_reserved() / gigabyte_coefficient,
+		"Free_GPU(GB)": free / gigabyte_coefficient,
+		"Total_GPU(GB)": total / gigabyte_coefficient,
+		"Peak_allocated_GPU(GB)": torch.cuda.max_memory_allocated() / gigabyte_coefficient
+	}
+    return gpu_state
+
+def show_GPU_state(gpu_state_info: dict):
+    print("====GPU STATE====")
+    for gpu_property, gpu_amount in gpu_state_info.items():
+		print(f"{gpu_property}: {gpu_amount}")
+    print("=" * 30)
 
 if __name__ == "__main__":
 	saved_models_path = "trained_models/one_face"
