@@ -1,5 +1,6 @@
 torch
 torchmetrics
+torchvision
 numpy
 matplotlib
 PyQt5
