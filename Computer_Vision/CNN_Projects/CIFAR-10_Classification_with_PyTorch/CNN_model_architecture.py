@@ -13,12 +13,12 @@ class TinyVGG_Architecture_CNN(nn.Module):
 		self.input_conv_pool_block = nn.Sequential(
 			nn.Conv2d(
 				in_channels = input_shape, out_channels = hidden_units,
-				kernel_size = 3
+				kernel_size = 3, padding = 1
 			),
 			nn.ReLU(),
 			nn.Conv2d(
 				in_channels = hidden_units, out_channels = hidden_units,
-				kernel_size = 3
+				kernel_size = 3, padding = 1
 			),
 			nn.ReLU(),
 			nn.MaxPool2d(kernel_size = 2)
@@ -26,20 +26,22 @@ class TinyVGG_Architecture_CNN(nn.Module):
 		self.conv_pool_block = nn.Sequential(
 			nn.Conv2d(
 				in_channels = hidden_units, out_channels = hidden_units,
-				kernel_size = 3
+				kernel_size = 3, padding = 1
 			),
 			nn.ReLU(),
 			nn.Conv2d(
 				in_channels = hidden_units, out_channels = hidden_units,
-				kernel_size = 3
+				kernel_size = 3, padding = 1
 			),
 			nn.ReLU(),
 			nn.MaxPool2d(kernel_size = 2)
 		)
-		self.features_extraction_blocks = self.get_features_extraction_CNN_part(2)
+		self.features_extraction_blocks = self.get_features_extraction_CNN_part(4)
 		self.linear_classifier = nn.Sequential(
 			nn.Flatten(),
-			nn.Linear(in_features = self.get_flatten_size(), out_features = output_shape)
+			nn.Linear(in_features = self.get_flatten_size(), out_features = 128),
+			nn.Dropout(0.4),
+			nn.Linear(in_features = 128, out_features = output_shape)
 		)
 
 	def get_features_extraction_CNN_part(self, blocks_n: int, include_input_block = True) -> nn.ModuleList:
