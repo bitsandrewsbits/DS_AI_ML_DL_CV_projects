@@ -10,12 +10,12 @@ import CNN_model_architecture as cnnma
 import global_variables as gv
 
 class Images_Classification:
-	def __init__(self, trained_model_name: str):
+	def __init__(self, trained_model_dirname: str):
 		self.datasets_dir = gv.DATASETS_DIR
 		self.trained_models_dir = gv.TRAINED_MODELS_DIR
-		self.trained_model_name = trained_model_name
+		self.trained_model_dirname = trained_model_dirname
 		self.trained_models_path = Path(self.trained_models_dir)
-		self.trained_model_path = self.trained_models_path / self.trained_model_name
+		self.trained_model_path = self.trained_models_path / self.trained_model_dirname
 
 		self.transforms = v2.Compose([
 			v2.ToImage(),
@@ -43,7 +43,7 @@ class Images_Classification:
 		)
 		self.test_samples = self.get_random_samples()
 		self.test_samples_evaluation = {
-			"model_name": self.trained_model_name,
+			"trained_model_path": self.trained_model_path,
 			"eval_results": []
 		}
 
@@ -60,8 +60,9 @@ class Images_Classification:
 		self.show_test_samples_evaluation()
 
 	def load_model_weights(self):
+		trained_model_weights_path = self.trained_model_path / "trained_CNN_model.pth"
 		self.model_with_architecture.load_state_dict(
-			torch.load(f = self.trained_model_path)
+			torch.load(f = trained_model_weights_path)
 		)
 
 	def get_random_samples(self):
@@ -122,5 +123,6 @@ class Images_Classification:
 		plt.show()
 
 if __name__ == "__main__":
-	images_classification = Images_Classification("cnn_model.pth")
+	trained_model_dirname = "training_#1"
+	images_classification = Images_Classification(trained_model_dirname)
 	images_classification.main()
