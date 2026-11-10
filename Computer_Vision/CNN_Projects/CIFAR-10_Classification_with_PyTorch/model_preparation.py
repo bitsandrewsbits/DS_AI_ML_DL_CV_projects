@@ -1,7 +1,7 @@
 # model ML flow process - model loading prepared data, training, evaluating, tuning
 import torch
 from torchvision.datasets import CIFAR10
-from torchvision.transforms import ToTensor
+from torchvision.transforms import v2
 from torch.utils.data import DataLoader
 from torch.optim import SGD
 from torchmetrics import Accuracy
@@ -9,25 +9,33 @@ import matplotlib
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
 from pathlib import Path
+import json
 
 import CNN_model_architecture as cnnma
 import global_variables as gv
 
 class CNN_Model_Preparation:
-	def __init__(self, trained_model_name: str):
+	def __init__(self, trained_model_dirname: str):
 		self.datasets_dir = gv.DATASETS_DIR
+
+		self.transforms = v2.Compose([
+			v2.ToImage(),
+			v2.RandomHorizontalFlip(p = 0.5),
+			v2.ToDtype(torch.float32, scale = True)
+		])
+
 		self.train_set = CIFAR10(
 			root = self.datasets_dir,
 			train = True,
 			download = True,
-			transform = ToTensor(),
+			transform = self.transforms,
 			target_transform = None
 		)
 		self.test_set = CIFAR10(
 			root = self.datasets_dir,
 			train = False,
 			download = True,
-			transform = ToTensor(),
+			transform = self.transforms,
 			target_transform = None
 		)
 		self.batch_size = 32
@@ -67,19 +75,37 @@ class CNN_Model_Preparation:
 		self.train_accuracy = []
 		self.valid_loss = []
 		self.valid_accuracy = []
+		self.final_classification_metrics = {
+			"loss": 0.0,
+			"accuracy": 0.0
+		}
 
-		self.trained_models_dir = gv.TRAINED_MODELS_DIR
-		self.trained_model_name = trained_model_name
+		self.trained_models_root_path = Path(gv.TRAINED_MODELS_DIR)
+		self.trained_model_dir = trained_model_dirname
 
 	def main(self):
-		trained_model = self.get_trained_model()
+		trained_model_path = self.create_dirs_for_trained_model()
+		self.train_model()
 		self.show_loss_accuracy_curves()
-		self.save_trained_model()
+		final_valid_loss, final_valid_accuracy = self.evaluate_model()
+		self.final_classification_metrics["loss"] = final_valid_loss
+		self.final_classification_metrics["accuracy"] = final_valid_accuracy
+		self.save_trained_model(trained_model_path)
+		self.save_model_classification_metrics(trained_model_path)
 
-	def get_trained_model(self):
+	def create_dirs_for_trained_model(self) -> Path:
+		self.trained_models_root_path.mkdir(parents = True, exist_ok = True)
+		trained_model_path = self.trained_models_root_path / self.trained_model_dir
+		trained_model_path.mkdir(parents = True, exist_ok = True)
+		return trained_model_path
+
+	def train_model(self):
 		for epoch in range(1, self.epochs + 1):
 			print(f"Epoch #{epoch}:", end = '')
 			self.train_step()
+			valid_loss, valid_accuracy = self.evaluate_model()
+			self.valid_loss.append(valid_loss)
+			self.valid_accuracy.append(valid_accuracy)
 
 	def train_step(self):
 		epoch_sum_loss = 0
@@ -105,12 +131,11 @@ class CNN_Model_Preparation:
 		epoch_loss = round(epoch_sum_loss.item() / len(self.train_dataloader), 3)
 		epoch_accuracy = round(epoch_sum_accuracy.item() / len(self.train_dataloader), 3)
 		print(f"train loss: {epoch_loss}, train accuracy: {epoch_accuracy}", end = '')
-		self.evaluate_model()
 
 		self.train_loss.append(epoch_loss)
 		self.train_accuracy.append(epoch_accuracy)
 
-	def evaluate_model(self):
+	def evaluate_model(self) -> tuple[float, float]:
 		eval_sum_loss = 0
 		eval_sum_accuracy = 0
 		self.CNN_model.eval()
@@ -129,9 +154,7 @@ class CNN_Model_Preparation:
 			eval_loss = round(eval_sum_loss.item() / len(self.test_dataloader), 3)
 			eval_accuracy = round(eval_sum_accuracy.item() / len(self.test_dataloader), 3)
 		print(f", eval loss: {eval_loss}, eval accuracy: {eval_accuracy}")
-		
-		self.valid_loss.append(eval_loss)
-		self.valid_accuracy.append(eval_accuracy)
+		return eval_loss, eval_accuracy
 
 	def get_batch_size(self):
 		for batch in self.train_dataloader:
@@ -159,16 +182,22 @@ class CNN_Model_Preparation:
 		
 		plt.show()
 
-	def save_trained_model(self):
-		trained_models_dir_path = Path(self.trained_models_dir)
-		trained_models_dir_path.mkdir(parents = True, exist_ok = True)
-		trained_model_save_path = trained_models_dir_path / self.trained_model_name
+	def save_trained_model(self, trained_model_path: Path):
+		trained_model_save_path = trained_model_path / "trained_CNN_model.pth"
 		print(f"Saving trained model to {trained_model_save_path}...")
 		torch.save(
 			obj = self.CNN_model.state_dict(),
 			f = trained_model_save_path
 		)
 
+	def save_model_classification_metrics(self, trained_model_path: Path):
+		trained_model_class_metrics_path = trained_model_path / "classification_metrics.json"
+		print(f"Saving trained model classification metrics to {trained_model_class_metrics_path}...")
+		with open(trained_model_class_metrics_path, "w") as cl_f:
+			json.dump(self.final_classification_metrics, cl_f, indent = 4)
+
 if __name__ == "__main__":
-	model_preparation = CNN_Model_Preparation("cnn_model.pth")
+	model_preparation = CNN_Model_Preparation(
+		trained_model_dirname = "training_#1"
+	)
 	model_preparation.main()
