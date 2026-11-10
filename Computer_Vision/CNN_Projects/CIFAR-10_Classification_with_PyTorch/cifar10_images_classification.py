@@ -1,7 +1,7 @@
 # program for CIFAR-10 image classification via CNN model
 import torch
 from torchvision.datasets import CIFAR10
-from torchvision.transforms import ToTensor
+from torchvision.transforms import v2
 from pathlib import Path
 import matplotlib.pyplot as plt
 import random
@@ -17,11 +17,16 @@ class Images_Classification:
 		self.trained_models_path = Path(self.trained_models_dir)
 		self.trained_model_path = self.trained_models_path / self.trained_model_name
 
+		self.transforms = v2.Compose([
+			v2.ToImage(),
+			v2.ToDtype(torch.float32, scale = True)
+		])
+
 		self.test_dataset = CIFAR10(
 			root = self.datasets_dir,
 			train = False,
 			download = True,
-			transform = ToTensor(),
+			transform = self.transforms,
 			target_transform = None
 		)
 		self.classes_names = self.test_dataset.classes
