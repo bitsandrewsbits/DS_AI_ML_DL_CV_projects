@@ -82,16 +82,18 @@ class CNN_Model_Preparation:
 
 		self.trained_models_root_path = Path(gv.TRAINED_MODELS_DIR)
 		self.trained_model_dir = trained_model_dirname
+		self.trained_model_path = self.create_dirs_for_trained_model()
 
 	def main(self):
-		trained_model_path = self.create_dirs_for_trained_model()
 		self.train_model()
-		self.show_loss_accuracy_curves()
+		eval_plots_path = self.create_custom_eval_plots_dir()
+		eval_figure = self.get_loss_accuracy_curves_figure()
+		self.save_eval_plots(eval_figure, eval_plots_path)
 		final_valid_loss, final_valid_accuracy = self.evaluate_model()
 		self.final_classification_metrics["loss"] = final_valid_loss
 		self.final_classification_metrics["accuracy"] = final_valid_accuracy
-		self.save_trained_model(trained_model_path)
-		self.save_model_classification_metrics(trained_model_path)
+		self.save_trained_model(self.trained_model_path)
+		self.save_model_classification_metrics(self.trained_model_path)
 
 	def create_dirs_for_trained_model(self) -> Path:
 		self.trained_models_root_path.mkdir(parents = True, exist_ok = True)
@@ -160,8 +162,14 @@ class CNN_Model_Preparation:
 		for batch in self.train_dataloader:
 			return batch[0].shape
 
-	def show_loss_accuracy_curves(self):
-		fig, ax = plt.subplots(2, 1)
+	def create_custom_eval_plots_dir(self) -> Path:
+		custom_eval_plots_path = self.trained_model_path / "custom_eval_plots"
+		custom_eval_plots_path.mkdir(parents = True, exist_ok = True)
+		return custom_eval_plots_path
+
+	def get_loss_accuracy_curves_figure(self, show_plots = False) -> plt.Figure:
+		fig = plt.figure(figsize = (14.5, 8.5))
+		fig.subplots(2, 1)
 		epochs = [i for i in range(1, len(self.train_loss) + 1)]
 
 		plt.subplot(2, 1, 1)
@@ -180,7 +188,12 @@ class CNN_Model_Preparation:
 		plt.ylabel("accuracy")
 		plt.legend()
 		
-		plt.show()
+		if show_plots:
+			plt.show()
+		return fig
+
+	def save_eval_plots(self, figure: plt.Figure, eval_plots_path: Path):
+		figure.savefig(eval_plots_path / "loss-accuracy.png")
 
 	def save_trained_model(self, trained_model_path: Path):
 		trained_model_save_path = trained_model_path / "trained_CNN_model.pth"
