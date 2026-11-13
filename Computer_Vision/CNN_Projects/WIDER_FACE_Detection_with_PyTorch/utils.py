@@ -33,15 +33,15 @@ def show_MAE_curve_plot(epochs: list, MAE: list, MAE_type: str):
 	plt.legend()
 	plt.grid(True)
 
-def get_trained_model_dir(trained_models_root_path: Path, cv_task: str) -> Path:
+def get_trained_model_dir(trained_models_root_path: Path, cv_task: str, model_type: str) -> Path:
 	trained_models_for_cv_task_root_path = trained_models_root_path / cv_task
 	trained_models_for_cv_task_root_path.mkdir(parents = True, exist_ok = True)
-	
+
 	current_date = get_current_datetime()
 	trained_model_dirname_pattern = f"training_in_"
 	trained_models_cv_task = os.listdir(trained_models_for_cv_task_root_path)
 	trained_model_dirname = f"{trained_model_dirname_pattern}{current_date}"
-	trained_model_dir_path = trained_models_for_cv_task_root_path / trained_model_dirname
+	trained_model_dir_path = trained_models_for_cv_task_root_path / f"with_{model_type}_models" / trained_model_dirname
 	trained_model_dir_path.mkdir(parents = True, exist_ok = True)
 	return trained_model_dir_path
 
@@ -121,10 +121,10 @@ def get_gpu_memory_state() -> dict:
     return gpu_state
 
 def show_GPU_state(gpu_state_info: dict):
-    print("====GPU STATE====")
-    for gpu_property, gpu_amount in gpu_state_info.items():
+	print("====GPU STATE====")
+	for gpu_property, gpu_amount in gpu_state_info.items():
 		print(f"{gpu_property}: {gpu_amount}")
-    print("=" * 30)
+	print("=" * 30)
 
 if __name__ == "__main__":
 	saved_models_path = "trained_models/one_face"
