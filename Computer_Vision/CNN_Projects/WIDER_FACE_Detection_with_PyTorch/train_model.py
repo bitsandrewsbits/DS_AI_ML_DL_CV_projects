@@ -61,6 +61,12 @@ def main():
 		help = "Enter a hidden units amount in hidden layer.",
 		required = True
 	)
+	input_args.add_argument(
+		"-mt", "--model_type",
+		choices = ["custom", "pretrained"],
+		help = "Enter a model type for training.",
+		required = True
+	)
 	
 	received_args = input_args.parse_args()
 	cv_task = received_args.cv_task
@@ -84,6 +90,7 @@ def main():
 	learning_rate = float(received_args.learning_rate)
 	hidden_units = int(received_args.hidden_units)
 	epochs = int(received_args.epochs)
+	model_type = received_args.model_type
 
 	datasets_prep = pdc.Datasets_Praparation(
 		image_size = (image_width, image_height),
@@ -102,19 +109,23 @@ def main():
 	root_trained_models_dir_path = Path(ROOT_TRAINED_MODELS_DIRNAME)
 	save_trained_model_path = utils.get_trained_model_dir(
 		trained_models_root_path = root_trained_models_dir_path,
-		cv_task = cv_task
+		cv_task = cv_task,
+		model_type = model_type
 	)
 	
 	if cv_task == "one_face":
 		INPUT_SHAPE = 3
 		OUTPUT_SHAPE = 4
-		face_detect_model = cofdm.One_Face_Detection_CNN(
-			input_shape = INPUT_SHAPE,
-			hidden_units = hidden_units,
-			output_shape = OUTPUT_SHAPE,
-			batch_size = batch_size,
-			image_wh = (image_width, image_height)
-		)
+		if model_type == "custom":
+			face_detect_model = cofdm.One_Face_Detection_CNN(
+				input_shape = INPUT_SHAPE,
+				hidden_units = hidden_units,
+				output_shape = OUTPUT_SHAPE,
+				batch_size = batch_size,
+				image_wh = (image_width, image_height)
+			)
+		elif model_type == "pretrained":
+			face_detect_model = "model_loaded_from_torchvision"
 
 		model_train = tl.Model_Training(
 			save_trained_model_path = save_trained_model_path,
