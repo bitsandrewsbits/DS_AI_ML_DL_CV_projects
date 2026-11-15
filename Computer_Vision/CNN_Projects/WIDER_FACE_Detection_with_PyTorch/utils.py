@@ -126,6 +126,10 @@ def show_GPU_state(gpu_state_info: dict):
 		print(f"{gpu_property}: {gpu_amount}")
 	print("=" * 30)
 
+def get_pretrained_models_for_arg_choice(models_config: dict):
+	pretrained_models = [model_name for model_name in models_config.keys()]
+	return pretrained_models
+
 if __name__ == "__main__":
 	saved_models_path = "trained_models/one_face"
 	get_sorted_trained_models_dirnames_by_date(saved_models_path)
