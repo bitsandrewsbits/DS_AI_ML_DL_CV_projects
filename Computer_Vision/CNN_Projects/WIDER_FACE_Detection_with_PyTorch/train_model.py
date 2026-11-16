@@ -10,6 +10,7 @@ import pytorch_datasets_creation as pdc
 import CNN_one_face_detection_model as cofdm
 import training_loop as tl
 import utils
+import pretrained_detection_models_config as pdmc
 
 def main():
 	input_args = argparse.ArgumentParser()
@@ -66,6 +67,13 @@ def main():
 		choices = ["custom", "pretrained"],
 		help = "Enter a model type for training.",
 		required = True
+	)
+	input_args.add_argument(
+		"-ptm", "--pretrained_model",
+		choices = utils.get_pretrained_models_for_arg_choice(
+			pdmc.PRETRAINED_DETECTION_MODELS
+		),
+		help = "Enter a pretrained model for training/evalution."
 	)
 	
 	received_args = input_args.parse_args()
@@ -125,7 +133,15 @@ def main():
 				image_wh = (image_width, image_height)
 			)
 		elif model_type == "pretrained":
-			face_detect_model = "model_loaded_from_torchvision"
+			model_name = received_args.pretrained_model
+			if model_name:
+				face_detect_model = pdmc.PRETRAINED_DETECTION_MODELS[model_name]["model"](
+					weights = pdmc.PRETRAINED_DETECTION_MODELS[model_name]["weights"]
+				)
+				# TODO: think, how to solve problem with test dataset without labels for
+				# pretrained models.
+			else:
+				print("[WARN] Pretrained model was not found!")
 
 		model_train = tl.Model_Training(
 			save_trained_model_path = save_trained_model_path,
