@@ -3,7 +3,8 @@ import torch
 from torch import nn
 
 class TinyVGG_Architecture_CNN(nn.Module):
-	def __init__(self, input_shape: int, hidden_units: int, output_shape: int, batch_shape: torch.Tensor):
+	def __init__(self, input_shape: int, hidden_units: int, output_shape: int,
+	batch_shape: torch.Tensor, features_extract_blocks_amount: int):
 		super().__init__()
 		self.input_shape = input_shape
 		self.hidden_units = hidden_units
@@ -36,7 +37,9 @@ class TinyVGG_Architecture_CNN(nn.Module):
 			nn.ReLU(),
 			nn.MaxPool2d(kernel_size = 2)
 		)
-		self.features_extraction_blocks = self.get_features_extraction_CNN_part(4)
+		self.features_extraction_blocks = self.get_features_extraction_CNN_part(
+			features_extract_blocks_amount
+		)
 		self.linear_classifier = nn.Sequential(
 			nn.Flatten(),
 			nn.Linear(in_features = self.get_flatten_size(), out_features = 128),
@@ -77,6 +80,6 @@ if __name__ == "__main__":
 	color_channels = 3
 	classes_amount = 10
 	test_batch_data = torch.randn(size = (32, color_channels, 128, 128))
-	model = TinyVGG_Architecture_CNN(color_channels, 64, classes_amount, test_batch_data.shape)
+	model = TinyVGG_Architecture_CNN(color_channels, 64, classes_amount, test_batch_data.shape, 2)
 	test_model_inference_logits = model(test_batch_data)
 	print("Output logits shape:", test_model_inference_logits.shape)
