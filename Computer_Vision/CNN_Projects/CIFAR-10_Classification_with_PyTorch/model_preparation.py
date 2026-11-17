@@ -15,7 +15,8 @@ import CNN_model_architecture as cnnma
 import global_variables as gv
 
 class CNN_Model_Preparation:
-	def __init__(self, trained_model_dirname: str):
+	def __init__(self, trained_model_dirname: str, model_features_extract_blocks: int,
+	color_channels: int, hidden_units: int, batch_size: int, learning_rate: float, epochs: int):
 		self.datasets_dir = gv.DATASETS_DIR
 
 		self.transforms = v2.Compose([
@@ -38,7 +39,7 @@ class CNN_Model_Preparation:
 			transform = self.transforms,
 			target_transform = None
 		)
-		self.batch_size = 32
+		self.batch_size = batch_size
 		self.train_dataloader = DataLoader(
 			dataset = self.train_set,
 			batch_size = self.batch_size,
@@ -48,28 +49,31 @@ class CNN_Model_Preparation:
 			dataset = self.test_set,
 			batch_size = self.batch_size
 		)
-		self.color_channels = gv.MODEL_HYPERPARAMETERS["color_channels"]
-		self.hidden_units = gv.MODEL_HYPERPARAMETERS["hidden_units"]
+		self.color_channels = color_channels
+		self.hidden_units = hidden_units
+		self.model_features_extraction_blocks = model_features_extract_blocks
 		self.classification_classes = self.train_set.classes
 		self.classes_amount = len(self.classification_classes)
 		self.image_shape = self.train_set[0][0].shape
-		self.batch_shape = self.get_batch_size()
+		self.batch_shape = self.get_batch_shape()
 
 		self.compute_device = "cuda" if torch.cuda.is_available() else "cpu"
 		self.CNN_model = cnnma.TinyVGG_Architecture_CNN(
 			self.color_channels, self.hidden_units,
-			self.classes_amount, self.batch_shape
+			self.classes_amount, self.batch_shape,
+			self.model_features_extraction_blocks
 		).to(self.compute_device)
 
 		self.loss_func = torch.nn.CrossEntropyLoss()
+		self.learning_rate = learning_rate
 		self.optimizer = SGD(
-			params = self.CNN_model.parameters(), lr = 0.01
+			params = self.CNN_model.parameters(), lr = self.learning_rate
 		)
 		self.accuracy_func = Accuracy(
 			task = "multiclass",
 			num_classes = self.classes_amount
 		).to(self.compute_device)
-		self.epochs = 70
+		self.epochs = epochs
 
 		self.train_loss = []
 		self.train_accuracy = []
@@ -158,7 +162,7 @@ class CNN_Model_Preparation:
 		print(f", eval loss: {eval_loss}, eval accuracy: {eval_accuracy}")
 		return eval_loss, eval_accuracy
 
-	def get_batch_size(self):
+	def get_batch_shape(self):
 		for batch in self.train_dataloader:
 			return batch[0].shape
 
@@ -211,6 +215,12 @@ class CNN_Model_Preparation:
 
 if __name__ == "__main__":
 	model_preparation = CNN_Model_Preparation(
-		trained_model_dirname = "training_#1"
+		trained_model_dirname = "training_#2",
+		model_features_extract_blocks = 1,
+		color_channels = 3,
+		hidden_units = 25,
+		batch_size = 32,
+		learning_rate = 0.01,
+		epochs = 3
 	)
 	model_preparation.main()
