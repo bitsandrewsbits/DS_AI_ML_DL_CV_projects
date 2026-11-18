@@ -1,10 +1,4 @@
 DATASETS_DIR = "datasets"
-
-MODEL_HYPERPARAMETERS = {
-	"color_channels": 3,
-	"hidden_units": 256
-}
-
 TRAINED_MODELS_DIR = "trained_models"
 EVALUATION_SAMPLES_AMOUNT = 10
 EVALUATION_SUBPLOTS_ROWS = 2
