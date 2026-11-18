@@ -93,11 +93,16 @@ class CNN_Model_Preparation:
 		eval_plots_path = self.create_custom_eval_plots_dir()
 		eval_figure = self.get_loss_accuracy_curves_figure()
 		self.save_eval_plots(eval_figure, eval_plots_path)
+		print('-' * 40)
+		print("Final evaluation loss/accuray:")
 		final_valid_loss, final_valid_accuracy = self.evaluate_model()
+		print('-' * 40)
 		self.final_classification_metrics["loss"] = final_valid_loss
 		self.final_classification_metrics["accuracy"] = final_valid_accuracy
-		self.save_trained_model(self.trained_model_path)
-		self.save_model_classification_metrics(self.trained_model_path)
+		self.save_trained_model()
+		model_train_config = self.get_model_train_config()
+		self.save_model_train_config(model_train_config)
+		self.save_model_classification_metrics()
 
 	def create_dirs_for_trained_model(self) -> Path:
 		self.trained_models_root_path.mkdir(parents = True, exist_ok = True)
@@ -159,7 +164,7 @@ class CNN_Model_Preparation:
 				eval_sum_accuracy += batch_eval_accuracy
 			eval_loss = round(eval_sum_loss.item() / len(self.test_dataloader), 3)
 			eval_accuracy = round(eval_sum_accuracy.item() / len(self.test_dataloader), 3)
-		print(f", eval loss: {eval_loss}, eval accuracy: {eval_accuracy}")
+		print(f"eval loss: {eval_loss}, eval accuracy: {eval_accuracy}")
 		return eval_loss, eval_accuracy
 
 	def get_batch_shape(self):
@@ -196,19 +201,36 @@ class CNN_Model_Preparation:
 			plt.show()
 		return fig
 
+	def get_model_train_config(self) -> dict:
+		model_train_config = {
+			"model_features_extract_blocks": self.model_features_extraction_blocks,
+			"color_channels": self.color_channels,
+			"hidden_units": self.hidden_units,
+			"batch_size": self.batch_size,
+			"learning_rate": self.learning_rate,
+			"epochs": self.epochs
+		}
+		return model_train_config
+
+	def save_model_train_config(self, config: dict):
+		train_model_config_save_path = self.trained_model_path / "model_train_config.json"
+		print(f"Saving model/train hyperparameters to {train_model_config_save_path}...")
+		with open(train_model_config_save_path, "w") as mtc_f:
+			json.dump(config, mtc_f, indent = 4)
+
 	def save_eval_plots(self, figure: plt.Figure, eval_plots_path: Path):
 		figure.savefig(eval_plots_path / "loss-accuracy.png")
 
-	def save_trained_model(self, trained_model_path: Path):
-		trained_model_save_path = trained_model_path / "trained_CNN_model.pth"
+	def save_trained_model(self):
+		trained_model_save_path = self.trained_model_path / "trained_CNN_model.pth"
 		print(f"Saving trained model to {trained_model_save_path}...")
 		torch.save(
 			obj = self.CNN_model.state_dict(),
 			f = trained_model_save_path
 		)
 
-	def save_model_classification_metrics(self, trained_model_path: Path):
-		trained_model_class_metrics_path = trained_model_path / "classification_metrics.json"
+	def save_model_classification_metrics(self):
+		trained_model_class_metrics_path = self.trained_model_path / "classification_metrics.json"
 		print(f"Saving trained model classification metrics to {trained_model_class_metrics_path}...")
 		with open(trained_model_class_metrics_path, "w") as cl_f:
 			json.dump(self.final_classification_metrics, cl_f, indent = 4)
