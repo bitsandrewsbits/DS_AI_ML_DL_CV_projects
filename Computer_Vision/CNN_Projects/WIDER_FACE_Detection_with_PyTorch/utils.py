@@ -101,7 +101,7 @@ def get_model_weights_size_in_GiB(model: torch.nn.Module) -> float:
 def save_train_parameters(parameters: dict, train_config_path: Path):
 	train_config_name = "train_config.json"
 	with open(train_config_path / train_config_name, "w") as cf:
-		json.dump(parameters, cf)
+		json.dump(parameters, cf, indent = 4)
 
 def get_train_config_params(train_config_path: Path) -> dict:
 	with open(train_config_path, "r") as cf:
