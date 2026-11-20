@@ -15,16 +15,16 @@ import CNN_one_face_detection_model as ofdm
 import utils as u
 
 class Face_Detector:
-	def __init__(self, training_datetime: str, test_images_path: Path = None,
-		cv_task: str = "one_face", trained_models_path: Path = None,
-		load_pretrained_model: bool = False, test_image_from_file: bool = True):
+	def __init__(self, training_datetime: str, test_images_path: Path,
+		cv_task: str, trained_models_path: Path,
+		load_model_type: str, test_image_from_file: bool):
 		self.compute_device = "cuda" if torch.cuda.is_available() else "cpu"
 		self.cv_task = cv_task
 		self.model_training_datetime = training_datetime
 		self.trained_models_path = trained_models_path
-		self.load_pretrained_model = load_pretrained_model
+		self.load_model_type = load_model_type
 		self.test_image_from_file = test_image_from_file
-		self.trained_model_path = self.get_trained_model_path()
+		self.trained_custom_model_path = self.get_trained_custom_model_path()
 		self.test_images_path = test_images_path
 		self.test_images_pathes = []
 		self.trained_model_weights_file = "trained_model.pth"
@@ -34,10 +34,14 @@ class Face_Detector:
 		self.transforms_for_test_image = object
 
 	def main(self):
-		if self.trained_model_path:
-			self.load_custom_trained_model()
-			self.define_test_image_transforms()
-		elif self.load_pretrained_model:
+		if self.load_model_type == "custom":
+			if self.trained_custom_model_path:
+				self.load_custom_trained_model()
+				self.define_test_image_transforms()
+			else:
+				print("[WARN] Custom model path was not found! exitting...")
+				return None
+		elif self.load_model_type == "pretrained":
 			pass
 		else:
 			print("[WARN] Model was not loaded! exitting...")
@@ -52,10 +56,11 @@ class Face_Detector:
 		else:
 			pass
 
-	def get_trained_model_path(self) -> Path:
+	def get_trained_custom_model_path(self) -> Path:
 		if self.trained_models_path:
 			model_path = (
 				self.trained_models_path / self.cv_task / 
+				f"with_{self.load_model_type}_models" /
 				f"training_in_{self.model_training_datetime}"
 			)
 			return model_path
@@ -64,20 +69,24 @@ class Face_Detector:
 			return None
 
 	def load_custom_trained_model(self):
-		if self.trained_model_weights_file in os.listdir(self.trained_model_path):
-			train_config_path = self.trained_model_path / self.train_config_file
+		if self.trained_model_weights_file in os.listdir(self.trained_custom_model_path):
+			train_config_path = self.trained_custom_model_path / self.train_config_file
 			self.train_config_params = u.get_train_config_params(train_config_path)
+			model_weights_path = self.trained_custom_model_path / self.trained_model_weights_file
 			
 			self.trained_model = ofdm.One_Face_Detection_CNN(
 				self.train_config_params["input_shape"], self.train_config_params["hidden_units"],
 				self.train_config_params["output_shape"], self.train_config_params["batch_size"],
 				(self.train_config_params["image_width"], self.train_config_params["image_height"])
 			)
-			self.trained_model.load_state_dict(
-				state_dict = torch.load(
-					f = self.trained_model_path / self.trained_model_weights_file
+			try:
+				self.trained_model.load_state_dict(
+					state_dict = torch.load(f = model_weights_path)
 				)
-			)
+			except:
+				print("Error during loading model weights to init model object!")
+		else:
+			raise FileNotFoundError(f"Trained model weights file was not found at {self.trained_custom_model_path}")
 
 	def define_test_image_transforms(self):
 		image_size = (
@@ -134,11 +143,11 @@ if __name__ == "__main__":
 	test_images_path = Path("data/WIDER_sets/WIDER_test/images")
 	trained_models_root_path = Path("trained_models")
 	face_detector = Face_Detector(
-		training_datetime = "31-10-2026(17:05:24)",
+		training_datetime = "11-13-2026(22:53:09)",
 		test_images_path = test_images_path,
 		cv_task = "one_face",
 		trained_models_path = trained_models_root_path,
-		load_pretrained_model = False,
+		load_model_type = "custom",
 		test_image_from_file = True
 	)
 	face_detector.main()
