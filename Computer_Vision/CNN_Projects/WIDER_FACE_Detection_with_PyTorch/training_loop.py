@@ -13,6 +13,11 @@ from pathlib import Path
 
 import pytorch_datasets_creation as pdc
 import CNN_one_face_detection_model as cofdm
+import utils as u
+
+# TODO: think, Does it necessary to rename this file/class for custom-model-training-pipeline ?
+# Will be optimal to add and update the similar pipeline-file for pretrained models?
+# Also think, how to change dataset-creation class for correct format to pretrained models from torchvision.
 
 class Model_Training:
 	def __init__(self, save_trained_model_path: Path, model_obj,
@@ -45,12 +50,20 @@ class Model_Training:
 	def train_model(self):
 		self.training_logs_writer = self.get_summary_writer()
 		for epoch in range(1, self.epochs + 1):
+			print(f"[INFO] Epoch #{epoch}:")
+			if torch.cuda.is_available():
+				gpu_state_info = u.get_gpu_memory_state()
+				u.show_GPU_state(gpu_state_info)
+			else:
+				print("[WARN] GPU is not available. Train process uses CPU!")
+				
 			epoch_loss, epoch_MAE = self.train_step()
 			epoch_val_loss, epoch_val_MAE = self.validation_step()
 			print(
-				f"[INFO] Epoch #{epoch}: train_loss = {epoch_loss}, train_MAE = {epoch_MAE} |"
+				f"Metrics: train_loss = {epoch_loss}, train_MAE = {epoch_MAE} |"
 				f" valid_loss = {epoch_val_loss}, valid_MAE = {epoch_val_MAE}"
 			)
+			print('-' * 60)
 			self.train_losses.append(epoch_loss)
 			self.eval_losses.append(epoch_val_loss)
 			self.train_MAEs.append(epoch_MAE)
