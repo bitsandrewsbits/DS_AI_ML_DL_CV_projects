@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytorch_datasets_creation as pdc
 import CNN_one_face_detection_model as cofdm
-import training_loop as tl
+import train_custom_model_pipeline as tcmp
 import utils
 import pretrained_detection_models_config as pdmc
 
@@ -143,7 +143,7 @@ def main():
 			else:
 				print("[WARN] Pretrained model was not found!")
 
-		model_train = tl.Model_Training(
+		model_train = tcmp.Custom_Model_Training_Pipeline(
 			save_trained_model_path = save_trained_model_path,
 			model_obj = face_detect_model,
 			dataloaders = face_detect_dataloaders,
