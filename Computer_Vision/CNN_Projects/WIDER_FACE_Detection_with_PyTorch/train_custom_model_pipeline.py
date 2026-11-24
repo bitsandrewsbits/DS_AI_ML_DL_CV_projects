@@ -19,7 +19,7 @@ import utils as u
 # Will be optimal to add and update the similar pipeline-file for pretrained models?
 # Also think, how to change dataset-creation class for correct format to pretrained models from torchvision.
 
-class Model_Training:
+class Custom_Model_Training_Pipeline:
 	def __init__(self, save_trained_model_path: Path, model_obj,
 	dataloaders: dict[torch.utils.data.DataLoader],
 	learning_rate = 0.01, epochs = 3):
@@ -148,7 +148,7 @@ if __name__ == "__main__":
 		image_wh = (224, 224)
 	)
 
-	model_train = Model_Training(
+	model_train = Custom_Model_Training_Pipeline(
 		model_obj = face_detect_model,
 		dataloaders = face_detect_dataloaders,
 		learning_rate = 0.1,
