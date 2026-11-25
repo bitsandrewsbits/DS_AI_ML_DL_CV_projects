@@ -4,6 +4,7 @@ from torchvision.datasets import CIFAR10
 from torchvision.transforms import v2
 from torch.utils.data import DataLoader
 from torch.optim import SGD
+from torch.utils.tensorboard import SummaryWriter
 from torchmetrics import Accuracy
 import matplotlib
 matplotlib.use("qt5agg")
@@ -87,6 +88,9 @@ class CNN_Model_Preparation:
 		self.trained_models_root_path = Path(gv.TRAINED_MODELS_DIR)
 		self.trained_model_dir = trained_model_dirname
 		self.trained_model_path = self.create_dirs_for_trained_model()
+		self.log_writer = SummaryWriter(
+			log_dir = self.trained_model_path / "train_logs"
+		)
 
 	def main(self):
 		self.train_model()
@@ -113,10 +117,31 @@ class CNN_Model_Preparation:
 	def train_model(self):
 		for epoch in range(1, self.epochs + 1):
 			print(f"Epoch #{epoch}:", end = '')
-			self.train_step()
+			train_loss, train_accuracy = self.train_step()
 			valid_loss, valid_accuracy = self.evaluate_model()
+
+			self.train_loss.append(train_loss)
+			self.train_accuracy.append(train_accuracy)
 			self.valid_loss.append(valid_loss)
 			self.valid_accuracy.append(valid_accuracy)
+
+			self.log_writer.add_scalars(
+				main_tag = "Loss",
+				tag_scalar_dict = {
+					"train": train_loss,
+					"valid": valid_loss
+				},
+				global_step = epoch
+			)
+			self.log_writer.add_scalars(
+				main_tag = "Accuracy",
+				tag_scalar_dict = {
+					"train": train_accuracy,
+					"valid": valid_accuracy
+				},
+				global_step = epoch
+			)
+		self.log_writer.close()
 
 	def train_step(self):
 		epoch_sum_loss = 0
@@ -142,9 +167,7 @@ class CNN_Model_Preparation:
 		epoch_loss = round(epoch_sum_loss.item() / len(self.train_dataloader), 3)
 		epoch_accuracy = round(epoch_sum_accuracy.item() / len(self.train_dataloader), 3)
 		print(f"train loss: {epoch_loss}, train accuracy: {epoch_accuracy}", end = '')
-
-		self.train_loss.append(epoch_loss)
-		self.train_accuracy.append(epoch_accuracy)
+		return epoch_loss, epoch_accuracy
 
 	def evaluate_model(self) -> tuple[float, float]:
 		eval_sum_loss = 0
