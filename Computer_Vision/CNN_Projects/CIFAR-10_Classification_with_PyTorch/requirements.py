@@ -1,6 +1,7 @@
 torch
 torchmetrics
 torchvision
+tensorboard
 numpy
 matplotlib
 PyQt5
