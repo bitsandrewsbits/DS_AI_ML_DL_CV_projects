@@ -5,7 +5,8 @@ from torchvision.transforms import v2
 from torch.utils.data import DataLoader
 from torch.optim import SGD
 from torch.utils.tensorboard import SummaryWriter
-from torchmetrics import Accuracy
+from torchmetrics import Accuracy, Precision, Recall
+import numpy as np
 import matplotlib
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
@@ -71,18 +72,27 @@ class CNN_Model_Preparation:
 			params = self.CNN_model.parameters(), lr = self.learning_rate
 		)
 		self.accuracy_func = Accuracy(
-			task = "multiclass",
-			num_classes = self.classes_amount
+			task = "multiclass", num_classes = self.classes_amount
+		).to(self.compute_device)
+		self.precision_func = Precision(
+			task = "multiclass", num_classes = self.classes_amount
+		).to(self.compute_device)
+		self.recall_func = Recall(
+			task = "multiclass", num_classes = self.classes_amount
 		).to(self.compute_device)
 		self.epochs = epochs
 
-		self.train_loss = []
-		self.train_accuracy = []
-		self.valid_loss = []
-		self.valid_accuracy = []
+		self.train_metrics = {
+			"train_loss": [], "valid_loss": [],
+			"train_accuracy": [], "valid_accuracy": [],
+			"train_precision": [], "valid_precision": [],
+			"train_recall": [], "valid_recall": []
+		}
 		self.final_classification_metrics = {
 			"loss": 0.0,
-			"accuracy": 0.0
+			"accuracy": 0.0,
+			"precision": 0.0,
+			"recall": 0.0
 		}
 
 		self.trained_models_root_path = Path(gv.TRAINED_MODELS_DIR)
@@ -97,12 +107,7 @@ class CNN_Model_Preparation:
 		eval_plots_path = self.create_custom_eval_plots_dir()
 		eval_figure = self.get_loss_accuracy_curves_figure()
 		self.save_eval_plots(eval_figure, eval_plots_path)
-		print('-' * 40)
-		print("Final evaluation loss/accuray:")
-		final_valid_loss, final_valid_accuracy = self.evaluate_model()
-		print('-' * 40)
-		self.final_classification_metrics["loss"] = final_valid_loss
-		self.final_classification_metrics["accuracy"] = final_valid_accuracy
+		self.define_final_eval_classification_metrics()
 		self.save_trained_model()
 		model_train_config = self.get_model_train_config()
 		self.save_model_train_config(model_train_config)
@@ -117,13 +122,14 @@ class CNN_Model_Preparation:
 	def train_model(self):
 		for epoch in range(1, self.epochs + 1):
 			print(f"Epoch #{epoch}:", end = '')
-			train_loss, train_accuracy = self.train_step()
-			valid_loss, valid_accuracy = self.evaluate_model()
+			train_loss, train_accur_precis_recall = self.train_step()
+			valid_loss, valid_accur_precis_recall = self.evaluate_model()
 
-			self.train_loss.append(train_loss)
-			self.train_accuracy.append(train_accuracy)
-			self.valid_loss.append(valid_loss)
-			self.valid_accuracy.append(valid_accuracy)
+			self.update_train_epoch_metrics(
+				losses = [train_loss, valid_loss],
+				train_accuracy_precision_recall = train_accur_precis_recall,
+				valid_accuracy_precision_recall = valid_accur_precis_recall
+			)
 
 			self.log_writer.add_scalars(
 				main_tag = "Loss",
@@ -136,16 +142,30 @@ class CNN_Model_Preparation:
 			self.log_writer.add_scalars(
 				main_tag = "Accuracy",
 				tag_scalar_dict = {
-					"train": train_accuracy,
-					"valid": valid_accuracy
+					"train": train_accur_precis_recall[0],
+					"valid": valid_accur_precis_recall[0]
 				},
 				global_step = epoch
+			)
+			self.log_writer.add_scalars(
+				main_tag = "Precision",
+				tag_scalar_dict = {
+					"train": train_accur_precis_recall[1],
+					"valid": valid_accur_precis_recall[1]
+				}
+			)
+			self.log_writer.add_scalars(
+				main_tag = "Recall",
+				tag_scalar_dict = {
+					"train": train_accur_precis_recall[2],
+					"valid": valid_accur_precis_recall[2]
+				}
 			)
 		self.log_writer.close()
 
 	def train_step(self):
 		epoch_sum_loss = 0
-		epoch_sum_accuracy = 0
+		epoch_accur_precis_recall_sums = np.array([0.0, 0.0, 0.0])
 		self.CNN_model.train()
 		for (images_batch, labels_batch) in self.train_dataloader:
 			images_batch = images_batch.to(self.compute_device)
@@ -155,23 +175,26 @@ class CNN_Model_Preparation:
 			pred_labels = torch.argmax(pred_probs, dim = 1)
 
 			batch_loss = self.loss_func(logits, labels_batch)
-			batch_accuracy = self.accuracy_func(pred_labels, labels_batch)
+			batch_accur_precis_recall = self.get_batch_accur_precis_recall(
+				pred_labels, labels_batch
+			)
 
 			self.optimizer.zero_grad()
 			batch_loss.backward()
 			self.optimizer.step()
 			
 			epoch_sum_loss += batch_loss
-			epoch_sum_accuracy += batch_accuracy
+			epoch_accur_precis_recall_sums += batch_accur_precis_recall
 
 		epoch_loss = round(epoch_sum_loss.item() / len(self.train_dataloader), 3)
-		epoch_accuracy = round(epoch_sum_accuracy.item() / len(self.train_dataloader), 3)
+		epoch_accur_precis_recall = epoch_accur_precis_recall_sums / len(self.train_dataloader)
+		epoch_accuracy = round(epoch_accur_precis_recall[0], 3)
 		print(f"train loss: {epoch_loss}, train accuracy: {epoch_accuracy}", end = '')
-		return epoch_loss, epoch_accuracy
+		return epoch_loss, epoch_accur_precis_recall
 
 	def evaluate_model(self) -> tuple[float, float]:
 		eval_sum_loss = 0
-		eval_sum_accuracy = 0
+		eval_accur_precis_recall_sums = np.array([0.0, 0.0, 0.0])
 		self.CNN_model.eval()
 		with torch.inference_mode():
 			for (images_batch, labels_batch) in self.test_dataloader:
@@ -182,13 +205,47 @@ class CNN_Model_Preparation:
 				pred_labels = torch.argmax(pred_probs, dim = 1)
 
 				batch_eval_loss = self.loss_func(logits, labels_batch)
-				batch_eval_accuracy = self.accuracy_func(pred_labels, labels_batch)
+				batch_accur_precis_recall = self.get_batch_accur_precis_recall(
+					pred_labels, labels_batch
+				)
 				eval_sum_loss += batch_eval_loss
-				eval_sum_accuracy += batch_eval_accuracy
+				eval_accur_precis_recall_sums += batch_accur_precis_recall
+
 			eval_loss = round(eval_sum_loss.item() / len(self.test_dataloader), 3)
-			eval_accuracy = round(eval_sum_accuracy.item() / len(self.test_dataloader), 3)
+			eval_accur_precis_recall = eval_accur_precis_recall_sums / len(self.test_dataloader)
+			eval_accuracy = round(eval_accur_precis_recall[0], 3)
 		print(f"eval loss: {eval_loss}, eval accuracy: {eval_accuracy}")
-		return eval_loss, eval_accuracy
+		return eval_loss, eval_accur_precis_recall
+
+	def get_batch_accur_precis_recall(self, pred_labels: torch.Tensor, labels_batch: torch.Tensor):
+		batch_accur_precis_recall = np.array([
+			self.accuracy_func(pred_labels, labels_batch).cpu(),
+			self.precision_func(pred_labels, labels_batch).cpu(),
+			self.recall_func(pred_labels, labels_batch).cpu()
+		])
+		return batch_accur_precis_recall
+
+	def update_train_epoch_metrics(self, losses: list,
+	train_accuracy_precision_recall: np.array, valid_accuracy_precision_recall: np.array):
+		self.train_metrics["train_loss"].append(losses[0])
+		self.train_metrics["valid_loss"].append(losses[1])
+		self.train_metrics["train_accuracy"].append(train_accuracy_precision_recall[0])
+		self.train_metrics["train_precision"].append(train_accuracy_precision_recall[1])
+		self.train_metrics["train_recall"].append(train_accuracy_precision_recall[2])
+		self.train_metrics["valid_accuracy"].append(valid_accuracy_precision_recall[0])
+		self.train_metrics["valid_precision"].append(valid_accuracy_precision_recall[1])
+		self.train_metrics["valid_recall"].append(valid_accuracy_precision_recall[2])
+
+	def define_final_eval_classification_metrics(self):
+		print('-' * 40)
+		print("Final evaluation loss/accuray/precision/recall:")
+		final_valid_loss, final_valid_accur_precis_recall = self.evaluate_model()
+		self.final_classification_metrics["loss"] = final_valid_loss
+		self.final_classification_metrics["accuracy"] = final_valid_accur_precis_recall[0]
+		self.final_classification_metrics["precision"] = final_valid_accur_precis_recall[1]
+		self.final_classification_metrics["recall"] = final_valid_accur_precis_recall[2]
+		print(f"precision: {final_valid_accur_precis_recall[1]}, recall: {final_valid_accur_precis_recall[2]}")
+		print('-' * 40)
 
 	def get_batch_shape(self):
 		for batch in self.train_dataloader:
@@ -202,20 +259,20 @@ class CNN_Model_Preparation:
 	def get_loss_accuracy_curves_figure(self, show_plots = False) -> plt.Figure:
 		fig = plt.figure(figsize = (14.5, 8.5))
 		fig.subplots(2, 1)
-		epochs = [i for i in range(1, len(self.train_loss) + 1)]
+		epochs = [i for i in range(1, len(self.train_metrics["train_loss"]) + 1)]
 
 		plt.subplot(2, 1, 1)
 		plt.title("Train/Valid Loss")
-		plt.plot(epochs, self.train_loss, label = 'train-loss')
-		plt.plot(epochs, self.valid_loss, label = 'valid-loss')
+		plt.plot(epochs, self.train_metrics["train_loss"], label = 'train-loss')
+		plt.plot(epochs, self.train_metrics["valid_loss"], label = 'valid-loss')
 		plt.xlabel("epoch")
 		plt.ylabel("loss")
 		plt.legend()
 
 		plt.subplot(2, 1, 2)
 		plt.title("Train/Valid Accuracy")
-		plt.plot(epochs, self.train_accuracy, label = 'train-accuracy')
-		plt.plot(epochs, self.valid_accuracy, label = 'valid-accuracy')
+		plt.plot(epochs, self.train_metrics["train_accuracy"], label = 'train-accuracy')
+		plt.plot(epochs, self.train_metrics["valid_accuracy"], label = 'valid-accuracy')
 		plt.xlabel("epoch")
 		plt.ylabel("accuracy")
 		plt.legend()
